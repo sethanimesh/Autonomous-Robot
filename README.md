@@ -19,12 +19,17 @@ Phase 1: prove safe Jetson-to-EV3 motor control with encoder and IR feedback.
 
 ## Current status
 
-The Mac workspace has been inventoried. The Jetson and EV3 were not reachable
-from the Mac during the first connection attempt, so remote machine inventory is
-pending.
+The Mac, Jetson, and EV3 have been inventoried over SSH. ROS 2 Humble is already
+installed on the Jetson, and all three EV3 output ports A-C currently report
+large motors. Phase 1 motor work is paused for physical port confirmation and a
+safe wheels-off-ground test setup.
+
+The Jetson previously detected the USB `Arducam_8mp`, but it is not currently
+enumerated. Kernel messages report repeated USB errors and suggest a bad cable or
+connection. No EV3 sensor is currently detected.
 
 See:
 
 - [Development log](docs/DEVELOPMENT_LOG.md)
 - [Hardware notes](docs/HARDWARE_NOTES.md)
-
+- [Existing EV3 server notes](docs/EXISTING_EV3_SERVER.md)
