@@ -38,3 +38,28 @@ Confirm that both devices are powered on and connected to the same LAN, then
 confirm their current IP addresses from the device screens/router. Repeat the
 read-only SSH inventory before installing or changing anything.
 
+## 2026-09-02 19:49 IST — Connectivity recheck
+
+### Scope
+
+Repeated only the network and SSH reachability checks after receiving approval
+to continue. No remote login succeeded, no software or configuration changed,
+and no motor command was sent.
+
+### Results
+
+- **Success:** Confirmed the Mac was still active at `192.168.1.26/24`.
+- **Observation:** The Mac neighbor table contained entries for both supplied
+  device addresses, but a neighbor entry alone does not prove a device is
+  currently online.
+- **Failure:** Jetson TCP port 22 at `192.168.1.48` returned
+  `No route to host`.
+- **Failure:** EV3 TCP port 22 at `192.168.1.25` returned
+  `No route to host`.
+- **Failure:** Direct SSH attempts to both addresses returned the same error
+  before authentication. The supplied passwords remain untested.
+
+### Conclusion
+
+Remote inventory remains blocked pending a physical power/network check and
+confirmation of the devices' current IP addresses.

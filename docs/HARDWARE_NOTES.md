@@ -17,6 +17,7 @@ verified.
 | Item | Value/status |
 | --- | --- |
 | SSH endpoint provided by owner | `seth@192.168.1.48` |
+| LAN address observed in Mac neighbor table | `c0:bf:be:eb:44:e1` (reachability not confirmed) |
 | Role | Main compute, camera, perception, autonomy, and later ROS 2 |
 | USB camera | Reported attached; device identity and video modes unverified |
 | Operating system / JetPack | Unknown |
@@ -28,6 +29,7 @@ verified.
 | Item | Value/status |
 | --- | --- |
 | SSH endpoint provided by owner | `robot@192.168.1.25` |
+| LAN address observed in Mac neighbor table | `7c:c2:c6:29:b7:f1` (reachability not confirmed) |
 | Role | Low-level motor, encoder, IR sensor, and local safety controller |
 | Operating system / ev3dev version | Unknown |
 | Left track motor port | Unknown — confirm before any movement test |
@@ -50,4 +52,3 @@ verified.
 
 Passwords are intentionally not recorded here. Use the credentials supplied out
 of band by the owner, and prefer SSH keys later if approved.
-
