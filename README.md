@@ -4,8 +4,9 @@ Echora Robo is an indoor tracked robot built from a LEGO EV3 chassis, a Jetson
 Orin Nano, and a USB camera. The Jetson is the autonomy computer; the EV3 is the
 low-level motor and sensor controller.
 
-The project is being developed in small, testable stages. The immediate goal is
-Phase 1: prove safe Jetson-to-EV3 motor control with encoder and IR feedback.
+The project is being developed in small, testable stages. Phase 1 and 2 (safe
+Jetson-to-EV3 motor control and its ROS 2 integration) are complete. The
+current stage is Phase 3: dependable USB-camera acquisition on the Jetson.
 
 ## Working rules
 
@@ -14,6 +15,8 @@ Phase 1: prove safe Jetson-to-EV3 motor control with encoder and IR feedback.
 - Do not move motors until their ports, orientation, and safe test setup are
   confirmed.
 - Record every meaningful test in `docs/DEVELOPMENT_LOG.md`.
+- Report measured numbers, including disappointing ones, rather than requested
+  or expected ones.
 - Keep wiring and machine facts current in `docs/HARDWARE_NOTES.md`.
 - Never store machine passwords or other secrets in this repository.
 
@@ -39,6 +42,15 @@ the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
 tests passed. Metric geometry remains provisional until the chassis is
 physically measured.
 
+The stationary camera pipeline is now live as well. Enabled
+`echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,
+and `/camera/status` from the USB camera at a measured **27.3 fps** (MJPG
+640×480, requested 30). The node validates every frame, recovers automatically
+from a camera disconnect, and was verified over a continuous five-minute run.
+The camera is **not calibrated**: `CameraInfo` is published explicitly zeroed
+and must not be used for metric vision. No detection, recognition, mapping, or
+recording has been added, and the motors stayed stopped throughout.
+
 See:
 
 - [Development log](docs/DEVELOPMENT_LOG.md)
@@ -46,3 +58,4 @@ See:
 - [Existing EV3 server notes](docs/EXISTING_EV3_SERVER.md)
 - [Proposed fail-safe EV3 service](robot/ev3/server/README.md)
 - [Jetson EV3 client](robot/jetson/ev3_bridge/README.md)
+- [Jetson USB camera source](robot/jetson/camera/README.md)

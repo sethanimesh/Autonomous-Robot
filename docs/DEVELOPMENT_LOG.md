@@ -380,3 +380,160 @@ The current 0.03 m wheel radius and 0.12 m track width remain provisional.
 Raised tests validate encoder integration and ROS plumbing, not metric accuracy
 on the floor. Accurate values require a measured straight-distance run and a
 measured rotation run using the included calibration helpers.
+
+## 2026-09-02 21:35 IST — Stationary USB camera pipeline deployed
+
+Phase 3 milestone: dependable camera acquisition and ROS integration only. No
+detection, recognition, SLAM, navigation, recording, or motor behavior was
+added. The robot stayed stationary throughout.
+
+### Pre-change verification
+
+- **Success:** `echora-bridge.service` was `enabled` and `active` before any
+  change, and `/robot_status` reported all motors stopped.
+- **Success:** `lsusb` identified the camera as `0c45:6366` on bus `1-2.3`.
+- **Success:** `udevadm` showed `/dev/video0` with `ID_V4L_CAPABILITIES=:capture:`
+  and `/dev/video1` with empty capabilities. `/dev/video1` is a metadata node
+  and OpenCV cannot open it. `/dev/video0` is the colour stream.
+- **Observation:** `v4l2-ctl` and `ffmpeg` are absent, so formats were
+  enumerated with raw V4L2 ioctls from Python.
+
+### Failures found and fixed
+
+- **Failure:** A first 30-frame OpenCV capture reported 6.5 fps, and an MJPG
+  attempt produced 30 frames with a single distinct content checksum and a mean
+  intensity of exactly 10.00 — apparently a frozen, near-black camera.
+- **Cause:** Two separate problems. OpenCV negotiates **YUYV by default**, and
+  this camera only offers YUYV at **10 fps** at every resolution. Separately,
+  the sensor needs roughly two seconds of auto-exposure settling after each
+  open; frames captured before that really are dark and duplicated.
+- **Fix:** The node requests `MJPG` explicitly and discards frames for
+  `warmup_sec` (2.0 s) after every open. With both fixes a 150-frame
+  measurement gave 27.36 fps with 150/150 distinct frames and a mean intensity
+  of 105.6.
+- **Failure:** Filling `sensor_msgs/Image.data` with `frame.tobytes()` measured
+  **151.9 ms per frame**, which would have capped the node near 6 fps. A numpy
+  array was rejected outright by the rclpy setter with an `AssertionError`.
+- **Fix:** The node uses `array.array("B", frame.tobytes())`, measured at
+  **0.101 ms per frame**. This was found by benchmarking all three forms on the
+  Jetson before writing the node, not after.
+- **Failure:** The first foreground Ctrl-C printed
+  `Failed to publish log message to rosout: publisher's context is invalid`.
+  The same class of bug was fixed in `ros_node.py` in the previous milestone,
+  but the camera node's final summary log was still unguarded.
+- **Fix:** `shutdown()` now logs through `/rosout` only while `rclpy.ok()` is
+  true and falls back to stdout otherwise. The next Ctrl-C exited cleanly.
+- **Failure:** A verification check reported a 0.512 s gap in published frames.
+- **Cause:** Test artifact, not a node fault. `/camera/image_raw` uses
+  best-effort sensor QoS and the verifier copied 921 KB and ran numpy per
+  frame, so it dropped frames. The node's own rate was steady at 27.37 fps.
+- **Fix:** `CaptureHealth` now measures `max_frame_gap_sec` where frames are
+  produced, so publication stability is asserted at the source instead of being
+  inferred from what a slow subscriber received. Measured worst gap is 0.040 s,
+  one frame period.
+
+### Implementation
+
+- **Success:** Added `robot/jetson/camera` with a ROS 2 node plus three
+  hardware-free modules: `camera_config.py`, `frame_health.py`, and
+  `camera_calibration.py`.
+- **Success:** Publishes `/camera/image_raw` (`sensor_msgs/msg/Image`, `bgr8`),
+  `/camera/camera_info` (`sensor_msgs/msg/CameraInfo`), and `/camera/status`
+  (JSON health). Image and CameraInfo are published in one call, so they always
+  share a timestamp and `frame_id`.
+- **Success:** Image topics use best-effort sensor QoS; status uses reliable
+  transient-local so a late subscriber sees health immediately.
+- **Success:** Device, width, height, requested rate, fourcc, frame ID,
+  reconnect interval, warm-up, failure budget, status period, and calibration
+  file are all parameters in `config/camera.yaml`.
+- **Success:** The local suite grew from 30 to **101 passing tests**.
+
+### Measured camera capability
+
+| Format | Resolution | Advertised | Measured |
+| --- | --- | ---: | ---: |
+| MJPG | 640×480 | 30 fps | **27.3 fps** |
+| YUYV | 640×480 | 10 fps | 10 fps ceiling |
+
+The honest sustained figure for a requested 30 fps is **27.3 fps**, about 91%
+of nominal. Node-side publication rate held between 27.34 and 27.39 fps across
+every run, with a worst inter-frame gap of 0.040 s.
+
+### Acceptance tests
+
+- **Success:** 300 published frames validated: strictly increasing ROS
+  timestamps, `camera_optical_frame`, 640×480, `bgr8`, step 1920, 921600-byte
+  payloads, 300/300 distinct frames, none empty or black.
+- **Success:** Every image timestamp had a matching CameraInfo timestamp except
+  the final frame, whose CameraInfo had not yet arrived when the verifier
+  stopped. CameraInfo frame ID and size matched the image.
+- **Success:** A published frame was saved and decoded to a usable 480×640×3
+  colour image of the ceiling and its light fittings, with differing channel
+  means.
+- **Success:** Delivered rate to a lightweight subscriber was 27.09 fps
+  (500 images, 505 CameraInfo, 18.4 s).
+- **Success:** Five-minute continuous run under the managed service. RSS went
+  from 162000 kB to 161628 kB — it fell slightly, so there is no memory growth.
+  Rate stayed 27.34–27.39 fps, zero read failures, and the journal was clean.
+- **Success:** Stopping the service released `/dev/video0` with no holder;
+  starting it reacquired the device and resumed publishing.
+- **Success:** Camera-loss recovery was tested by deauthorizing USB `1-2.3`,
+  which removes `/dev/video*` much as unplugging does. The node reported the
+  failure, released the device after exactly 15 consecutive failures, retried
+  every 2.0 s, then reopened and resumed automatically. This was exercised four
+  times, three in the foreground and once under the managed service.
+- **Success:** No busy loop. CPU while disconnected was **1.5% of one core**
+  against 24.6% while streaming.
+- **Success:** Under the managed service, an outage left the unit `active` with
+  `NRestarts=0`, confirming the node recovered internally rather than being
+  restarted by systemd.
+- **Success:** `echora-camera.service` installed, enabled, and active.
+
+### Calibration limitation
+
+The camera is **not calibrated** and no calibration file exists. The node
+publishes an explicitly uncalibrated `CameraInfo` with `D`, `K`, `R`, and `P`
+all zeroed and an empty `distortion_model`, which is the documented
+`sensor_msgs/CameraInfo` marker for an uncalibrated camera. `/camera/status`
+reports `"calibrated": false` with reason `no_calibration_file_configured`. No
+intrinsic values were invented. A calibration file is also refused, with its
+reason reported, when it is missing, unparseable, zeroed, or recorded at a
+different resolution. Nothing in this milestone supports metric vision.
+
+### Motor safety
+
+- **Success:** Motors remained stopped for the entire milestone. Encoder
+  positions were left 46, right 92, tool 76 at the start and identical at the
+  end, with every speed zero and `motion_active` false.
+- **Success:** `echora-bridge.service` stayed `enabled` and `active` with
+  `NRestarts=0`. No `/cmd_vel` message was ever sent.
+- **Observation:** The bridge journal shows intermittent
+  `EV3 status failed: timed out` errors. These are **not caused by the camera**:
+  the worst cluster, at 15:41:57–15:42:01 UTC, predates the first camera node
+  run at 15:46:06 UTC; there were five such errors in the 18 minutes before any
+  camera existed against four in the 19 minutes after; the Jetson's Wi-Fi is
+  PCI (`rtl88x2ce`) so it shares no bus with the USB camera; and a 20-packet
+  ping to the EV3 while the camera streamed showed 0% loss at 3.9 ms average.
+  They are intermittent timeouts against a 300 MHz EV3 over Wi-Fi, and the
+  bridge handles them by reconnecting.
+
+### Deployed state
+
+| Path | Purpose |
+| --- | --- |
+| `/home/animesh/echora/camera_node.py` | ROS 2 camera node |
+| `/home/animesh/echora/camera_config.py` | Parameter validation |
+| `/home/animesh/echora/frame_health.py` | Frame validation and recovery bookkeeping |
+| `/home/animesh/echora/camera_calibration.py` | Calibration loading |
+| `/home/animesh/echora/camera.yaml` | Deployed parameters |
+| `/etc/systemd/system/echora-camera.service` | Managed unit |
+
+All deployed files were SHA-256 verified against the repository copies.
+`echora-camera.service` and `echora-bridge.service` are both enabled and
+active. Motors are stopped.
+
+### Not done in this milestone
+
+Camera calibration, person detection, face recognition, SLAM, navigation,
+autonomous movement, and recording were all deliberately excluded. The camera
+head motor was not moved.
