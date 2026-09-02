@@ -53,8 +53,10 @@ verified.
 | Sensor inputs | Input 1 reports `error`; inputs 2–4 report `no-sensor` |
 | IR sensor | Not detected and explicitly deferred by owner |
 | Positive motor direction | Unknown for both tracks |
+| Positive encoder response | Confirmed on A, B, and C during short +100°/s pulses |
 | Wheel/track geometry | Unknown |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
+| New control service | `/home/robot/echora/ev3_server.py`; manually tested, currently stopped, not installed as a service |
 
 ## Safety facts to confirm before motor testing
 

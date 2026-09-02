@@ -182,3 +182,51 @@ With owner approval, copy the service into a new EV3 directory without replacing
 `/home/robot/track3r`, run syntax validation on the brick, start it manually with
 the robot raised, and test only `ping` and `status`. Pause again before sending a
 non-zero motor command.
+
+## 2026-09-02 20:24 IST — First controlled motor test passed
+
+### Deployment
+
+- **Success:** Created `/home/robot/echora` without changing the legacy
+  `/home/robot/track3r` directory.
+- **Success:** Copied `ev3_server.py` to the new directory. Local and EV3 SHA-256
+  checksums matched:
+  `049a48a7508a625a008ff9885bac69cdc66e362a0abb739ac0faea7fef6e1ea2`.
+- **Success:** Python 3.5 byte-compilation passed on the EV3.
+- **Success:** The server started manually, stopped all motors on startup, and
+  listened on TCP port 9999.
+- **Success:** A Jetson client at `192.168.1.48` passed protocol-version-1 ping
+  and status checks. Initial encoders were zero and all motors were stopped.
+
+### Individual motor pulses
+
+The robot was owner-confirmed raised with tracks clear. Each test requested
++100°/s for 0.25 seconds and then sent an explicit stop.
+
+| Role | Port | Encoder before | Encoder after | Result |
+| --- | --- | ---: | ---: | --- |
+| Tool/camera head | A | 0 | 34 | Passed; tracks unchanged |
+| Left track | B | 0 | 25 | Passed; other motors unchanged |
+| Right track | C | 0 | 26 | Passed; other motors unchanged |
+
+All three commands were applied to the intended logical role, returned an `ok`
+response, and ended with no motor reporting a running state.
+
+### Hardware safety-path tests
+
+- **Watchdog:** Commanded tool/A at +80°/s and intentionally sent no refresh.
+  The 500 ms watchdog stopped it automatically with
+  `last_stop_reason=watchdog`; the encoder advanced from 34 to 76.
+- **Disconnect:** Commanded tool/A at +80°/s and immediately closed the TCP
+  connection. The server stopped it with `last_stop_reason=client-disconnect`
+  and no additional encoder movement was observed.
+- **Shutdown:** Stopped the manually running server with an interrupt. Its final
+  cleanup stop executed.
+- **Final verification:** A, B, and C each reported speed 0, an empty running
+  state, and `brake` stop action. No server process remained.
+
+### Current remote state
+
+The new server file remains at `/home/robot/echora/ev3_server.py`. It is stopped
+and has not been installed as an automatic service. No autonomous or floor
+movement was attempted. IR safety remains unavailable and explicitly deferred.

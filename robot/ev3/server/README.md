@@ -3,7 +3,9 @@
 This is the proposed Phase 1 EV3 control service. It is intentionally small and
 uses only the Python 3.5 standard library available on the current ev3dev brick.
 
-It has not yet been deployed to the EV3 or used to move a motor.
+It is deployed at `/home/robot/echora/ev3_server.py` on the EV3 and passed a
+manual raised-chassis motor test on 2026-09-02. It is not installed as a service
+and is stopped when testing is complete.
 
 ## Confirmed motor mapping
 
@@ -65,11 +67,19 @@ Read encoders and current motor state:
 
 ## Development sequence
 
-1. Run automated tests on the Mac without hardware.
-2. Copy the service to a new EV3 directory without replacing the old server.
-3. Validate Python 3.5 syntax on the EV3.
-4. Start the service manually with the robot raised and tracks clear.
-5. Test ping and status before any non-zero command.
-6. Send one short, low-speed pulse to one motor at a time.
-7. Verify physical direction and encoder sign with owner feedback.
-8. Only then test paired track motion.
+Completed:
+
+1. Automated tests passed on the Mac.
+2. The service was copied to a new EV3 directory without replacing the old
+   server.
+3. Python 3.5 compilation passed on the EV3.
+4. Ping and status passed before movement.
+5. A, B, and C passed individual +100°/s, 0.25-second pulses.
+6. The 500 ms hardware watchdog and disconnect stop paths passed.
+
+Next:
+
+1. Verify physical forward/reverse direction during controlled raised testing.
+2. Add a small Jetson bridge client that continually refreshes commands.
+3. Test paired tracks at low speed while raised.
+4. Only then attempt a short, clear-floor movement test.
