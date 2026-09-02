@@ -32,6 +32,11 @@ disconnect stops worked correctly. The server is now enabled as the managed
 passed paired forward-sign, reverse-sign, and both turn-sign tests. The
 non-working IR sensor is explicitly deferred.
 
+The first ROS 2 vertical slice is also live: enabled `echora-bridge.service` on
+the Jetson subscribes to `/cmd_vel` and publishes EV3 feedback on
+`/robot_status`. Raised-chassis linear and angular command tests passed. Metric
+geometry remains provisional until the chassis is physically measured.
+
 See:
 
 - [Development log](docs/DEVELOPMENT_LOG.md)

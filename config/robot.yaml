@@ -1,0 +1,11 @@
+ev3_bridge:
+  ros__parameters:
+    ev3_host: 192.168.1.25
+    ev3_port: 9999
+    wheel_radius_m: 0.03
+    track_width_m: 0.12
+    left_sign: 1
+    right_sign: 1
+    max_motor_speed: 120
+    command_timeout_sec: 0.3
+    update_rate_hz: 10.0

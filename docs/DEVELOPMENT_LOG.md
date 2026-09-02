@@ -280,3 +280,61 @@ direction was not visually recorded.
   stopped. The Jetson client is deployed but is not an automatic service.
 - **Scope:** No floor movement was attempted. IR safety remains unavailable and
   explicitly deferred.
+
+## 2026-09-02 20:46 IST — First ROS 2 `/cmd_vel` path deployed
+
+### Implementation
+
+- **Success:** Added differential-drive conversion, a ROS 2 Humble node, and a
+  parameter file under `robot/jetson/ev3_bridge` and `config/robot.yaml`.
+- **Success:** The node subscribes to `/cmd_vel`, refreshes EV3 commands at
+  10 Hz, stops after 300 ms without a fresh ROS command, and publishes raw EV3
+  JSON feedback on `/robot_status`.
+- **Safety:** The 300 ms Jetson timeout remains inside the EV3's independent
+  500 ms watchdog. Motor speed is limited to 120°/s in this layer.
+- **Success:** Added an enabled systemd unit, `echora-bridge.service`, running as
+  the unprivileged `animesh` user.
+- **Success:** The full local suite increased to 23 passing tests.
+
+### Provisional calibration
+
+The checked-in values are temporary: wheel radius 0.03 m, track width 0.12 m,
+and motor signs +1/+1. They are sufficient to test the software path but are not
+yet measured chassis geometry.
+
+### Raised ROS hardware tests
+
+- **Success:** `/ev3_bridge` appeared in the ROS node graph.
+- **Success:** One `/cmd_vel` message with `linear.x=0.03 m/s` commanded both
+  tracks positively, moved the encoders, and stopped automatically after the
+  300 ms command timeout.
+- **Success:** One `/cmd_vel` message with `angular.z=0.5 rad/s` moved the left
+  encoder negatively and the right encoder positively, then stopped.
+- **Success:** `/robot_status` reported motor positions, zero final speeds, no
+  running state, and `last_stop_reason=remote-stop`.
+
+### Fail-fast findings and fixes
+
+- **Observed:** A direct `ev3_client.py status` call timed out while the ROS node
+  was active. This is expected because the EV3 service intentionally permits one
+  controlling client and the ROS bridge owns that connection. Operational
+  status must be read from `/robot_status` while the bridge runs.
+- **Failure:** The first Ctrl-C shutdown sent the motor stop successfully but
+  then attempted to publish after ROS had invalidated its context.
+- **Fix:** Status publishing now returns immediately when `rclpy.ok()` is false.
+- **Failure:** The second Ctrl-C test called ROS shutdown twice because Humble's
+  signal handler had already shut down the context.
+- **Fix:** The finalizer now calls `rclpy.shutdown()` only while the context is
+  still active. A third Ctrl-C test exited cleanly without a traceback.
+
+### Managed-service verification
+
+- **Success:** Installed, enabled, and started `echora-bridge.service`.
+- **Success:** The service reported `enabled` and `active`, and its journal was
+  clean.
+- **Success:** A final `/cmd_vel` linear command through the managed service
+  advanced both track encoders and ended with both speeds at zero.
+- **Current state:** Both `echora-bridge.service` on the Jetson and
+  `echora-ev3.service` on the EV3 remain enabled and active. Motors are stopped.
+- **Scope:** Tests remained raised-chassis. Metric odometry and floor navigation
+  are not yet calibrated.

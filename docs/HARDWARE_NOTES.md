@@ -34,6 +34,8 @@ verified.
 | Camera verification | `/dev/video0` and `/dev/video1` present; OpenCV captured a `640×480` BGR frame from `/dev/video0` |
 | Video tools | `v4l2-ctl` absent during inventory |
 | EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
+| ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service` |
+| Provisional geometry | Wheel radius 0.03 m, track width 0.12 m; must be physically measured before metric odometry/navigation claims |
 
 ## LEGO EV3 with ev3dev
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=Echora ROS 2 EV3 bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/ros_node.py --ros-args --params-file /home/animesh/echora/robot.yaml'
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -8,6 +8,10 @@ It is deployed at `/home/animesh/echora/ev3_client.py` and has passed ping,
 status, paired-track, and differential-turn tests against the managed EV3
 service.
 
+The ROS node is managed by enabled `echora-bridge.service` on the Jetson. While
+it is running, it intentionally owns the EV3's single allowed control connection;
+use `/robot_status` instead of opening a second direct client.
+
 ## Safety behavior
 
 - Uses a finite request timeout.
@@ -19,9 +23,16 @@ service.
 - Closes and discards a connection after framing or transport failure.
 - Relies on the EV3 watchdog if the network disappears before a stop arrives.
 
-This is not yet a ROS 2 node and does not convert `/cmd_vel` into track speeds.
-That conversion requires physical forward-direction and chassis-geometry
-calibration first.
+`ros_node.py` provides the first `/cmd_vel` vertical slice and publishes raw
+JSON EV3 feedback on `/robot_status`. Wheel radius, track width, and motor signs
+are parameters. The checked-in `config/robot.yaml` values are provisional until
+physical measurement and floor calibration are complete.
+
+Run after sourcing ROS 2 Humble:
+
+```text
+python3 ros_node.py --ros-args --params-file robot.yaml
+```
 
 ## Commands
 
