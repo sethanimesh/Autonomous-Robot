@@ -4,8 +4,9 @@ This is the proposed Phase 1 EV3 control service. It is intentionally small and
 uses only the Python 3.5 standard library available on the current ev3dev brick.
 
 It is deployed at `/home/robot/echora/ev3_server.py` on the EV3 and passed a
-manual raised-chassis motor test on 2026-09-02. It is not installed as a service
-and is stopped when testing is complete.
+manual raised-chassis motor test on 2026-09-02. The accompanying
+`echora-ev3.service` unit runs it as the `robot` user and preserves the server's
+shutdown stop behavior through `SIGINT`.
 
 ## Confirmed motor mapping
 

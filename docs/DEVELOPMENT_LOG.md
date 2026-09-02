@@ -230,3 +230,53 @@ response, and ended with no motor reporting a running state.
 The new server file remains at `/home/robot/echora/ev3_server.py`. It is stopped
 and has not been installed as an automatic service. No autonomous or floor
 movement was attempted. IR safety remains unavailable and explicitly deferred.
+
+## 2026-09-02 20:34 IST — Jetson client and managed EV3 service deployed
+
+### Jetson client
+
+- **Success:** Added a standard-library Jetson client under
+  `robot/jetson/ev3_bridge` with ping, status, stop, finite pulse, 100 ms command
+  refresh, response framing, and a final-stop path.
+- **Safety:** Development pulses are limited to five seconds; transport failures
+  discard the connection and fall back to the EV3's independent watchdog.
+- **Success:** The complete local suite increased to 18 passing tests.
+- **Success:** Deployed the client to
+  `/home/animesh/echora/ev3_client.py`. Local and Jetson SHA-256 checksums
+  matched:
+  `9db77c5d8535e1bf106ad86e29ab4e4bbeae43bfaa75b566ed019a51b7e4e781`.
+- **Success:** Python byte-compilation, ping, and status passed on the Jetson.
+
+### Raised paired-track tests
+
+The deployed client refreshed commands inside the EV3's 500 ms watchdog and
+sent an explicit stop after each 0.25-second pulse.
+
+| Command | Left encoder change | Right encoder change | Result |
+| --- | ---: | ---: | --- |
+| Left +80, right +80 | positive | positive | Passed |
+| Left -80, right -80 | negative | negative | Passed |
+| Left +80, right -80 | +16 | -16 | Passed |
+| Left -80, right +80 | -17 | +17 | Passed |
+
+The tool encoder remained unchanged during every paired-track test. After a
+short settling delay, both track speeds were zero with no running state.
+
+These tests verify command-to-port behavior and encoder signs. They do not yet
+label the chassis' physical forward direction because the raised robot's track
+direction was not visually recorded.
+
+### Managed EV3 service
+
+- **Success:** Added and deployed `echora-ev3.service` without modifying the
+  legacy `/home/robot/track3r` files.
+- **Success:** Installed, enabled, and started the service under the unprivileged
+  `robot` account.
+- **Success:** The service reported `enabled` and `active`; its journal showed
+  Jetson connections and a stop after every disconnect.
+- **Success:** A final managed-service pulse at left/right +60 for 0.2 seconds
+  moved both encoders positively and ended with both speeds at zero.
+- **Current state:** `echora-ev3.service` remains enabled and active. Motors are
+  stopped. The Jetson client is deployed but is not an automatic service.
+- **Scope:** No floor movement was attempted. IR safety remains unavailable and
+  explicitly deferred.

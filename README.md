@@ -27,9 +27,10 @@ setup.
 A minimal Python 3.5-compatible EV3 control service is implemented, passes local
 automated safety tests, and has passed its first raised-chassis hardware test.
 All three motors responded on their expected ports, while watchdog and client
-disconnect stops worked correctly. The server is deployed as a standalone file
-but is stopped and not installed as an automatic service. The non-working IR
-sensor is explicitly deferred.
+disconnect stops worked correctly. The server is now enabled as the managed
+`echora-ev3.service` on the EV3. A tested Jetson client is deployed and has
+passed paired forward-sign, reverse-sign, and both turn-sign tests. The
+non-working IR sensor is explicitly deferred.
 
 See:
 
@@ -37,3 +38,4 @@ See:
 - [Hardware notes](docs/HARDWARE_NOTES.md)
 - [Existing EV3 server notes](docs/EXISTING_EV3_SERVER.md)
 - [Proposed fail-safe EV3 service](robot/ev3/server/README.md)
+- [Jetson EV3 client](robot/jetson/ev3_bridge/README.md)

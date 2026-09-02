@@ -1,0 +1,17 @@
+[Unit]
+Description=Echora EV3 fail-safe motor server
+After=network.target
+
+[Service]
+Type=simple
+User=robot
+WorkingDirectory=/home/robot/echora
+ExecStart=/usr/bin/python3 -u /home/robot/echora/ev3_server.py
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -33,6 +33,7 @@ verified.
 | USB camera | USB `0c45:6366` (`Arducam_8mp` in kernel history; currently identifies as Microdia Webcam Vitade AF) |
 | Camera verification | `/dev/video0` and `/dev/video1` present; OpenCV captured a `640×480` BGR frame from `/dev/video0` |
 | Video tools | `v4l2-ctl` absent during inventory |
+| EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
 
 ## LEGO EV3 with ev3dev
 
@@ -56,7 +57,7 @@ verified.
 | Positive encoder response | Confirmed on A, B, and C during short +100°/s pulses |
 | Wheel/track geometry | Unknown |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
-| New control service | `/home/robot/echora/ev3_server.py`; manually tested, currently stopped, not installed as a service |
+| New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 
 ## Safety facts to confirm before motor testing
 
