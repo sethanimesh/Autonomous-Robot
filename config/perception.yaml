@@ -1,0 +1,59 @@
+# Echora stationary person detection.
+#
+# Model: YOLOX-s, Apache-2.0, from the official Megvii YOLOX 0.1.1rc0
+# release, compiled to a TensorRT FP16 engine on the Jetson itself. The engine
+# is machine-specific and is not stored in Git; rebuild it with:
+#
+#   python3 build_engine.py models/yolox_s.onnx models/yolox_s_fp16.engine --fp16
+#
+# Measured on the Jetson Orin Nano (MAXN_SUPER), 640x480 bgr8 input:
+#   preprocess ~3.0 ms, GPU inference ~17.1 ms, decode ~3.6 ms, total ~23.7 ms,
+#   which is a 42 fps ceiling. YOLOX-tiny at 416 was also built and measured at
+#   15.8 ms (63 fps) but has materially lower accuracy (COCO mAP 32.8 against
+#   40.5), which costs detections at indoor distance, so YOLOX-s is preferred
+#   while the headroom exists. To switch, point model_path/onnx_path at the
+#   tiny files and set both input dimensions to 416.
+#
+# The camera publishes at 27.3 fps; max_inference_rate_hz is deliberately set
+# below that so the node keeps headroom and always works on a recent frame
+# rather than racing the camera.
+echora_person_detector:
+  ros__parameters:
+    image_topic: /camera/image_raw
+    detections_topic: /perception/person_detections
+    annotated_image_topic: /perception/person_image
+    status_topic: /perception/status
+
+    model_name: yolox_s
+    model_path: /home/animesh/echora/models/yolox_s_fp16.engine
+    # Only used by the CPU fallback backend, which reads the ONNX directly.
+    onnx_path: /home/animesh/echora/models/yolox_s.onnx
+    model_input_width: 640
+    model_input_height: 640
+
+    confidence_threshold: 0.45
+    nms_iou_threshold: 0.45
+    # COCO class 0 is "person". Every other class is discarded.
+    person_class_id: 0
+    person_class_label: person
+    max_detections: 50
+
+    # 'auto' prefers TensorRT and falls back to the CPU, reporting why.
+    # 'tensorrt' refuses to start without the GPU, which is what the managed
+    # service wants: a silent downgrade would make the reported provider a lie.
+    inference_device: tensorrt
+    max_inference_rate_hz: 15.0
+
+    # A frame older than this is dropped rather than detected on, so a
+    # detection always describes a recent view of the room.
+    max_frame_age_sec: 0.5
+    # Frames missing for longer than this are reported as stale input.
+    frame_timeout_sec: 2.0
+
+    publish_annotated_image: true
+    # Skip the copy and the drawing entirely when nobody is subscribed.
+    annotate_only_when_subscribed: true
+    enable_timing_diagnostics: true
+
+    status_interval_sec: 5.0
+    latency_window: 120

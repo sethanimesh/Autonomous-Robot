@@ -3,3 +3,12 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 .coverage
+
+# Model weights and TensorRT engines are large, machine-specific build
+# artifacts. Rebuild them on the Jetson with
+# robot/jetson/perception/build_engine.py; provenance and checksums are
+# recorded in robot/jetson/perception/README.md.
+*.onnx
+*.engine
+*.engine.json
+models/

@@ -1,0 +1,28 @@
+[Unit]
+Description=Echora ROS 2 person detector (TensorRT)
+After=network-online.target echora-camera.service
+Wants=network-online.target
+# A weak ordering only. The detector is designed to start, and stay up,
+# without the camera: it reports stale input and resumes on its own when
+# frames return. Requires= would make a camera restart kill the detector.
+#
+# A missing camera is handled inside the node and never exits the process, so
+# these limits only ever apply to a genuine crash such as a failed model load.
+# Giving up after 5 attempts in 5 minutes avoids an endless restart loop.
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/person_detector.py --ros-args --params-file /home/animesh/echora/perception.yaml'
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

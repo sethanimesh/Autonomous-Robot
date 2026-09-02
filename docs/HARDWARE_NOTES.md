@@ -92,3 +92,61 @@ verified.
 
 Passwords are intentionally not recorded here. Use the credentials supplied out
 of band by the owner, and prefer SSH keys later if approved.
+
+## USB camera port fault (2026-09-02)
+
+The USB camera (`0c45:6366`, Microdia / Arducam 8MP) **must not be connected to
+downstream port `1-2.3`**. On that port the kernel reports, repeatedly:
+
+```text
+usb 1-2.3: device not accepting address, error -71
+usb 1-2.3: Failed to initialize the device (-5)
+usb 1-2-port3: Cannot enable. Maybe the USB cable is bad?
+usb 1-2-port3: unable to enumerate USB device
+```
+
+One boot recorded 24 connect attempts against 19 disconnects. Moving the camera
+to **port `1-2.1`** resolved it completely: clean enumeration, no `-71` errors,
+and 9/9 stable samples over 45 seconds. The fault is the port, not the camera
+and not the cable.
+
+All four USB-A ports on the Orin Nano sit behind an internal Realtek 4-port hub
+(`0bda:5489` on USB 2.0, `0bda:0489` on USB 3.0), so there is no USB-A path
+that bypasses the hub. Only the USB-C port is off it.
+
+### Camera freeze after a service restart
+
+Stopping and starting `echora-camera.service` can leave the sensor frozen:
+`/camera/status` continues to report `state: streaming` at 27.37 fps with zero
+read failures, while every published frame is identical and near-black
+(`mean_intensity` exactly 10.0, and up to 49 consecutive duplicate frames).
+
+A second service restart does **not** clear it. What does is deauthorizing and
+reauthorizing the USB device:
+
+```text
+sudo systemctl stop echora-camera.service
+echo 0 | sudo tee /sys/bus/usb/devices/1-2.1/authorized
+sleep 3
+echo 1 | sudo tee /sys/bus/usb/devices/1-2.1/authorized
+sudo systemctl start echora-camera.service
+```
+
+Check recovery with `mean_intensity` and `duplicate_frames` on
+`/camera/status`, not with `state` or `measured_fps`, which stay healthy-looking
+throughout the fault.
+
+### Camera frame rate is lighting-dependent
+
+The 27.3 fps recorded in the camera milestone was measured pointing at a
+brightly lit ceiling. Aimed into the room under normal indoor lighting the same
+camera sustains **16-18 fps**, because the sensor lengthens exposure in dimmer
+scenes. Both figures are correct for their conditions; neither is a fixed
+capability of the camera.
+
+### Camera aim
+
+The camera head is mounted on EV3 motor A. It was aimed by hand for the person
+detection milestone because that milestone forbids motor movement. Aimed at the
+ceiling it sees nothing useful: an unlit ceiling view put all 921,600 pixels in
+the darkest histogram bin with a maximum value of 23/255.

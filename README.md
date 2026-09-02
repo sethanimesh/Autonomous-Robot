@@ -5,8 +5,8 @@ Orin Nano, and a USB camera. The Jetson is the autonomy computer; the EV3 is the
 low-level motor and sensor controller.
 
 The project is being developed in small, testable stages. Phase 1 and 2 (safe
-Jetson-to-EV3 motor control and its ROS 2 integration) are complete. The
-current stage is Phase 3: dependable USB-camera acquisition on the Jetson.
+Jetson-to-EV3 motor control and its ROS 2 integration) are complete. Phase 3 is
+now complete for camera acquisition and stationary person detection.
 
 ## Working rules
 
@@ -42,14 +42,32 @@ the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
 tests passed. Metric geometry remains provisional until the chassis is
 physically measured.
 
-The stationary camera pipeline is now live as well. Enabled
+The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,
 and `/camera/status` from the USB camera at a measured **27.3 fps** (MJPG
 640×480, requested 30). The node validates every frame, recovers automatically
 from a camera disconnect, and was verified over a continuous five-minute run.
 The camera is **not calibrated**: `CameraInfo` is published explicitly zeroed
-and must not be used for metric vision. No detection, recognition, mapping, or
-recording has been added, and the motors stayed stopped throughout.
+and must not be used for metric vision.
+
+Stationary person detection is live on top of it. Enabled
+`echora-person-detector.service` runs **YOLOX-s (Apache-2.0)** as a **TensorRT
+FP16** engine on the Jetson GPU and publishes
+`/perception/person_detections` (`vision_msgs/msg/Detection2DArray`),
+`/perception/person_image`, and `/perception/status`. Measured GPU inference is
+**17.1 ms** (23.7 ms end to end, a 42 fps ceiling) at a configured 15 Hz cap,
+and the reported provider `tensorrt_fp16` is verified from the engine's own
+tensor datatypes rather than assumed. Under live test it detected a person in
+**100% of processed frames** at near, medium, far, partially visible, and
+two-person poses — against an 80% target — with **zero false positives** across
+1304 frames of an empty room. It survives camera loss, reports stale input, and
+resumes automatically.
+
+Note that the installed **PyTorch is a CPU-only build** and provides no
+acceleration; TensorRT is the working GPU path. Model weights and engines are
+**not** committed. No face detection, recognition, identity, tracking,
+following, mapping, or recording has been added, and the motors stayed stopped
+throughout.
 
 See:
 
@@ -59,3 +77,4 @@ See:
 - [Proposed fail-safe EV3 service](robot/ev3/server/README.md)
 - [Jetson EV3 client](robot/jetson/ev3_bridge/README.md)
 - [Jetson USB camera source](robot/jetson/camera/README.md)
+- [Jetson person detector](robot/jetson/perception/README.md)
