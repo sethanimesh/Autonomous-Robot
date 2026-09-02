@@ -19,10 +19,10 @@ commands, IR reads, and status reads.
 
 | Function | EV3 port | Verification |
 | --- | --- | --- |
-| Left track | B | Source code only; physical confirmation required |
-| Right track | C | Source code only; physical confirmation required |
-| Tool/head | A | Source code only; physical confirmation required |
-| IR distance | Input 2 | Source code only; sensor not currently detected |
+| Left track | B | Owner confirmed |
+| Right track | C | Owner confirmed |
+| Tool/head | A | Owner confirmed |
+| IR distance | Input 2 | Legacy expectation only; IR sensor deferred |
 
 All motors currently attached to A, B, and C identify as EV3 large motors. The
 expected medium motor is not currently detected.
@@ -49,11 +49,12 @@ Do not use the old server for a floor test as-is.
 
 ## Recommended disposition
 
-Keep this implementation as reference rather than activating it. For the first
-vertical slice, a small Python 3.5-compatible EV3 service using newline-delimited
-JSON will be easier to inspect and test. It should add a short command timeout,
-hard speed limits, an immediate stop command, encoder feedback, and a local IR
-stop once the sensor is reconnected.
+Keep this implementation as reference rather than activating it. A small Python
+3.5-compatible EV3 service using newline-delimited JSON has now been implemented
+under `robot/ev3/server`. It adds a short command timeout, hard speed limits, an
+immediate stop command, and encoder feedback. IR stopping remains deferred until
+the sensor is working.
 
-No replacement should be deployed or motor-tested until the physical mapping
-and safe wheels-off-ground setup are confirmed by the owner.
+The physical mapping and safe wheels-off-ground setup are now owner-confirmed.
+The replacement service is still local-only and requires a separate deployment
+gate before any non-zero motor command.

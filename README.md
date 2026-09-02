@@ -19,17 +19,18 @@ Phase 1: prove safe Jetson-to-EV3 motor control with encoder and IR feedback.
 
 ## Current status
 
-The Mac, Jetson, and EV3 have been inventoried over SSH. ROS 2 Humble is already
-installed on the Jetson, and all three EV3 output ports A-C currently report
-large motors. Phase 1 motor work is paused for physical port confirmation and a
-safe wheels-off-ground test setup.
+The Mac, Jetson, and EV3 have been inventoried over SSH. The USB camera has been
+restored and OpenCV can capture frames. The owner confirmed A as the tool/camera
+head motor, B as the left track, C as the right track, and a safe raised test
+setup.
 
-The Jetson previously detected the USB `Arducam_8mp`, but it is not currently
-enumerated. Kernel messages report repeated USB errors and suggest a bad cable or
-connection. No EV3 sensor is currently detected.
+A minimal Python 3.5-compatible EV3 control service is implemented and passes
+local automated safety tests. It has not yet been deployed or used to move a
+motor. The non-working IR sensor is explicitly deferred.
 
 See:
 
 - [Development log](docs/DEVELOPMENT_LOG.md)
 - [Hardware notes](docs/HARDWARE_NOTES.md)
 - [Existing EV3 server notes](docs/EXISTING_EV3_SERVER.md)
+- [Proposed fail-safe EV3 service](robot/ev3/server/README.md)

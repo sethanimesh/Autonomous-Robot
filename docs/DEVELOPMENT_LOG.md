@@ -138,3 +138,47 @@ Before implementation or movement testing, obtain owner confirmation of the
 physical motor mapping, reconnect the IR sensor, reseat or replace the camera
 USB connection, and confirm the robot can be raised with tracks clear of the
 floor.
+
+## 2026-09-02 20:14 IST — Connections rechecked and EV3 service implemented
+
+### Physical and remote recheck
+
+- **Owner confirmation:** Output A is the tool/camera-head motor, B is the left
+  track, and C is the right track.
+- **Owner confirmation:** A safe raised setup with tracks clear is available for
+  the first physical motor test.
+- **Success:** The Jetson now enumerates the camera as USB device `0c45:6366`
+  and exposes `/dev/video0` and `/dev/video1`.
+- **Success:** OpenCV opened `/dev/video0` and captured one `640×480` BGR frame.
+- **Failure:** The EV3 still exposes no LEGO sensor. Input 1 reports `error`,
+  while inputs 2–4 report `no-sensor`.
+- **Observation:** Kernel history showed an EV3 touch sensor briefly attached to
+  input 2 and later removed; it did not show an IR sensor.
+- **Owner decision:** Defer the IR sensor and continue Phase 1 without it.
+- **Safety:** Both SSH sessions were closed cleanly after the checks. No motor
+  command was sent.
+
+### Local implementation
+
+- **Success:** Added a Python 3.5-compatible, newline-delimited JSON EV3 service
+  under `robot/ev3/server`.
+- **Safety:** The service stops on startup, explicit stop, zero command, client
+  disconnect, server shutdown, stale command after 500 ms, and motor/request
+  failures.
+- **Safety:** Malformed requests stop motion immediately, and control clients are
+  restricted to the Jetson's `192.168.1.48` address by default.
+- **Safety:** Track speed is limited to ±250 and tool speed to ±150 versus the
+  motors' reported maximum of 1050.
+- **Success:** Added encoder/status feedback without resetting motor encoders.
+- **Success:** Eleven automated tests passed on the Mac, covering limits, watchdog,
+  stop paths, write failure, request validation, JSON framing, and status.
+- **Success:** Python compilation and a Python 3.5 grammar parse passed.
+- **Scope:** The service remains local-only. It has not been copied to the EV3,
+  started against real hardware, or used for motor movement.
+
+### Next gate
+
+With owner approval, copy the service into a new EV3 directory without replacing
+`/home/robot/track3r`, run syntax validation on the brick, start it manually with
+the robot raised, and test only `ping` and `status`. Pause again before sending a
+non-zero motor command.

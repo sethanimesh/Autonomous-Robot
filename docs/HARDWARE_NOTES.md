@@ -30,8 +30,9 @@ verified.
 | PyTorch | 2.6.0 CPU-only; CUDA unavailable to PyTorch |
 | CUDA | 12.6 runtime directory present; `nvcc` not available in the shell |
 | Docker | 28.0.1 |
-| USB camera | `Arducam_8mp` (`0c45:6366`) previously detected; currently disconnected after USB error `-71` and enumeration failures |
-| Video tools/devices | `v4l2-ctl` absent; no `/dev/video*` device during inventory |
+| USB camera | USB `0c45:6366` (`Arducam_8mp` in kernel history; currently identifies as Microdia Webcam Vitade AF) |
+| Camera verification | `/dev/video0` and `/dev/video1` present; OpenCV captured a `640×480` BGR frame from `/dev/video0` |
+| Video tools | `v4l2-ctl` absent during inventory |
 
 ## LEGO EV3 with ev3dev
 
@@ -45,11 +46,12 @@ verified.
 | Memory | 56 MiB RAM and 95 MiB swap |
 | Root storage | 15 GB, approximately 13 GB available during inventory |
 | Battery | Approximately 7.95 V during inventory |
-| Output A | EV3 large motor; legacy code treats it as tool/head — physically unverified |
-| Output B | EV3 large motor; legacy code treats it as left track — physically unverified |
-| Output C | EV3 large motor; legacy code treats it as right track — physically unverified |
+| Output A | EV3 large motor; tool/camera head — owner confirmed |
+| Output B | EV3 large motor; left track — owner confirmed |
+| Output C | EV3 large motor; right track — owner confirmed |
 | Medium motor | Not detected during inventory |
-| IR sensor input port | No sensor detected; legacy code expects input 2 |
+| Sensor inputs | Input 1 reports `error`; inputs 2–4 report `no-sensor` |
+| IR sensor | Not detected and explicitly deferred by owner |
 | Positive motor direction | Unknown for both tracks |
 | Wheel/track geometry | Unknown |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
@@ -58,8 +60,8 @@ verified.
 
 - Robot can be lifted so the tracks are clear of the ground for the first test.
 - An immediate manual stop method is available.
-- Left and right track motor ports are known.
-- IR sensor port is known.
+- Left and right track motor ports are known. **Confirmed.**
+- IR sensor is deferred; floor tests must not claim IR emergency stopping.
 - Short positive commands turn each track in the expected direction.
 - EV3 stops locally on stale commands or a lost connection before floor testing.
 
