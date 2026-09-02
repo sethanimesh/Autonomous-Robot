@@ -7,5 +7,9 @@ ev3_bridge:
     left_sign: 1
     right_sign: 1
     max_motor_speed: 120
+    encoder_counts_per_rev: 360
     command_timeout_sec: 0.3
     update_rate_hz: 10.0
+    odom_frame: odom
+    base_frame: base_link
+    publish_odom_tf: true

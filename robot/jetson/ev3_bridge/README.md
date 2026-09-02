@@ -24,9 +24,14 @@ use `/robot_status` instead of opening a second direct client.
 - Relies on the EV3 watchdog if the network disappears before a stop arrives.
 
 `ros_node.py` provides the first `/cmd_vel` vertical slice and publishes raw
-JSON EV3 feedback on `/robot_status`. Wheel radius, track width, and motor signs
-are parameters. The checked-in `config/robot.yaml` values are provisional until
-physical measurement and floor calibration are complete.
+JSON EV3 feedback on `/robot_status`, encoder odometry on `/odom`, track angles
+on `/joint_states`, and the `odom → base_link` transform. Wheel radius, track
+width, and motor signs are parameters. The checked-in `config/robot.yaml` values
+are provisional until physical measurement and floor calibration are complete.
+
+`odometry.py` also contains helpers to estimate effective wheel radius from a
+measured straight run and effective track width from a measured turn. Encoder
+odometry deliberately starts at `(0, 0, 0)` whenever the bridge service starts.
 
 Run after sourcing ROS 2 Humble:
 

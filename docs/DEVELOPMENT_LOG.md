@@ -338,3 +338,45 @@ yet measured chassis geometry.
   `echora-ev3.service` on the EV3 remain enabled and active. Motors are stopped.
 - **Scope:** Tests remained raised-chassis. Metric odometry and floor navigation
   are not yet calibrated.
+
+## 2026-09-02 — Encoder odometry deployed
+
+### Implementation
+
+- **Success:** Added a tested differential encoder integrator using the EV3
+  motors' confirmed 360 counts/revolution.
+- **Success:** Added calibration helpers for effective wheel radius and track
+  width.
+- **Success:** The ROS bridge now publishes `/odom`, `/joint_states`, and the
+  `odom → base_link` transform in addition to `/robot_status`.
+- **Success:** Odometry updates at 5 Hz while commands are active and 2 Hz while
+  idle.
+- **Safety:** Planar covariance is populated and unobserved vertical/roll/pitch
+  axes are marked with high uncertainty.
+- **Success:** The full local suite increased to 30 passing tests.
+
+### Deployment and raised tests
+
+- **Success:** Deployed `odometry.py`, the updated `ros_node.py`, and the updated
+  parameter file to `/home/animesh/echora`.
+- **Success:** Python compilation/import passed and `echora-bridge.service`
+  restarted cleanly.
+- **Success:** ROS exposed `/odom`, `/joint_states`, and `/tf`.
+- **Straight test:** A one-shot `linear.x=0.03 m/s` command advanced provisional
+  odometry to approximately `x=0.00733 m`, `y=0.00003 m`, with essentially zero
+  yaw. Final reported velocities were zero.
+- **Turn test:** A one-shot `angular.z=0.5 rad/s` command changed provisional yaw
+  to approximately `0.096 rad` (5.5°) with minimal translation. Final reported
+  velocities were zero.
+- **TF test:** `tf2_echo odom base_link` matched the `/odom` pose and continued
+  updating.
+- **Joint-state test:** Left and right track joint positions published in
+  radians, with zero velocity after stopping.
+- **Current state:** `echora-bridge.service` remains active; motors are stopped.
+
+### Calibration boundary
+
+The current 0.03 m wheel radius and 0.12 m track width remain provisional.
+Raised tests validate encoder integration and ROS plumbing, not metric accuracy
+on the floor. Accurate values require a measured straight-distance run and a
+measured rotation run using the included calibration helpers.

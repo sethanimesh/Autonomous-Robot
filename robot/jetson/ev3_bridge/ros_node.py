@@ -2,16 +2,22 @@
 """ROS 2 /cmd_vel bridge for the Echora EV3 service."""
 
 import json
+import math
 import time
 
 import rclpy
+from geometry_msgs.msg import TransformStamped
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from sensor_msgs.msg import JointState
 from std_msgs.msg import String
+from tf2_ros import TransformBroadcaster
 
 from ev3_client import Ev3Client
 from ev3_client import Ev3ClientError
 from kinematics import twist_to_motor_speeds
+from odometry import DifferentialOdometry
 
 
 class Ev3BridgeNode(Node):
@@ -24,14 +30,21 @@ class Ev3BridgeNode(Node):
         self.declare_parameter("left_sign", 1)
         self.declare_parameter("right_sign", 1)
         self.declare_parameter("max_motor_speed", 120)
+        self.declare_parameter("encoder_counts_per_rev", 360)
         self.declare_parameter("command_timeout_sec", 0.3)
         self.declare_parameter("update_rate_hz", 10.0)
+        self.declare_parameter("odom_frame", "odom")
+        self.declare_parameter("base_frame", "base_link")
+        self.declare_parameter("publish_odom_tf", True)
 
         self.wheel_radius_m = float(self.get_parameter("wheel_radius_m").value)
         self.track_width_m = float(self.get_parameter("track_width_m").value)
         self.left_sign = int(self.get_parameter("left_sign").value)
         self.right_sign = int(self.get_parameter("right_sign").value)
         self.max_motor_speed = int(self.get_parameter("max_motor_speed").value)
+        self.encoder_counts_per_rev = int(
+            self.get_parameter("encoder_counts_per_rev").value
+        )
         self.command_timeout_sec = float(
             self.get_parameter("command_timeout_sec").value
         )
@@ -50,8 +63,23 @@ class Ev3BridgeNode(Node):
         self.last_command_time = None
         self.motion_active = False
         self.tick_count = 0
+        self.odom_frame = str(self.get_parameter("odom_frame").value)
+        self.base_frame = str(self.get_parameter("base_frame").value)
+        self.publish_odom_tf = bool(self.get_parameter("publish_odom_tf").value)
+        self.odometry = DifferentialOdometry(
+            self.wheel_radius_m,
+            self.track_width_m,
+            self.encoder_counts_per_rev,
+            self.left_sign,
+            self.right_sign,
+        )
 
         self.status_publisher = self.create_publisher(String, "/robot_status", 10)
+        self.odom_publisher = self.create_publisher(Odometry, "/odom", 10)
+        self.joint_state_publisher = self.create_publisher(
+            JointState, "/joint_states", 10
+        )
+        self.tf_broadcaster = TransformBroadcaster(self)
         self.create_subscription(Twist, "/cmd_vel", self.on_cmd_vel, 10)
         self.create_timer(1.0 / update_rate_hz, self.on_timer)
         self.get_logger().info("EV3 bridge ready; waiting for /cmd_vel")
@@ -63,9 +91,74 @@ class Ev3BridgeNode(Node):
     def publish_status(self, status):
         if not rclpy.ok():
             return
+        self.publish_odometry(status)
         message = String()
         message.data = json.dumps(status, separators=(",", ":"), sort_keys=True)
         self.status_publisher.publish(message)
+
+    def publish_odometry(self, status):
+        motors = status.get("motors")
+        if not motors or "left" not in motors or "right" not in motors:
+            return
+
+        now = self.get_clock().now()
+        stamp = now.to_msg()
+        state = self.odometry.update(
+            motors["left"]["position"],
+            motors["right"]["position"],
+            now.nanoseconds / 1000000000.0,
+        )
+        half_heading = state["heading"] / 2.0
+        orientation_z = math.sin(half_heading)
+        orientation_w = math.cos(half_heading)
+
+        odom = Odometry()
+        odom.header.stamp = stamp
+        odom.header.frame_id = self.odom_frame
+        odom.child_frame_id = self.base_frame
+        odom.pose.pose.position.x = state["x"]
+        odom.pose.pose.position.y = state["y"]
+        odom.pose.pose.orientation.z = orientation_z
+        odom.pose.pose.orientation.w = orientation_w
+        odom.twist.twist.linear.x = state["linear_velocity"]
+        odom.twist.twist.angular.z = state["angular_velocity"]
+        odom.pose.covariance[0] = 0.02
+        odom.pose.covariance[7] = 0.02
+        odom.pose.covariance[14] = 1000000.0
+        odom.pose.covariance[21] = 1000000.0
+        odom.pose.covariance[28] = 1000000.0
+        odom.pose.covariance[35] = 0.1
+        odom.twist.covariance[0] = 0.05
+        odom.twist.covariance[7] = 0.1
+        odom.twist.covariance[14] = 1000000.0
+        odom.twist.covariance[21] = 1000000.0
+        odom.twist.covariance[28] = 1000000.0
+        odom.twist.covariance[35] = 0.2
+        self.odom_publisher.publish(odom)
+
+        joints = JointState()
+        joints.header.stamp = stamp
+        joints.name = ["left_track_joint", "right_track_joint"]
+        joints.position = [
+            state["left_joint_position"],
+            state["right_joint_position"],
+        ]
+        joints.velocity = [
+            math.radians(motors["left"]["speed"]) * self.left_sign,
+            math.radians(motors["right"]["speed"]) * self.right_sign,
+        ]
+        self.joint_state_publisher.publish(joints)
+
+        if self.publish_odom_tf:
+            transform = TransformStamped()
+            transform.header.stamp = stamp
+            transform.header.frame_id = self.odom_frame
+            transform.child_frame_id = self.base_frame
+            transform.transform.translation.x = state["x"]
+            transform.transform.translation.y = state["y"]
+            transform.transform.rotation.z = orientation_z
+            transform.transform.rotation.w = orientation_w
+            self.tf_broadcaster.sendTransform(transform)
 
     def stop_for_reason(self, reason):
         try:
@@ -89,7 +182,7 @@ class Ev3BridgeNode(Node):
         if not command_fresh:
             if self.motion_active:
                 self.stop_for_reason("cmd_vel_timeout")
-            elif self.tick_count % 10 == 0:
+            elif self.tick_count % 5 == 0:
                 try:
                     self.publish_status(self.client.status())
                 except Ev3ClientError as exc:
@@ -111,7 +204,7 @@ class Ev3BridgeNode(Node):
         try:
             response = self.client.drive(left_speed, right_speed, 0)
             self.motion_active = bool(left_speed or right_speed)
-            if self.tick_count % 5 == 0:
+            if self.tick_count % 2 == 0:
                 status = self.client.status()
                 status["bridge_applied"] = response.get("applied", {})
                 self.publish_status(status)

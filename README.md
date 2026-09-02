@@ -34,8 +34,10 @@ non-working IR sensor is explicitly deferred.
 
 The first ROS 2 vertical slice is also live: enabled `echora-bridge.service` on
 the Jetson subscribes to `/cmd_vel` and publishes EV3 feedback on
-`/robot_status`. Raised-chassis linear and angular command tests passed. Metric
-geometry remains provisional until the chassis is physically measured.
+`/robot_status`, encoder odometry on `/odom`, track state on `/joint_states`, and
+the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
+tests passed. Metric geometry remains provisional until the chassis is
+physically measured.
 
 See:
 
