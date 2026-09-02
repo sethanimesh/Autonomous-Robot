@@ -1,0 +1,24 @@
+# Echora USB camera source.
+#
+# Measured on the Jetson Orin Nano with USB camera 0c45:6366:
+#   MJPG 640x480 is advertised at 30 fps and sustains ~27 fps.
+#   YUYV 640x480 is advertised at 10 fps only, and OpenCV picks YUYV by
+#   default, so the fourcc below must stay MJPG for a usable rate.
+#   The sensor needs roughly two seconds of auto-exposure settling after every
+#   open; frames before that are dark and duplicated, so they are discarded.
+echora_camera:
+  ros__parameters:
+    video_device: /dev/video0
+    image_width: 640
+    image_height: 480
+    requested_fps: 30.0
+    fourcc: MJPG
+    frame_id: camera_optical_frame
+    reconnect_interval_sec: 2.0
+    warmup_sec: 2.0
+    max_read_failures: 15
+    read_failure_pause_sec: 0.02
+    status_interval_sec: 5.0
+    # No calibration has been performed yet. While this is empty the node
+    # publishes an explicitly uncalibrated CameraInfo with zeroed D, K, R, P.
+    calibration_file: ''

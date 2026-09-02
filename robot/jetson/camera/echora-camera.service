@@ -1,0 +1,20 @@
+[Unit]
+Description=Echora ROS 2 USB camera source
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=animesh
+SupplementaryGroups=video
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/camera_node.py --ros-args --params-file /home/animesh/echora/camera.yaml'
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
