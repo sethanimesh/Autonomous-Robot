@@ -18,7 +18,7 @@ class CameraHeadController(object):
         forward_position=0,
         down_position=0,
         minimum_position=-180,
-        maximum_position=180,
+        maximum_position=0,
         speed=40,
         max_jog_degrees=15,
     ):

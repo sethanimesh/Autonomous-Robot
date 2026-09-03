@@ -198,7 +198,7 @@ class ProtocolTests(unittest.TestCase):
         clock.advance(0.02)
         self.assertFalse(controller.enforce_watchdog())
 
-        self.assertEqual({"direction": -1, "speed": 25}, applied)
+        self.assertEqual({"direction": 1, "speed": 25}, applied)
         self.assertTrue(controller.tool_homed)
         self.assertFalse(controller.tool_homing)
         self.assertEqual(0, motors["tool"].position)

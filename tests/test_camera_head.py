@@ -26,7 +26,7 @@ class FakeClient(object):
 
     def home_tool(self):
         self.commands.append(("home",))
-        return {"applied": {"direction": -1, "speed": 25}}
+        return {"applied": {"direction": 1, "speed": 25}}
 
     def stop(self):
         self.commands.append(("stop",))
@@ -35,23 +35,23 @@ class FakeClient(object):
 
 class CameraHeadControllerTests(unittest.TestCase):
     def test_uncalibrated_head_allows_only_bounded_jog(self):
-        client = FakeClient(position=20)
+        client = FakeClient(position=-20)
         head = CameraHeadController(client)
 
-        head.execute('{"action":"jog","degrees":10}')
+        head.execute('{"action":"jog","degrees":-10}')
 
-        self.assertEqual([("move", 30, 40)], client.commands)
+        self.assertEqual([("move", -30, 40)], client.commands)
         with self.assertRaises(CameraHeadError):
             head.execute("look_forward")
         with self.assertRaises(CameraHeadError):
             head.execute('{"action":"jog","degrees":16}')
 
     def test_jog_cannot_cross_software_limit(self):
-        client = FakeClient(position=175)
+        client = FakeClient(position=-175)
         head = CameraHeadController(client)
 
         with self.assertRaises(CameraHeadError):
-            head.jog(10)
+            head.jog(-10)
 
         self.assertEqual([], client.commands)
 

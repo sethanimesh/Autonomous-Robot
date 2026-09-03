@@ -331,12 +331,12 @@ class MotorController(object):
             self.motors["left"].stop()
             self.motors["right"].stop()
             snapshot = self.motors["tool"].snapshot()
-            self.motors["tool"].set_speed(-applied_speed)
+            self.motors["tool"].set_speed(applied_speed)
         except Exception:
             self.stop_all("tool-home-failure", suppress_errors=True)
             raise
         now = self.clock()
-        self.commanded = {"left": 0, "right": 0, "tool": -applied_speed}
+        self.commanded = {"left": 0, "right": 0, "tool": applied_speed}
         self.track_motion_active = False
         self.tool_motion_active = True
         self.tool_homing = True
@@ -347,7 +347,7 @@ class MotorController(object):
         self.tool_last_progress_at = now
         self.last_stop_reason = None
         self.motion_active = True
-        return {"direction": -1, "speed": applied_speed}
+        return {"direction": 1, "speed": applied_speed}
 
     def zero_tool(self):
         self._refresh_motion_flags()

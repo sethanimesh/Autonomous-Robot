@@ -75,7 +75,7 @@ verified.
 | Wheel/track geometry | Effective drive radius 0.0144504 m; effective track width 0.182557 m; calibrated on the floor and deployed |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
-| Camera-head calibration | Not yet complete. Forward/down encoder positions and physical direction remain unknown; only ±15-degree calibration jogs are enabled on the Jetson. |
+| Camera-head calibration | Not yet complete. The physical top limit is encoder zero; downward travel uses negative encoder values. The lower limit and useful forward/down positions remain unknown; calibration jogs are limited to 15 degrees. |
 
 ### Phase 4 connectivity note (2026-09-03)
 
@@ -121,15 +121,14 @@ service correctly refused to start with a required track missing. Reapplying
 the output port's automatic driver probe restored B as a tacho motor; protocol
 v2 then started normally. This recovery did not move any motor.
 
-The owner confirmed the initial camera-head pose was its physical minimum. It
-was zeroed there. A +10-degree target at 40°/s settled at +8 in `holding` state,
-and a return target of zero settled at +2. Outputs B/C stayed stopped and their
-encoders remained 0/1 throughout. Additional +15-degree steps reached 13, 27,
-40, 52, and 71 degrees cleanly. The EV3 lost power/connectivity before the next
-step could be read, so **71 degrees is the last verified safe position, not the
-maximum**. The encoder reference will be lost on reboot while the mechanism is
-away from minimum; use the low-speed home operation before another position
-move.
+The first range interpretation was wrong. The owner observed that the camera
+started at its **top limit**, and the positive commands continued toward that
+same limit. Encoder readings +8, +13, +27, +40, +52, and +71 are therefore not
+accepted as camera travel; they likely represent compliance/backlash while the
+drive pushed into the stop. Outputs B/C did remain stopped with unchanged
+encoders, so only the track-isolation result remains valid. The corrected
+reference is top = 0, positive motion homes toward the top, and real downward
+travel must be tested with negative commands while checking image movement.
 
 ## Safety facts to confirm before motor testing
 

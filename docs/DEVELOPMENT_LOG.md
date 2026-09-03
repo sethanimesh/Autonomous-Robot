@@ -1305,14 +1305,18 @@ complete.
 - **EV3 recovery:** After charging, output B initially reported `error`; the
   service correctly failed closed. Reapplying its automatic driver probe
   restored the motor, and the protocol-v2 service started normally.
-- **Motor success:** The owner confirmed motor A was at its physical minimum.
-  That pose was zeroed. A +10-degree target reached +8 and held; returning to
-  zero settled at +2. B/C speeds stayed zero and their encoders stayed 0/1.
-- **Range progress:** Further 15-degree steps settled cleanly at 13, 27, 40,
-  52, and 71 degrees. The EV3 went offline before the following result arrived,
-  so 71 is recorded only as the last verified safe position—not as maximum.
-- **Repeatability improvement:** Added protocol v3 home-to-minimum. It drives A
-  slowly in the negative direction with B/C braked, monitors encoder progress
+- **Track-isolation success:** B/C speeds stayed zero and their encoders stayed
+  0/1 throughout the motor-A test.
+- **Invalid range test:** The initial pose was incorrectly interpreted as the
+  lower limit. The owner later clarified that the mechanism was already at its
+  top limit and positive commands pushed farther into that stop. The +8 through
+  +71 readings are discarded as valid camera travel; likely they measure
+  drivetrain compliance/backlash. The robot going offline ended the test.
+- **Correction:** Top is defined as encoder 0; downward travel is negative.
+  The next test must use negative commands and correlate encoder displacement
+  with actual image motion before accepting any range value.
+- **Repeatability improvement:** Protocol v3 home-to-top drives A slowly in the
+  positive direction with B/C braked, monitors encoder progress
   locally, stops after 0.4 seconds without progress (or a driver stall), and
   then zeros the encoder. An eight-second outer timeout fails closed. Absolute
   head moves are now rejected until the head has been homed or manually zeroed.

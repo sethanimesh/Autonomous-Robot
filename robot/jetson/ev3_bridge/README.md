@@ -42,8 +42,8 @@ ros2 topic pub --once /camera_head/command std_msgs/msg/String \
 
 After physical calibration, supported named commands are `look_forward` and
 `look_down`. A `zero` command is available only while the configuration remains
-uncalibrated. The `home` command slowly returns to the confirmed physical
-minimum and establishes encoder zero after any reboot. Every camera command
+uncalibrated. The `home` command slowly returns to the confirmed physical upper
+limit and establishes encoder zero after any reboot. Every camera command
 stops or locks both tracks at zero, and the EV3 rejects non-zero chassis motion
 until the camera move finishes.
 

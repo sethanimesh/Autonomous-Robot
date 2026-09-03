@@ -29,7 +29,7 @@ attached motors' reported maximum of 1050.
 - Limits camera-head position moves to ±720 encoder degrees and four seconds.
 - Requires the camera head to be homed or explicitly zeroed after server boot
   before accepting an absolute position move.
-- Homes toward the confirmed minimum at no more than 30°/s, stopping and
+- Homes toward the confirmed upper limit at no more than 30°/s, stopping and
   zeroing after 0.4 seconds without encoder progress; an eight-second outer
   timeout stops without declaring success.
 - Rejects chassis movement while a camera-head position move is active, and
@@ -77,7 +77,7 @@ Set the stopped camera's current position to zero during calibration:
 {"command":"tool_zero"}
 ```
 
-Repeatably find the physical minimum after a reboot:
+Repeatably find the physical upper limit after a reboot:
 
 ```json
 {"command":"tool_home","speed":25}
