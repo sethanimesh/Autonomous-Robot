@@ -65,6 +65,7 @@ echora_face_detector:
     image_topic: /camera/image_raw
     person_detections_topic: /perception/person_detections
     face_detections_topic: /perception/face_detections
+    face_observations_topic: /perception/face_observations
     annotated_image_topic: /perception/face_image
     status_topic: /perception/face_status
 
@@ -99,3 +100,32 @@ echora_face_detector:
     enable_timing_diagnostics: true
     status_interval_sec: 5.0
     latency_window: 120
+
+# Non-commercial personal-research use only. AntelopeV2's ResNet-100 Glint360K
+# recognizer is the highest-capacity official InsightFace pack. It consumes
+# only YuNet-confirmed, five-landmark-aligned faces and never full frames.
+echora_target_recognizer:
+  ros__parameters:
+    image_topic: /camera/image_raw
+    face_observations_topic: /perception/face_observations
+    matches_topic: /perception/target_matches
+    status_topic: /perception/recognition_status
+
+    model_name: antelopev2_glintr100
+    model_path: /home/animesh/echora/models/antelopev2_glintr100_fp16.engine
+    model_sha256: 4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf
+    input_mean: 127.5
+    input_std: 127.5
+    target_store_path: /home/animesh/echora/data/target_person.json
+
+    # Deliberately above common ArcFace demonstration thresholds; three of
+    # five recent observations must agree before target_confirmed is emitted.
+    match_threshold: 0.45
+    confirmation_window: 5
+    confirmation_required: 3
+    max_inference_rate_hz: 8.0
+    max_faces: 3
+    image_cache_size: 24
+    max_frame_age_sec: 0.5
+    frame_timeout_sec: 2.0
+    status_interval_sec: 2.0

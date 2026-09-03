@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile a YOLOX ONNX file into a TensorRT engine on the Jetson.
+"""Compile a fixed-spatial-shape ONNX model into TensorRT on the Jetson.
 
 Run this once per model and precision. A TensorRT engine is specific to the
 GPU, the driver, and the TensorRT version that built it, so it is always built
@@ -29,6 +29,18 @@ import time
 WORKSPACE_BYTES = 1 << 30
 SIDECAR_SUFFIX = ".json"
 KNOWN_DATATYPES = ("INT8", "FP16", "BF16", "FP32", "INT32")
+
+
+def fixed_batch_shape(shape, batch_size=1):
+    """Resolve a dynamic batch dimension while rejecting unknown spatial axes."""
+    values = [int(value) for value in shape]
+    if not values:
+        raise ValueError("model input shape is empty")
+    if values[0] == -1:
+        values[0] = int(batch_size)
+    if values[0] <= 0 or any(value <= 0 for value in values[1:]):
+        raise ValueError("only the batch dimension may be dynamic: {0}".format(tuple(shape)))
+    return tuple(values)
 
 
 def sha256_of(path, chunk_size=1 << 20):
@@ -141,7 +153,7 @@ def describe_engine(engine_path, extra=None):
     return existing
 
 
-def build(onnx_path, engine_path, fp16, workspace_bytes=WORKSPACE_BYTES):
+def build(onnx_path, engine_path, fp16, workspace_bytes=WORKSPACE_BYTES, batch_size=1):
     import tensorrt as trt
 
     if not os.path.isfile(onnx_path):
@@ -172,10 +184,22 @@ def build(onnx_path, engine_path, fp16, workspace_bytes=WORKSPACE_BYTES):
         config.set_flag(trt.BuilderFlag.FP16)
 
     shapes = {"inputs": [], "outputs": []}
+    profile = None
     for index in range(network.num_inputs):
         tensor = network.get_input(index)
         shapes["inputs"].append([tensor.name, list(tensor.shape)])
         print("input  {0}: {1} {2}".format(index, tensor.name, tuple(tensor.shape)))
+        if any(int(value) <= 0 for value in tensor.shape):
+            try:
+                resolved = fixed_batch_shape(tensor.shape, batch_size)
+            except ValueError as exc:
+                raise SystemExit(str(exc))
+            if profile is None:
+                profile = builder.create_optimization_profile()
+            profile.set_shape(tensor.name, resolved, resolved, resolved)
+            print("         fixed profile: {0}".format(resolved))
+    if profile is not None:
+        config.add_optimization_profile(profile)
     for index in range(network.num_outputs):
         tensor = network.get_output(index)
         shapes["outputs"].append([tensor.name, list(tensor.shape)])
@@ -200,6 +224,7 @@ def build(onnx_path, engine_path, fp16, workspace_bytes=WORKSPACE_BYTES):
             "requested_precision": "fp16" if fp16 else "fp32",
             "build_seconds": round(elapsed, 1),
             "shapes": shapes,
+            "fixed_batch_size": int(batch_size),
         },
     )
 
@@ -225,6 +250,9 @@ def main(argv=None):
     parser.add_argument(
         "--workspace-mb", type=int, default=1024, help="builder workspace in MiB"
     )
+    parser.add_argument(
+        "--batch-size", type=int, default=1, help="fixed batch for dynamic-batch models"
+    )
     args = parser.parse_args(argv)
 
     if args.inspect:
@@ -232,7 +260,15 @@ def main(argv=None):
         return
     if not args.onnx or not args.engine:
         parser.error("onnx and engine are required unless --inspect is given")
-    build(args.onnx, args.engine, args.fp16, args.workspace_mb * 1024 * 1024)
+    if args.batch_size < 1:
+        parser.error("--batch-size must be positive")
+    build(
+        args.onnx,
+        args.engine,
+        args.fp16,
+        args.workspace_mb * 1024 * 1024,
+        args.batch_size,
+    )
 
 
 if __name__ == "__main__":

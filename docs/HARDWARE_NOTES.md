@@ -47,6 +47,10 @@ verified.
 | ROS 2 face detector | `/home/animesh/echora/face_detector.py`; enabled `echora-face-detector.service`; YuNet 2023mar TensorRT FP16; exact-frame YOLOX person-region gate |
 | Face detector model | ONNX 232,589 bytes, SHA-256 `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4`; Orin-built engine 559,156 bytes, SHA-256 `b1a09ee0e20e33aaefdb0b902286b79d72eefdeade5f3d08ec9db8521fc7d196` |
 | Face preview | Static `echora-face-preview.service` at `http://192.168.1.48:8080/`; unauthenticated, temporary, and deliberately not enabled at boot |
+| Target recognizer | `/home/animesh/echora/target_recognizer.py`; enabled `echora-target-recognizer.service`; AntelopeV2 Glint360K ResNet-100 TensorRT FP16; 3-of-5 confirmation |
+| Recognition model | ONNX 260,665,334 bytes, SHA-256 `4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf`; Orin engine 131,373,148 bytes, SHA-256 `94bc49a39a76ed9cab5547bcba129757b71323f89b267021c74f04208ab5d2c1` |
+| Target data | `/home/animesh/echora/data/target_person.json`; embeddings-only default; directory 0700/file 0600; currently no real target enrolled |
+| Enrollment console | Static, active only during enrollment at `http://192.168.1.48:8080/`; mutually exclusive with the old face-only preview on the same port |
 | Provisional geometry | Wheel radius 0.03 m, track width 0.12 m; must be physically measured before metric odometry/navigation claims |
 
 ## LEGO EV3 with ev3dev

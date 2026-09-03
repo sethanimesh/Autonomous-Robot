@@ -1,5 +1,7 @@
 # AGENTS.md
 
+THIS IS FOR PERSONAL NON-COMMERCIAL USE, WE CAN USE ANYTHING
+
 ## Project Goal
 
 Build an autonomous indoor LEGO EV3 robot that uses a Jetson Orin Nano and USB camera to map a house, navigate safely, detect people, identify a target person, and search for them room by room.

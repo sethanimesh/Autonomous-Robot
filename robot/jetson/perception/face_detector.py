@@ -32,6 +32,7 @@ from detector_health import (
 from face_config import FaceDetectorConfig, PARAMETER_DEFAULTS
 from face_detections import map_face_to_source, select_faces
 from face_inference import FaceInferenceError, TensorRTMultiOutputBackend, YuNetFaceDetector
+from face_observations import serialize_face_observations
 from face_sync import ExactPairMatcher, select_person_regions, stamp_key
 from image_intake import REJECT_MALFORMED, REJECT_STALE_FRAME, SUPPORTED_ENCODINGS, frame_age_seconds, is_frame_too_old, validate_image_message
 from messages import MessageFactories, build_detection_array
@@ -97,6 +98,9 @@ class FaceDetectorNode(Node):
         self.status_publisher = self.create_publisher(String, self.config.status_topic, status_qos)
         self.detections_publisher = self.create_publisher(
             Detection2DArray, self.config.face_detections_topic, 10
+        )
+        self.observations_publisher = self.create_publisher(
+            String, self.config.face_observations_topic, 10
         )
         self.annotated_publisher = None
         if self.config.publish_annotated_image:
@@ -262,6 +266,11 @@ class FaceDetectorNode(Node):
         self.detections_publisher.publish(
             build_detection_array(faces, frame.stamp, frame.frame_id, self.factories)
         )
+        observations = String()
+        observations.data = serialize_face_observations(
+            faces, frame.stamp, frame.frame_id
+        )
+        self.observations_publisher.publish(observations)
 
     def annotation_wanted(self):
         if self.annotated_publisher is None:
@@ -334,6 +343,7 @@ class FaceDetectorNode(Node):
                 "image_topic": self.config.image_topic,
                 "person_detections_topic": self.config.person_detections_topic,
                 "face_detections_topic": self.config.face_detections_topic,
+                "face_observations_topic": self.config.face_observations_topic,
                 "model_path": self.config.model_path,
                 "device_name": None if self.detector is None else self.detector.device_name,
                 "input_size": "{0}x{1}".format(self.config.model_input_width, self.config.model_input_height),
@@ -350,7 +360,7 @@ class FaceDetectorNode(Node):
                 "person_rois_processed": self.person_rois_processed,
                 "no_person_batches": self.no_person_batches,
                 "recent_face_count": self.health.recent_person_count,
-                "privacy": "no frames or biometric data persisted",
+                "privacy": "no frames or biometric data persisted; landmarks are transient",
             },
         )
         payload.pop("recent_person_count", None)
@@ -363,7 +373,10 @@ class FaceDetectorNode(Node):
 
     def shutdown(self):
         self.health.set_state(STATE_STOPPED)
-        self.publish_status()
+        # The ROS context is commonly already invalid when systemd's SIGINT
+        # unwinds rclpy.spin(). Publishing here caused a false failure on an
+        # otherwise clean managed restart, and a transient status publisher
+        # has no useful subscriber after this process exits anyway.
         if self.detector is not None:
             self.detector.close()
             self.detector = None

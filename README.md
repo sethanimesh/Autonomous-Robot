@@ -6,8 +6,10 @@ low-level motor and sensor controller.
 
 The project is being developed in small, testable stages. Phase 1 and 2 (safe
 Jetson-to-EV3 motor control and its ROS 2 integration) are complete. Phase 3 is
-now complete through calibrated camera acquisition, stationary person
-detection, and stationary face detection. Target-person identity is next.
+now complete through calibrated camera acquisition, stationary person and face
+detection, plus the deployed target-person enrollment and recognition stack.
+The next physical step is enrolling the real target and validating known versus
+unknown people under several indoor conditions.
 
 ## Working rules
 
@@ -70,17 +72,35 @@ resumes automatically.
 Stationary face detection is now live as a second bounded stage. Enabled
 `echora-face-detector.service` runs **YuNet 2023mar (MIT)** through **TensorRT
 FP16**, but only inside exact-frame YOLOX person regions. It publishes
-`/perception/face_detections`, `/perception/face_image`, and
+`/perception/face_detections`, transient five-landmark observations,
+`/perception/face_image`, and
 `/perception/face_status`. A live ten-second acceptance run found one face in
 **50/50 processed views**, with every face timestamp matching both the observed
 camera and person messages, zero malformed results, and zero inference errors.
 GPU inference plus decode averages roughly **16-18 ms** per person region.
 Five landmarks are drawn for validation but are not persisted.
 
+Target-person recognition is deployed as enabled
+`echora-target-recognizer.service`. It runs InsightFace AntelopeV2's
+**ResNet-100 Glint360K** recognizer as a measured TensorRT FP16 engine, aligns
+each face from YuNet's five landmarks, compares it against several enrolled
+views, and requires **three matches in five recent observations** before
+reporting `target_confirmed`. It publishes `/perception/target_matches` and
+`/perception/recognition_status`. The model is restricted to
+**non-commercial research/personal use**, which the owner explicitly confirmed
+for this project.
+
+The temporary enrollment console is available at
+`http://192.168.1.48:8080/` while `echora-enrollment-console.service` is
+running. It accepts both guided live views and uploaded photos, rejects mixed
+identities and poor samples, requires front/left/right diversity, and stores
+only private numerical embeddings by default. The opt-in photo setting retains
+only aligned 112×112 face crops, never full camera frames.
+
 Note that the installed **PyTorch is a CPU-only build** and provides no
 acceleration; TensorRT is the working GPU path. Model weights and engines are
-**not** committed. No recognition, identity, tracking, following, mapping, or
-recording has been added, and the motors stayed stopped throughout.
+**not** committed. No tracking, following, mapping, or recording has been
+added, and the motors stayed stopped throughout perception development.
 
 See:
 

@@ -9,6 +9,7 @@ class FaceDetectorConfigTests(unittest.TestCase):
         config = FaceDetectorConfig()
 
         self.assertEqual("/perception/person_detections", config.person_detections_topic)
+        self.assertEqual("/perception/face_observations", config.face_observations_topic)
         self.assertEqual((640, 640), config.model_input_shape())
         self.assertEqual(3, config.max_person_rois)
         self.assertAlmostEqual(0.1, config.inference_period_sec())

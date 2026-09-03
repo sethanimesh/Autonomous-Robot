@@ -1039,3 +1039,81 @@ complete.
 - **Deployed state:** Camera, YOLOX person detector, YuNet face detector, and
   EV3 bridge are active. The face detector is enabled at boot; the temporary
   preview is static, inactive, and not enabled.
+
+## 2026-09-03 — Target enrollment and GPU recognition deployed
+
+### Model and privacy decision
+
+- **Owner scope confirmed:** This robot will remain personal and
+  non-commercial, so InsightFace public pretrained weights may be used under
+  their non-commercial research terms. The restriction is now explicit in
+  `AGENTS.md`, configuration comments, and perception documentation.
+- **Model selected:** AntelopeV2 `glintr100`, the official pack's ResNet-100
+  recognizer trained on Glint360K. The 343 MB official archive matched SHA-256
+  `8e182f14fc6e80b3bfa375b33eb6cff7ee05d8ef7633e738d1c89021dcf0c5c5`;
+  the extracted ONNX matched
+  `4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf`.
+- **Privacy:** The default store contains only normalized embeddings, is
+  atomic, model-checksum-bound, and private (0700 directory, 0600 file).
+  Opt-in photo retention keeps only aligned 112×112 face crops. Original
+  uploads and room frames are never stored. Delete removes both templates and
+  retained crops.
+
+### Implementation and failures fixed
+
+- **Failure:** The original TensorRT builder rejected AntelopeV2 because its
+  ONNX uses dynamic batch (`-1×3×112×112`) and no optimization profile existed.
+  The builder now pins only the batch dimension, rejects dynamic spatial axes,
+  and records the fixed batch in its engine metadata.
+- **Success:** The Orin built a 131,373,148-byte engine in 93.5 seconds. Its
+  SHA-256 is `94bc49a39a76ed9cab5547bcba129757b71323f89b267021c74f04208ab5d2c1`;
+  inspection measured 829 FP16 tensors and one FP32 tensor.
+- **Failure:** OpenCV 4.5.4 exposed `FaceDetectorYN` but failed while executing
+  the 2023 YuNet ONNX for uploaded photos (`Layer with requested id=-1 not
+  found`). Uploads now use the same tested YuNet TensorRT decoder as live face
+  detection; no risky system-wide OpenCV replacement was needed.
+- **Failure:** A managed face-node restart produced a false exit failure by
+  publishing a final status after the ROS context was invalid. Shutdown no
+  longer publishes on the dead context; the next restart exited cleanly and
+  systemd reported `Deactivated successfully`.
+- **Test-method failure:** Injecting a second temporary publisher onto the live
+  camera topic caused the person and face subscribers to go stale after that
+  publisher exited, while the camera itself continued streaming. Restarting
+  only those two consumers restored the chain. Future acceptance avoids a
+  competing publisher on the production camera topic.
+
+### Enrollment and recognition behavior
+
+- **Success:** Added a browser enrollment console with live preview, guided
+  front/left/right collection, uploaded-photo support, explicit consent,
+  embeddings-only or aligned-crop retention, quality rejection, duplicate
+  rejection, and within-session identity consistency checks.
+- **Success:** Added exact-frame transient landmark transport, ArcFace
+  alignment, 512-value normalized embeddings, multi-template scoring,
+  conservative 0.45 threshold, and three-of-five temporal confirmation.
+- **Success:** `echora-target-recognizer.service` is enabled and active. It
+  publishes `/perception/target_matches` and `/perception/recognition_status`
+  and currently reports `not_enrolled`, which is correct before the real target
+  is collected. The temporary `echora-enrollment-console.service` is active for
+  the operator but remains static/not enabled at boot.
+- **Success:** The browser UI and live stream were visually inspected: the
+  current face box and five landmarks were correctly positioned, all controls
+  rendered, status updated, and the browser logged no errors.
+
+### Acceptance evidence and remaining physical test
+
+- **Success:** Deployed public-image checks measured 0.9824 similarity for the
+  same face after a brightness change and 0.0250 for a different identity.
+  Embedding latency over 30 runs was 14.37 ms mean, 23.0 ms p95, 26.0 ms max.
+- **Success:** The full ROS path produced target matches on 3/3 observed
+  known-person test frames (best 0.9713) and zero matches on 3/3 different-
+  person frames. The temporary identity, archive, and public images were then
+  deleted; no test biometric remains.
+- **Tests:** The Mac suite passes **350 tests**, four skipped NumPy decoder
+  tests remain exercised on the Jetson.
+- **Safety:** Recognition and enrollment contain no EV3 client and publish no
+  `/cmd_vel`; motors remained stopped.
+- **Next physical test:** Enroll the actual target through the open console,
+  then measure acceptance for front/left/right, different light, distance, and
+  glasses as applicable, followed by at least one unknown person to check false
+  acceptance.

@@ -1,0 +1,24 @@
+[Unit]
+Description=Echora target-person recognizer (AntelopeV2 TensorRT)
+After=network-online.target echora-camera.service echora-face-detector.service
+Wants=network-online.target echora-camera.service echora-face-detector.service
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/target_recognizer.py --ros-args --params-file /home/animesh/echora/perception.yaml'
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/animesh/echora/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

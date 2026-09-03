@@ -25,6 +25,7 @@ PARAMETER_DEFAULTS = {
     "image_topic": "/camera/image_raw",
     "person_detections_topic": "/perception/person_detections",
     "face_detections_topic": "/perception/face_detections",
+    "face_observations_topic": "/perception/face_observations",
     "annotated_image_topic": "/perception/face_image",
     "status_topic": "/perception/face_status",
     "model_name": "yunet_2023mar",
@@ -66,12 +67,14 @@ class FaceDetectorConfig(object):
             "image_topic",
             "person_detections_topic",
             "face_detections_topic",
+            "face_observations_topic",
             "annotated_image_topic",
             "status_topic",
         ):
             setattr(self, name, _topic(name, values[name]))
         outputs = (
             self.face_detections_topic,
+            self.face_observations_topic,
             self.annotated_image_topic,
             self.status_topic,
         )

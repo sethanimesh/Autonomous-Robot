@@ -1,14 +1,13 @@
 # Jetson Perception
 
-`person_detector.py` and `face_detector.py` form the stationary Phase 3
-perception pipeline. YOLOX finds people in the live camera stream; YuNet then
-looks for faces only inside exact-frame person regions. Both models execute on
-the Jetson GPU through TensorRT FP16 and publish structured detections,
-optional annotated images, and honest health information.
+`person_detector.py`, `face_detector.py`, and `target_recognizer.py` form the
+stationary Phase 3 perception pipeline. YOLOX finds people, YuNet finds faces
+inside exact-frame person regions, and AntelopeV2 compares aligned faces with
+the enrolled target. All three execute on the Jetson GPU through TensorRT FP16.
 
-These nodes only look. There is no recognition, identity, tracking across
-frames, following, or motor command. Neither node connects to the EV3 or writes
-a camera frame to disk.
+These nodes only look. There is no tracking, following, liveness/authentication
+claim, or motor command. They do not connect to the EV3. Full camera frames are
+never written to disk by this pipeline.
 
 ## Topics
 
@@ -18,6 +17,9 @@ a camera frame to disk.
 | `/perception/person_detections` | `vision_msgs/msg/Detection2DArray` | reliable, depth 10 |
 | `/perception/person_image` | `sensor_msgs/msg/Image` (`bgr8`) | best effort, depth 1 |
 | `/perception/status` | `std_msgs/msg/String` (JSON) | reliable, transient local, depth 1 |
+| `/perception/face_observations` | `std_msgs/msg/String` (JSON) | transient boxes plus five landmarks |
+| `/perception/target_matches` | `vision_msgs/msg/Detection2DArray` | target boxes and similarity |
+| `/perception/recognition_status` | `std_msgs/msg/String` (JSON) | target and confirmation state |
 
 Every detection carries the **source image's** timestamp and frame ID, on both
 the array header and each `Detection2D` header, so a detection can always be
@@ -41,6 +43,7 @@ face position. Bounding boxes are source-image pixels only.
 | `/camera/image_raw` (in) | `sensor_msgs/msg/Image` | Timestamped source frame |
 | `/perception/person_detections` (in) | `vision_msgs/msg/Detection2DArray` | YOLOX gate |
 | `/perception/face_detections` | `vision_msgs/msg/Detection2DArray` | Face boxes and confidence |
+| `/perception/face_observations` | `std_msgs/msg/String` (JSON) | Exact stamp, boxes, and five transient landmarks |
 | `/perception/face_image` | `sensor_msgs/msg/Image` | Optional boxes plus five landmarks |
 | `/perception/face_status` | `std_msgs/msg/String` (JSON) | Health, latency, matching, provider |
 
@@ -91,6 +94,51 @@ still providing a usable operator view.
 `echora-face-preview.service` serves `http://192.168.1.48:8080/`, is not enabled
 at boot, and should be stopped after physical testing because it is an
 unauthenticated LAN camera stream.
+
+## Target-person recognition and enrollment
+
+The recognizer uses the official InsightFace **AntelopeV2** package's
+`glintr100.onnx`: ResNet-100 trained on Glint360K, 512 output dimensions. This
+is the highest-capacity recognition model in the official public InsightFace
+packs. Its pretrained weights are explicitly restricted to **non-commercial
+research use**; this repository's owner confirmed the robot will remain a
+personal, non-commercial project. Do not reuse these weights commercially.
+
+| Artifact | Verified value |
+| --- | --- |
+| Official package | `antelopev2.zip`, SHA-256 `8e182f14fc6e80b3bfa375b33eb6cff7ee05d8ef7633e738d1c89021dcf0c5c5` |
+| Recognition ONNX | 260,665,334 bytes, SHA-256 `4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf` |
+| Orin FP16 engine | 131,373,148 bytes, SHA-256 `94bc49a39a76ed9cab5547bcba129757b71323f89b267021c74f04208ab5d2c1` |
+| Measured precision | 829 FP16 tensors, 1 FP32 tensor |
+| Input/output | normalized RGB `1×3×112×112` → 512-value embedding |
+
+YuNet's five landmarks are transformed to the model's ArcFace 112×112
+reference geometry. Every embedding is L2-normalized. A probe is compared with
+several pose-specific enrollment templates; the score blends the best view
+with top-three consensus. The default threshold is 0.45, and three of five
+recent observations must pass before `target_confirmed`. This is a search
+signal, not a security or liveness guarantee.
+
+`echora-target-recognizer.service` is enabled at boot and safely reports
+`not_enrolled` until a target exists. The private store is
+`/home/animesh/echora/data/target_person.json`, mode 0600 in a mode 0700
+directory, atomically replaced, and bound to the exact model checksum.
+
+For enrollment, start the static `echora-enrollment-console.service` and open
+`http://192.168.1.48:8080/`. It is deliberately not enabled at boot because it
+is an unauthenticated LAN operator interface. The workflow accepts uploaded
+photos plus live views, requires consent, at least ten accepted samples, and
+front/left/right coverage. It rejects blur, poor lighting, small faces,
+duplicates, multiple people, and a face inconsistent with the session. The
+default stores embeddings only. Opt-in retention stores 112×112 aligned face
+crops with mode 0600; original uploads and room frames are never retained.
+
+Measured public-image checks on the deployed engine: 0.9824 cosine similarity
+for one identity after a brightness change, 0.0250 for two different identities,
+and 14.37 ms mean embedding latency (23.0 ms p95 over 30 runs). A full temporary
+ROS test published three known-target frames, all three matched at up to 0.9713;
+three unknown-person frames produced zero matches. The real target still needs
+operator enrollment and physical multi-condition acceptance.
 
 ## Model
 
