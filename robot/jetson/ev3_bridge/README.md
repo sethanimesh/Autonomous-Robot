@@ -33,6 +33,28 @@ are provisional until physical measurement and floor calibration are complete.
 measured straight run and effective track width from a measured turn. Encoder
 odometry deliberately starts at `(0, 0, 0)` whenever the bridge service starts.
 
+`calibrate_odometry.py` performs bounded calibration captures through the live
+ROS bridge. It saves a JSON report even when a run fails, verifies that both
+encoders moved, sends repeated stop commands, and requires stopped feedback.
+Use a straight capture first, measure the actual floor distance, calculate the
+effective wheel radius, then use that radius for an in-place turn capture.
+
+```text
+python3 calibrate_odometry.py capture --motion straight --speed 0.08 --duration 3 \
+  --report calibration/straight-01.json
+python3 calibrate_odometry.py calculate --report calibration/straight-01.json \
+  --measured-distance-m 0.42
+
+python3 calibrate_odometry.py capture --motion turn --speed 0.5 --duration 3 \
+  --wheel-radius-m 0.0318 --report calibration/turn-01.json
+python3 calibrate_odometry.py calculate --report calibration/turn-01.json \
+  --measured-yaw-degrees 185
+```
+
+The calculated values are printed for review; the tool deliberately does not
+rewrite `robot.yaml` automatically. Use the measured floor displacement or yaw,
+not the commanded value.
+
 Run after sourcing ROS 2 Humble:
 
 ```text

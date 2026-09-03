@@ -12,3 +12,6 @@ __pycache__/
 *.engine
 *.engine.json
 models/
+
+# Local robot calibration captures contain machine-specific test data.
+calibration/*.json

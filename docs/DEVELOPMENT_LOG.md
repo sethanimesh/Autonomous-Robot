@@ -1152,3 +1152,45 @@ complete.
 - **Still required:** Recheck the enrolled target at farther distance and under
   changed indoor lighting before recognition is considered physically
   complete.
+
+## 2026-09-03 — Phase 4 odometry floor calibration started
+
+### Implementation
+
+- **Success:** Added a bounded ROS calibration runner that captures encoder and
+  odometry state before and after straight or in-place-turn commands.
+- **Safety:** Each capture is limited to five seconds, publishes a zero command
+  repeatedly at the end, and accepts a run only after a newer EV3 status message
+  confirms stopped motion.
+- **Validation:** A run is rejected if either track moves fewer than the minimum
+  encoder counts or if straight/turn encoder directions are inconsistent.
+- **Traceability:** Every hardware attempt writes an atomic JSON report,
+  including failed attempts. Reports stay on the Jetson under
+  `/home/animesh/echora/calibration/` and are ignored by Git.
+- **Success:** Added calculation mode for effective wheel radius from measured
+  straight displacement and effective track width from measured turn angle.
+- **Tests:** The local suite reached 358 passing tests with four dependency-based
+  skips. Python compilation and repository whitespace checks passed.
+
+### Deployment and real tests
+
+- **Deployment:** Installed `calibration.py` and `calibrate_odometry.py` in
+  `/home/animesh/echora/` on the Jetson and passed Python compilation there.
+- **Expected failure:** The first 0.5-second capture received no
+  `/robot_status`. The EV3 was unreachable from both Mac and Jetson and absent
+  from a full `192.168.1.0/24` scan. The runner exited with failure, saved
+  `connectivity-check.json`, sent stop messages, and no motor command reached
+  the offline robot.
+- **Recovery:** After the owner powered on the EV3, ping returned at
+  `192.168.1.25` with 0% loss and roughly 4.6 ms average latency. The ROS bridge
+  resumed status publication without a restart.
+- **Straight smoke success:** A 0.04 m/s, 0.5-second request advanced both
+  encoders from 0 to 56 counts. The runner confirmed stopped feedback. With the
+  provisional radius, odometry reported 0.02932 m travel.
+- **Straight capture success:** A 0.08 m/s, 3-second request advanced the left
+  encoder by 424 counts and the right by 419 counts. The runner confirmed
+  stopped feedback. Provisional odometry reported 0.22069 m incremental travel
+  and about -1.25 degrees of yaw; the encoder mismatch was five counts (1.2%).
+- **Pending measurement:** The actual floor displacement and observed steering
+  direction are required before computing and applying an effective wheel
+  radius. Track-width calibration follows that result.

@@ -77,6 +77,20 @@ verified.
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 
+### Phase 4 connectivity note (2026-09-03)
+
+At the first floor-calibration attempt, `192.168.1.25` was absent from a full
+`192.168.1.0/24` host scan and unreachable from both the Mac and Jetson. The
+Jetson bridge remained active but logged timeouts and `No route to host`.
+Treat the EV3 as powered off or disconnected until it reappears; this does not
+change its confirmed address or motor mapping.
+
+The owner then powered on the EV3 at the same address. Connectivity recovered
+without configuration changes. A 0.5-second straight smoke test advanced both
+encoders by exactly 56 counts, and a 3-second straight capture advanced left by
+424 counts and right by 419 counts; both runs ended with confirmed stopped
+feedback.
+
 ## Safety facts to confirm before motor testing
 
 - Robot can be lifted so the tracks are clear of the ground for the first test.

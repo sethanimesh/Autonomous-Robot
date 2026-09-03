@@ -10,8 +10,8 @@ now complete through calibrated camera acquisition, stationary person and face
 detection, plus the deployed target-person enrollment and recognition stack.
 The real target is enrolled and passes stationary known-person recognition;
 a different real person also passed the stationary rejection test with zero
-false matches. The next physical step is known-target checks under varied
-distance and indoor lighting.
+false matches. Varied-distance/lighting validation was explicitly deferred, and
+Phase 4 encoder-odometry floor calibration is now underway.
 
 ## Working rules
 
@@ -46,6 +46,14 @@ the Jetson subscribes to `/cmd_vel` and publishes EV3 feedback on
 the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
 tests passed. Metric geometry remains provisional until the chassis is
 physically measured.
+
+Phase 4 now has a bounded ROS calibration runner that records encoder and pose
+start/end values, requires confirmed stop feedback, saves both successful and
+failed attempts, and calculates effective wheel radius and track width from
+real measurements. Its first deployed connectivity capture failed closed while
+the EV3 was offline. After the EV3 returned, a short smoke test and the first
+straight floor capture both succeeded with confirmed stops. Metric calibration
+now awaits the measured floor displacement; no geometry value is guessed.
 
 The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,
