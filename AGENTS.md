@@ -400,7 +400,8 @@ Automatic semantic room understanding can come later.
 
 ## Camera Head
 
-The existing medium-motor mechanism moves vertically.
+The existing motor-A mechanism moves the camera vertically. The attached motor
+was physically identified as an EV3 large motor, not a medium motor.
 
 For the first version, the webcam can remain mostly fixed and the tracked robot can rotate its entire chassis to scan horizontally.
 

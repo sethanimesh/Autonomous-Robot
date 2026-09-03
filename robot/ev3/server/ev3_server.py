@@ -16,13 +16,15 @@ import sys
 import time
 
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 9999
 DEFAULT_ALLOWED_CLIENT = "192.168.1.48"
 DEFAULT_WATCHDOG_SECONDS = 0.5
 DEFAULT_DRIVE_SPEED_LIMIT = 250
 DEFAULT_TOOL_SPEED_LIMIT = 150
+DEFAULT_TOOL_POSITION_LIMIT = 720
+DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 4.0
 DEFAULT_POLL_SECONDS = 0.05
 DEFAULT_MAX_LINE_BYTES = 4096
 
@@ -95,6 +97,15 @@ class SysfsMotor(object):
         self._write("speed_sp", speed)
         self._write("command", "run-forever")
 
+    def move_to(self, position, speed):
+        self._write("stop_action", "hold")
+        self._write("position_sp", int(position))
+        self._write("speed_sp", abs(int(speed)))
+        self._write("command", "run-to-abs-pos")
+
+    def set_position(self, position):
+        self._write("position", int(position))
+
     def stop(self):
         self._write("stop_action", "brake")
         self._write("command", "stop")
@@ -118,6 +129,8 @@ class MotorController(object):
         watchdog_seconds=DEFAULT_WATCHDOG_SECONDS,
         drive_speed_limit=DEFAULT_DRIVE_SPEED_LIMIT,
         tool_speed_limit=DEFAULT_TOOL_SPEED_LIMIT,
+        tool_position_limit=DEFAULT_TOOL_POSITION_LIMIT,
+        tool_move_timeout_seconds=DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS,
         clock=None,
     ):
         missing = sorted(set(MOTOR_PORTS) - set(motors))
@@ -130,9 +143,19 @@ class MotorController(object):
         self.watchdog_seconds = float(watchdog_seconds)
         self.drive_speed_limit = int(drive_speed_limit)
         self.tool_speed_limit = int(tool_speed_limit)
+        self.tool_position_limit = int(tool_position_limit)
+        self.tool_move_timeout_seconds = float(tool_move_timeout_seconds)
+        if self.tool_position_limit <= 0:
+            raise ValueError("tool_position_limit must be positive")
+        if self.tool_move_timeout_seconds <= 0:
+            raise ValueError("tool_move_timeout_seconds must be positive")
         self.clock = clock or time.monotonic
         self.commanded = {"left": 0, "right": 0, "tool": 0}
         self.last_motion_at = None
+        self.tool_move_started_at = None
+        self.tool_target_position = None
+        self.track_motion_active = False
+        self.tool_motion_active = False
         self.motion_active = False
         self.last_stop_reason = None
         self.stop_all("startup")
@@ -146,29 +169,117 @@ class MotorController(object):
         integer_value = int(round(value))
         return max(-limit, min(limit, integer_value))
 
-    def drive(self, left, right, tool=0):
+    @staticmethod
+    def _normalize_position(name, value, limit):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ProtocolError("{0} must be a number".format(name))
+        if not math.isfinite(value):
+            raise ProtocolError("{0} must be finite".format(name))
+        integer_value = int(round(value))
+        if integer_value < -limit or integer_value > limit:
+            raise ProtocolError(
+                "{0} must be between {1} and {2}".format(name, -limit, limit)
+            )
+        return integer_value
+
+    def _refresh_motion_flags(self, tool_snapshot=None):
+        if self.tool_motion_active:
+            if tool_snapshot is None:
+                tool_snapshot = self.motors["tool"].snapshot()
+            if "running" not in tool_snapshot.get("state", []):
+                self.tool_motion_active = False
+                self.commanded["tool"] = 0
+                self.tool_move_started_at = None
+        self.motion_active = self.track_motion_active or self.tool_motion_active
+
+    def drive(self, left, right, tool=None):
         applied = {
             "left": self._normalize_speed("left", left, self.drive_speed_limit),
             "right": self._normalize_speed("right", right, self.drive_speed_limit),
-            "tool": self._normalize_speed("tool", tool, self.tool_speed_limit),
         }
+        if tool is not None:
+            applied["tool"] = self._normalize_speed(
+                "tool", tool, self.tool_speed_limit
+            )
 
-        if not any(applied.values()):
-            self.stop_all("zero-command")
-            return applied
+        if (applied["left"] or applied["right"]) and self.tool_motion_active:
+            raise ProtocolError("camera head is moving; chassis command rejected")
 
         try:
-            for role in ("left", "right", "tool"):
+            for role in ("left", "right"):
                 self.motors[role].set_speed(applied[role])
+            if tool is not None:
+                self.motors["tool"].set_speed(applied["tool"])
         except Exception:
             self.stop_all("motor-write-failure", suppress_errors=True)
             raise
 
-        self.commanded = applied
-        self.last_motion_at = self.clock()
-        self.motion_active = True
-        self.last_stop_reason = None
+        self.commanded["left"] = applied["left"]
+        self.commanded["right"] = applied["right"]
+        self.track_motion_active = bool(applied["left"] or applied["right"])
+        if tool is not None:
+            self.commanded["tool"] = applied["tool"]
+            self.tool_motion_active = bool(applied["tool"])
+            self.tool_move_started_at = None
+            self.tool_target_position = None
+
+        if self.track_motion_active or (tool is not None and applied["tool"]):
+            self.last_motion_at = self.clock()
+            self.last_stop_reason = None
+        elif not self.tool_motion_active:
+            self.last_motion_at = None
+            self.last_stop_reason = "zero-command"
+        self._refresh_motion_flags()
         return dict(applied)
+
+    def move_tool(self, position, speed):
+        if self.track_motion_active:
+            raise ProtocolError("chassis is moving; camera-head command rejected")
+        target = self._normalize_position(
+            "tool position", position, self.tool_position_limit
+        )
+        applied_speed = abs(
+            self._normalize_speed("tool", speed, self.tool_speed_limit)
+        )
+        if applied_speed == 0:
+            raise ProtocolError("tool speed must be greater than zero")
+
+        current = self.motors["tool"].snapshot()["position"]
+        if current == target:
+            self.motors["tool"].stop()
+            self.commanded["tool"] = 0
+            self.tool_motion_active = False
+            self.tool_target_position = target
+            self.tool_move_started_at = None
+            self._refresh_motion_flags()
+            return {"position": target, "speed": applied_speed}
+
+        try:
+            self.motors["left"].stop()
+            self.motors["right"].stop()
+            self.motors["tool"].move_to(target, applied_speed)
+        except Exception:
+            self.stop_all("tool-move-failure", suppress_errors=True)
+            raise
+
+        self.commanded["left"] = 0
+        self.commanded["right"] = 0
+        self.commanded["tool"] = applied_speed if target > current else -applied_speed
+        self.track_motion_active = False
+        self.tool_motion_active = True
+        self.tool_target_position = target
+        self.tool_move_started_at = self.clock()
+        self.last_stop_reason = None
+        self.motion_active = True
+        return {"position": target, "speed": applied_speed}
+
+    def zero_tool(self):
+        self._refresh_motion_flags()
+        if self.motion_active:
+            raise ProtocolError("all motors must be stopped before zeroing camera head")
+        self.motors["tool"].set_position(0)
+        self.tool_target_position = 0
+        return 0
 
     def stop_all(self, reason, suppress_errors=False):
         errors = []
@@ -179,6 +290,9 @@ class MotorController(object):
                 errors.append("{0}: {1}".format(role, exc))
 
         self.commanded = {"left": 0, "right": 0, "tool": 0}
+        self.track_motion_active = False
+        self.tool_motion_active = False
+        self.tool_move_started_at = None
         self.motion_active = False
         self.last_motion_at = None
         self.last_stop_reason = reason
@@ -187,23 +301,41 @@ class MotorController(object):
             raise HardwareError("failed to stop motors: {0}".format("; ".join(errors)))
 
     def enforce_watchdog(self):
-        if not self.motion_active or self.last_motion_at is None:
-            return False
-        if self.clock() - self.last_motion_at < self.watchdog_seconds:
-            return False
-        self.stop_all("watchdog")
-        return True
+        stopped = False
+        if (
+            self.track_motion_active
+            and self.last_motion_at is not None
+            and self.clock() - self.last_motion_at >= self.watchdog_seconds
+        ):
+            self.stop_all("watchdog")
+            return True
+        if (
+            self.tool_motion_active
+            and self.tool_move_started_at is not None
+            and self.clock() - self.tool_move_started_at
+            >= self.tool_move_timeout_seconds
+        ):
+            self.stop_all("tool-move-timeout")
+            return True
+        self._refresh_motion_flags()
+        return stopped
 
     def status(self):
         snapshots = {}
         for role in ("left", "right", "tool"):
             snapshots[role] = self.motors[role].snapshot()
+        self._refresh_motion_flags(snapshots["tool"])
+        for role in ("left", "right", "tool"):
             snapshots[role]["commanded_speed"] = self.commanded[role]
         return {
             "motors": snapshots,
             "motion_active": self.motion_active,
             "last_stop_reason": self.last_stop_reason,
             "watchdog_timeout_ms": int(self.watchdog_seconds * 1000),
+            "tool_motion_active": self.tool_motion_active,
+            "tool_target_position": self.tool_target_position,
+            "tool_position_limit": self.tool_position_limit,
+            "tool_move_timeout_ms": int(self.tool_move_timeout_seconds * 1000),
         }
 
 
@@ -227,9 +359,16 @@ def handle_request(controller, request):
         if "left" not in request or "right" not in request:
             raise ProtocolError("drive requires left and right speeds")
         applied = controller.drive(
-            request["left"], request["right"], request.get("tool", 0)
+            request["left"], request["right"], request.get("tool")
         )
         return {"status": "ok", "applied": applied}
+    if command == "tool_move":
+        if "position" not in request or "speed" not in request:
+            raise ProtocolError("tool_move requires position and speed")
+        applied = controller.move_tool(request["position"], request["speed"])
+        return {"status": "ok", "applied": applied}
+    if command == "tool_zero":
+        return {"status": "ok", "position": controller.zero_tool()}
     if command == "status":
         response = controller.status()
         response["status"] = "ok"
@@ -382,6 +521,8 @@ def build_controller(args):
         watchdog_seconds=args.watchdog_ms / 1000.0,
         drive_speed_limit=args.drive_speed_limit,
         tool_speed_limit=args.tool_speed_limit,
+        tool_position_limit=args.tool_position_limit,
+        tool_move_timeout_seconds=args.tool_move_timeout,
     )
 
 
@@ -393,6 +534,12 @@ def parse_args(argv):
     parser.add_argument("--watchdog-ms", type=int, default=500)
     parser.add_argument("--drive-speed-limit", type=int, default=250)
     parser.add_argument("--tool-speed-limit", type=int, default=150)
+    parser.add_argument(
+        "--tool-position-limit", type=int, default=DEFAULT_TOOL_POSITION_LIMIT
+    )
+    parser.add_argument(
+        "--tool-move-timeout", type=float, default=DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS
+    )
     parser.add_argument(
         "--sysfs-root", default="/sys/class/tacho-motor", help=argparse.SUPPRESS
     )

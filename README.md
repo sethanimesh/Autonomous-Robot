@@ -66,6 +66,14 @@ straight, and every run ended with confirmed stopped feedback.
 5. PWA for enrollment, live status, and mission control.
 6. Deferred: mapping/localization, whole-home Nav2, and multi-room search.
 
+Camera-head control is now implemented in uncalibrated mode. The bridge exposes
+`/camera_head/command` and `/camera_head/status`; only small encoder jogs are
+accepted until real forward/down positions are recorded. Position moves run on
+the EV3 with a four-second timeout, ±720-degree hard protocol bound, tighter
+Jetson software bounds, and mutual exclusion between camera and chassis motion.
+The live enrollment console remains available on port 8080 as the operator
+camera view during calibration.
+
 The single-room controller will move only in short segments and inspect the
 forward and downward views between them. Uncertain or stale vision means stop.
 The camera-head motion and chassis motion are coordinated so the recognition

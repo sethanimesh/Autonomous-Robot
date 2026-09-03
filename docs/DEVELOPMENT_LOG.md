@@ -1273,3 +1273,29 @@ complete.
 - **Safety:** External or loose cables must not enter the tracks or be wound by
   chassis rotation. Camera-head encoder limits and physical clearance must be
   established before autonomous scan motion.
+
+## 2026-09-03 — Phase 5 camera-head control started
+
+- **Implementation success:** Added EV3 protocol v2 bounded absolute-position
+  moves for motor A, a four-second independent timeout, stopped-position zeroing,
+  and status fields for camera target and motion state.
+- **Coordination success:** Normal ROS chassis commands no longer write motor A.
+  The EV3 rejects chassis movement while the head is moving and rejects a head
+  move while the chassis is moving. A head move explicitly brakes tracks B/C.
+- **Jetson success:** Added a camera-head abstraction plus
+  `/camera_head/command` and `/camera_head/status`. Named forward/down moves
+  fail closed until calibration is enabled; uncalibrated jogs are limited to
+  15 encoder degrees within ±180-degree software limits at 40 degrees/second.
+- **Tests:** The Mac suite passes 369 tests with four dependency-based skips;
+  Python compilation and whitespace validation pass.
+- **Deployment success:** The updated bridge compiled on the Jetson, restarted
+  as an active managed service, and exposes both new ROS topics. Camera,
+  perception, recognition, enrollment preview, and bridge services are active.
+- **Deployment interruption:** The new EV3 file transferred, but the brick
+  vanished from Wi-Fi before its service could be restarted and verified. The
+  owner confirmed its battery had discharged; this was not a software or
+  network configuration failure. No movement command was issued.
+- **Next physical test:** Once the EV3 returns, verify protocol v2 and stopped
+  B/C feedback, zero motor A at the current known view, then issue one positive
+  10-degree jog while watching the live port-8080 camera view. Record physical
+  direction before expanding the range.

@@ -14,6 +14,8 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 from tf2_ros import TransformBroadcaster
 
+from camera_head import CameraHeadController
+from camera_head import CameraHeadError
 from ev3_client import Ev3Client
 from ev3_client import Ev3ClientError
 from kinematics import twist_to_motor_speeds
@@ -36,6 +38,13 @@ class Ev3BridgeNode(Node):
         self.declare_parameter("odom_frame", "odom")
         self.declare_parameter("base_frame", "base_link")
         self.declare_parameter("publish_odom_tf", True)
+        self.declare_parameter("camera_head_calibrated", False)
+        self.declare_parameter("camera_head_forward_position", 0)
+        self.declare_parameter("camera_head_down_position", 0)
+        self.declare_parameter("camera_head_minimum_position", -180)
+        self.declare_parameter("camera_head_maximum_position", 180)
+        self.declare_parameter("camera_head_speed", 40)
+        self.declare_parameter("camera_head_max_jog_degrees", 15)
 
         self.wheel_radius_m = float(self.get_parameter("wheel_radius_m").value)
         self.track_width_m = float(self.get_parameter("track_width_m").value)
@@ -59,6 +68,24 @@ class Ev3BridgeNode(Node):
             port=int(self.get_parameter("ev3_port").value),
             timeout_seconds=1.0,
         )
+        self.camera_head = CameraHeadController(
+            self.client,
+            calibrated=bool(self.get_parameter("camera_head_calibrated").value),
+            forward_position=int(
+                self.get_parameter("camera_head_forward_position").value
+            ),
+            down_position=int(self.get_parameter("camera_head_down_position").value),
+            minimum_position=int(
+                self.get_parameter("camera_head_minimum_position").value
+            ),
+            maximum_position=int(
+                self.get_parameter("camera_head_maximum_position").value
+            ),
+            speed=int(self.get_parameter("camera_head_speed").value),
+            max_jog_degrees=int(
+                self.get_parameter("camera_head_max_jog_degrees").value
+            ),
+        )
         self.last_command = None
         self.last_command_time = None
         self.motion_active = False
@@ -75,18 +102,39 @@ class Ev3BridgeNode(Node):
         )
 
         self.status_publisher = self.create_publisher(String, "/robot_status", 10)
+        self.camera_head_status_publisher = self.create_publisher(
+            String, "/camera_head/status", 10
+        )
         self.odom_publisher = self.create_publisher(Odometry, "/odom", 10)
         self.joint_state_publisher = self.create_publisher(
             JointState, "/joint_states", 10
         )
         self.tf_broadcaster = TransformBroadcaster(self)
         self.create_subscription(Twist, "/cmd_vel", self.on_cmd_vel, 10)
+        self.create_subscription(
+            String, "/camera_head/command", self.on_camera_head_command, 10
+        )
         self.create_timer(1.0 / update_rate_hz, self.on_timer)
         self.get_logger().info("EV3 bridge ready; waiting for /cmd_vel")
 
     def on_cmd_vel(self, message):
         self.last_command = (float(message.linear.x), float(message.angular.z))
         self.last_command_time = time.monotonic()
+
+    def on_camera_head_command(self, message):
+        # Never let a recently received chassis command resume after a head move.
+        self.last_command = None
+        self.last_command_time = None
+        self.motion_active = False
+        try:
+            self.camera_head.execute(message.data)
+            self.publish_status(self.client.status())
+        except (CameraHeadError, Ev3ClientError, ValueError) as exc:
+            self.get_logger().error("camera-head command rejected: {0}".format(exc))
+            try:
+                self.client.stop()
+            except Ev3ClientError:
+                self.client.close()
 
     def publish_status(self, status):
         if not rclpy.ok():
@@ -95,6 +143,11 @@ class Ev3BridgeNode(Node):
         message = String()
         message.data = json.dumps(status, separators=(",", ":"), sort_keys=True)
         self.status_publisher.publish(message)
+        head_message = String()
+        head_message.data = json.dumps(
+            self.camera_head.describe(status), separators=(",", ":"), sort_keys=True
+        )
+        self.camera_head_status_publisher.publish(head_message)
 
     def publish_odometry(self, status):
         motors = status.get("motors")
@@ -202,7 +255,7 @@ class Ev3BridgeNode(Node):
         )
 
         try:
-            response = self.client.drive(left_speed, right_speed, 0)
+            response = self.client.drive(left_speed, right_speed)
             self.motion_active = bool(left_speed or right_speed)
             if self.tick_count % 2 == 0:
                 status = self.client.status()

@@ -4,6 +4,7 @@ import unittest
 from robot.jetson.ev3_bridge.ev3_client import Ev3Client
 from robot.jetson.ev3_bridge.ev3_client import Ev3ConnectionError
 from robot.jetson.ev3_bridge.ev3_client import Ev3RemoteError
+from robot.jetson.ev3_bridge.ev3_client import parse_args
 
 
 class FakeClock(object):
@@ -40,6 +41,10 @@ class FakeSocket(object):
             response = {"status": "ok", "motion_active": False, "motors": {}}
         elif request.get("command") == "drive":
             response = {"status": "ok", "applied": request}
+        elif request.get("command") == "tool_move":
+            response = {"status": "ok", "applied": request}
+        elif request.get("command") == "tool_zero":
+            response = {"status": "ok", "position": 0}
         else:
             response = {"status": "ok", "stopped": True}
         self.pending += (json.dumps(response) + "\n").encode("utf-8")
@@ -126,6 +131,27 @@ class Ev3ClientTests(unittest.TestCase):
 
         self.assertEqual([], fake_socket.sent)
         self.assertEqual([], factory.calls)
+
+    def test_camera_head_position_commands(self):
+        client, fake_socket, _ = self.make_client()
+
+        client.move_tool(25, 40)
+        client.zero_tool()
+
+        self.assertEqual(
+            [
+                {"command": "tool_move", "position": 25, "speed": 40},
+                {"command": "tool_zero"},
+            ],
+            fake_socket.sent,
+        )
+
+    def test_camera_head_cli_defaults_to_low_speed(self):
+        args = parse_args(["tool-move", "--position", "25"])
+
+        self.assertEqual("tool-move", args.action)
+        self.assertEqual(25, args.position)
+        self.assertEqual(40, args.speed)
 
     def test_closed_connection_is_reported_and_discarded(self):
         client, fake_socket, _ = self.make_client()

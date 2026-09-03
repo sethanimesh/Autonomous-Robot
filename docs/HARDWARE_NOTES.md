@@ -42,7 +42,7 @@ verified.
 | Camera calibration | **Complete at 640×480.** ChArUco, `plumb_bob`; fx 416.371, fy 413.608, cx 338.723, cy 235.303; 0.596 px RMS |
 | Video tools | `v4l2-ctl` and `ffmpeg` absent; formats were enumerated with V4L2 ioctls from Python |
 | EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
-| ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service`; publishes `/robot_status`, `/odom`, `/joint_states`, and odom TF |
+| ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service`; publishes `/robot_status`, `/odom`, `/joint_states`, odom TF, and camera-head command/status topics |
 | ROS 2 camera source | `/home/animesh/echora/camera_node.py`; managed by enabled and active `echora-camera.service`; publishes `/camera/image_raw`, `/camera/camera_info`, `/camera/status` |
 | ROS 2 face detector | `/home/animesh/echora/face_detector.py`; enabled `echora-face-detector.service`; YuNet 2023mar TensorRT FP16; exact-frame YOLOX person-region gate |
 | Face detector model | ONNX 232,589 bytes, SHA-256 `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4`; Orin-built engine 559,156 bytes, SHA-256 `b1a09ee0e20e33aaefdb0b902286b79d72eefdeade5f3d08ec9db8521fc7d196` |
@@ -76,6 +76,7 @@ verified.
 | Wheel/track geometry | Effective drive radius 0.0144504 m; effective track width 0.182557 m; calibrated on the floor and deployed |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
+| Camera-head calibration | Not yet complete. Forward/down encoder positions and physical direction remain unknown; only ±15-degree calibration jogs are enabled on the Jetson. |
 
 ### Phase 4 connectivity note (2026-09-03)
 
@@ -105,6 +106,16 @@ The repeat turn physically measured 90 degrees left. After the final straight
 check, the geometry was refined and deployed as **0.0144504 m effective drive
 radius** and **0.182557 m effective track width**. The final pre-refinement turn
 check predicted 90.64 degrees and physically measured 90 degrees left.
+
+### Phase 5 connectivity note (2026-09-03)
+
+The bounded camera-head server file copied successfully to the EV3, after which
+the EV3 disappeared from Wi-Fi before its managed service restart could be
+verified. The owner confirmed the battery had discharged. Both the Mac and
+Jetson correctly reported the powered-off host unreachable. No camera or track
+movement command had been sent. The Jetson bridge was upgraded and remains
+active; the EV3 service and real motor-A jog still require verification after
+the battery is charged and the brick is on again.
 
 ## Safety facts to confirm before motor testing
 

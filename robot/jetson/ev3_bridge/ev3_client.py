@@ -129,15 +129,27 @@ class Ev3Client(object):
             raise ValueError("{0} speed must be finite".format(name))
         return int(round(value))
 
-    def drive(self, left, right, tool=0):
+    def drive(self, left, right, tool=None):
+        command = {
+            "command": "drive",
+            "left": self._validate_speed("left", left),
+            "right": self._validate_speed("right", right),
+        }
+        if tool is not None:
+            command["tool"] = self._validate_speed("tool", tool)
+        return self.request(command)
+
+    def move_tool(self, position, speed):
         return self.request(
             {
-                "command": "drive",
-                "left": self._validate_speed("left", left),
-                "right": self._validate_speed("right", right),
-                "tool": self._validate_speed("tool", tool),
+                "command": "tool_move",
+                "position": self._validate_speed("tool position", position),
+                "speed": self._validate_speed("tool", speed),
             }
         )
+
+    def zero_tool(self):
+        return self.request({"command": "tool_zero"})
 
     def drive_for(
         self,
@@ -204,6 +216,11 @@ def parse_args(argv):
     subparsers.add_parser("ping")
     subparsers.add_parser("status")
     subparsers.add_parser("stop")
+    subparsers.add_parser("tool-zero")
+
+    tool_move = subparsers.add_parser("tool-move")
+    tool_move.add_argument("--position", type=int, required=True)
+    tool_move.add_argument("--speed", type=int, default=40)
 
     pulse = subparsers.add_parser("pulse")
     pulse.add_argument("--left", type=int, default=0)
@@ -224,6 +241,10 @@ def main(argv=None):
             print_json(client.status())
         elif args.action == "stop":
             print_json(client.stop())
+        elif args.action == "tool-zero":
+            print_json(client.zero_tool())
+        elif args.action == "tool-move":
+            print_json(client.move_tool(args.position, args.speed))
         elif args.action == "pulse":
             responses = client.drive_for(
                 args.left,

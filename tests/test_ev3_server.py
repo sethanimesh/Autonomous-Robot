@@ -28,6 +28,7 @@ class FakeMotor(object):
         self.position = 0
         self.speed = 0
         self.stop_count = 0
+        self.target = None
 
     def set_speed(self, speed):
         if self.fail_on_speed:
@@ -37,6 +38,15 @@ class FakeMotor(object):
     def stop(self):
         self.speed = 0
         self.stop_count += 1
+
+    def move_to(self, position, speed):
+        if self.fail_on_speed:
+            raise HardwareError("simulated write failure")
+        self.target = position
+        self.speed = abs(speed) if position > self.position else -abs(speed)
+
+    def set_position(self, position):
+        self.position = position
 
     def snapshot(self):
         return {
@@ -120,7 +130,7 @@ class ProtocolTests(unittest.TestCase):
         status = handle_request(controller, {"command": "status"})
 
         self.assertEqual("pong", ping["message"])
-        self.assertEqual(1, ping["protocol_version"])
+        self.assertEqual(2, ping["protocol_version"])
         self.assertEqual(123, status["motors"]["left"]["position"])
         self.assertEqual(500, status["watchdog_timeout_ms"])
 
@@ -139,6 +149,45 @@ class ProtocolTests(unittest.TestCase):
             )
 
         self.assertEqual([0, 0, 0], [motors[name].speed for name in motors])
+
+    def test_position_move_locks_tracks_and_is_bounded(self):
+        controller, motors = make_controller()
+
+        response = handle_request(
+            controller, {"command": "tool_move", "position": 30, "speed": 40}
+        )
+
+        self.assertEqual({"position": 30, "speed": 40}, response["applied"])
+        self.assertEqual(30, motors["tool"].target)
+        self.assertEqual([0, 0], [motors["left"].speed, motors["right"].speed])
+        self.assertTrue(controller.tool_motion_active)
+        with self.assertRaises(ProtocolError):
+            controller.drive(30, 30)
+        with self.assertRaises(ProtocolError):
+            controller.move_tool(721, 40)
+
+    def test_tool_move_has_independent_timeout(self):
+        clock = FakeClock()
+        controller, motors = make_controller(clock=clock)
+        controller.move_tool(-20, 30)
+
+        clock.advance(3.99)
+        self.assertFalse(controller.enforce_watchdog())
+        clock.advance(0.02)
+        self.assertTrue(controller.enforce_watchdog())
+
+        self.assertEqual(0, motors["tool"].speed)
+        self.assertEqual("tool-move-timeout", controller.last_stop_reason)
+
+    def test_tool_zero_requires_all_motion_stopped(self):
+        controller, motors = make_controller()
+        motors["tool"].position = 123
+
+        self.assertEqual(0, controller.zero_tool())
+        self.assertEqual(0, motors["tool"].position)
+        controller.drive(30, 30)
+        with self.assertRaises(ProtocolError):
+            controller.zero_tool()
 
     def test_json_line_round_trip(self):
         request = decode_request(b'{"command":"ping"}')

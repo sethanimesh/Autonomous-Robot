@@ -25,7 +25,10 @@ attached motors' reported maximum of 1050.
 - Stops all motors when the process starts.
 - Uses `brake` as the stop action.
 - Stops on an explicit `stop` command.
-- Stops 500 ms after the last non-zero drive command.
+- Stops chassis/run-forever motion 500 ms after the last non-zero drive command.
+- Limits camera-head position moves to ±720 encoder degrees and four seconds.
+- Rejects chassis movement while a camera-head position move is active, and
+  rejects camera-head movement while the chassis is active.
 - Stops when the TCP client disconnects.
 - Stops all motors if a motor write or request fails.
 - Stops immediately when a malformed or unknown request is received.
@@ -52,6 +55,21 @@ Drive, repeated more frequently than the 500 ms watchdog timeout:
 
 ```json
 {"command":"drive","left":100,"right":100,"tool":0}
+```
+
+The `tool` field is retained for diagnostic run-forever pulses. Normal chassis
+commands omit it so they do not interfere with a bounded camera position move.
+
+Move the camera head to an absolute encoder position:
+
+```json
+{"command":"tool_move","position":30,"speed":40}
+```
+
+Set the stopped camera's current position to zero during calibration:
+
+```json
+{"command":"tool_zero"}
 ```
 
 Stop:
