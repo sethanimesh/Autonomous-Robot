@@ -12,10 +12,11 @@ MARKER_LENGTH_M = 0.018
 MIN_VIEWS = 20
 TARGET_VIEWS = 30
 MIN_CORNERS = 12
-MIN_BOARD_COVERAGE = 0.035
+MIN_BOARD_COVERAGE = 0.06
 MIN_VIEW_DISTANCE = 0.12
 MAX_RMS_ERROR_PX = 1.0
 MAX_VIEW_ERROR_PX = 1.5
+MIN_VALID_RECTIFIED_FRACTION = 0.55
 
 
 class CharucoConfigError(ValueError):
@@ -86,6 +87,47 @@ def is_novel_view(descriptor, previous, minimum_distance=MIN_VIEW_DISTANCE):
     return not previous or min(descriptor_distance(descriptor, item) for item in previous) >= float(minimum_distance)
 
 
+def dataset_geometry_reasons(points_by_view, image_width, image_height):
+    """Reject datasets that do not constrain the lens across the whole sensor."""
+    width = float(image_width)
+    height = float(image_height)
+    normalized_views = []
+    all_points = []
+    for points in points_by_view:
+        normalized = [(float(point[0]) / width, float(point[1]) / height) for point in points]
+        if normalized:
+            normalized_views.append(normalized)
+            all_points.extend(normalized)
+    if not all_points:
+        return ["no calibration corners were supplied"]
+
+    reasons = []
+    xs = [point[0] for point in all_points]
+    ys = [point[1] for point in all_points]
+    if min(xs) > 0.15 or max(xs) < 0.85:
+        reasons.append("corners do not reach both left and right sensor edges")
+    if min(ys) > 0.15 or max(ys) < 0.85:
+        reasons.append("corners do not reach both top and bottom sensor edges")
+
+    large_views = 0
+    for points in normalized_views:
+        view_x = [point[0] for point in points]
+        view_y = [point[1] for point in points]
+        coverage = (max(view_x) - min(view_x)) * (max(view_y) - min(view_y))
+        if coverage >= 0.12:
+            large_views += 1
+    if large_views < 6:
+        reasons.append("only {0} close views cover at least 12% of the image; need 6".format(large_views))
+
+    occupied = set()
+    for x, y in all_points:
+        if 0.0 <= x <= 1.0 and 0.0 <= y <= 1.0:
+            occupied.add((min(2, int(x * 3.0)), min(2, int(y * 3.0))))
+    if len(occupied) < 9:
+        reasons.append("calibration corners do not cover every region of the 3x3 image grid")
+    return reasons
+
+
 def validate_result(
     image_width,
     image_height,
@@ -94,6 +136,8 @@ def validate_result(
     distortion_coefficients,
     per_view_errors,
     view_count,
+    valid_roi=None,
+    intrinsic_stddev=None,
 ):
     """Return rejection reasons for a calibration result; empty means usable."""
     reasons = []
@@ -129,4 +173,23 @@ def validate_result(
         reasons.append("per-view reprojection errors are missing")
     elif max(errors) > MAX_VIEW_ERROR_PX:
         reasons.append("worst view error is {0:.3f}px; limit is {1:.3f}px".format(max(errors), MAX_VIEW_ERROR_PX))
+
+    if valid_roi is not None:
+        try:
+            valid_fraction = float(valid_roi[2]) * float(valid_roi[3]) / (width * height)
+        except (IndexError, TypeError, ValueError, ZeroDivisionError):
+            reasons.append("rectified valid-pixel ROI is malformed")
+        else:
+            if valid_fraction < MIN_VALID_RECTIFIED_FRACTION:
+                reasons.append(
+                    "rectification keeps only {0:.1f}% valid pixels; need at least {1:.1f}%".format(
+                        valid_fraction * 100.0, MIN_VALID_RECTIFIED_FRACTION * 100.0
+                    )
+                )
+
+    if intrinsic_stddev is not None:
+        deviations = [float(value) for value in intrinsic_stddev]
+        if len(deviations) >= 2:
+            if fx <= 0.0 or fy <= 0.0 or deviations[0] / fx > 0.05 or deviations[1] / fy > 0.05:
+                reasons.append("focal-length uncertainty exceeds 5%")
     return reasons

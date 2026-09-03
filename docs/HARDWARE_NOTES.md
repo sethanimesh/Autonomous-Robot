@@ -39,7 +39,7 @@ verified.
 | OpenCV default format | YUYV, so it defaults to 10 fps; `MJPG` must be requested explicitly |
 | Measured camera rate | **27.3 fps sustained** at MJPG 640×480 against a requested 30 |
 | Camera warm-up | ~2 s of auto-exposure settling after every open; earlier frames are dark and duplicated |
-| Camera calibration | **Pending physical capture.** ChArUco tooling deployed; no accepted intrinsics yet |
+| Camera calibration | **Complete at 640×480.** ChArUco, `plumb_bob`; fx 416.371, fy 413.608, cx 338.723, cy 235.303; 0.596 px RMS |
 | Video tools | `v4l2-ctl` and `ffmpeg` absent; formats were enumerated with V4L2 ioctls from Python |
 | EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
 | ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service`; publishes `/robot_status`, `/odom`, `/joint_states`, and odom TF |

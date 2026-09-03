@@ -3,6 +3,7 @@ import unittest
 
 from robot.jetson.camera.charuco_config import CharucoConfigError
 from robot.jetson.camera.charuco_config import descriptor_distance
+from robot.jetson.camera.charuco_config import dataset_geometry_reasons
 from robot.jetson.camera.charuco_config import is_novel_view
 from robot.jetson.camera.charuco_config import validate_board
 from robot.jetson.camera.charuco_config import validate_result
@@ -66,6 +67,53 @@ class ResultTests(unittest.TestCase):
         )
         self.assertTrue(any("focal" in reason for reason in reasons))
         self.assertTrue(any("principal" in reason for reason in reasons))
+
+    def test_destructive_rectification_is_rejected(self):
+        reasons = validate_result(
+            640, 480, 0.2,
+            [[500, 0, 320], [0, 500, 240], [0, 0, 1]],
+            [0, 0, 0, 0, 0], [0.2] * 20, 20,
+            valid_roi=[0, 0, 244, 198], intrinsic_stddev=[1.0, 1.0],
+        )
+        self.assertTrue(any("valid pixels" in reason for reason in reasons))
+
+    def test_high_focal_uncertainty_is_rejected(self):
+        reasons = validate_result(
+            640, 480, 0.2,
+            [[500, 0, 320], [0, 500, 240], [0, 0, 1]],
+            [0, 0, 0, 0, 0], [0.2] * 20, 20,
+            valid_roi=[0, 0, 620, 460], intrinsic_stddev=[30.0, 30.0],
+        )
+        self.assertTrue(any("uncertainty" in reason for reason in reasons))
+
+    def test_zero_focal_length_with_uncertainty_does_not_divide_by_zero(self):
+        reasons = validate_result(
+            640, 480, 0.2,
+            [[0, 0, 320], [0, 0, 240], [0, 0, 1]],
+            [0, 0, 0, 0, 0], [0.2] * 20, 20,
+            valid_roi=[0, 0, 620, 460], intrinsic_stddev=[1.0, 1.0],
+        )
+        self.assertTrue(any("uncertainty" in reason for reason in reasons))
+
+
+class DatasetGeometryTests(unittest.TestCase):
+    def test_full_sensor_coverage_is_accepted(self):
+        points = []
+        for row in range(3):
+            for column in range(3):
+                x = 20 + column * 290
+                y = 20 + row * 210
+                points.append([(x, y), (x + 140, y), (x, y + 130), (x + 140, y + 130)])
+        points.extend([[(100, 100), (500, 100), (100, 350), (500, 350)]] * 6)
+        self.assertEqual([], dataset_geometry_reasons(points, 640, 480))
+
+    def test_central_small_views_are_rejected(self):
+        points = [[(280, 200), (360, 200), (280, 280), (360, 280)]] * 30
+        reasons = dataset_geometry_reasons(points, 640, 480)
+        self.assertTrue(any("left and right" in reason for reason in reasons))
+        self.assertTrue(any("top and bottom" in reason for reason in reasons))
+        self.assertTrue(any("close views" in reason for reason in reasons))
+        self.assertTrue(any("3x3" in reason for reason in reasons))
 
 
 if __name__ == "__main__":

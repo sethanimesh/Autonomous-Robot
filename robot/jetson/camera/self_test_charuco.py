@@ -82,6 +82,10 @@ def main():
     reasons = validate_result(
         640, 480, result["rms"], result["camera_matrix"].tolist(),
         result["distortion"].tolist(), result["per_view_errors"].tolist(), len(samples),
+        # Perspective-warped binary targets introduce interpolation artifacts
+        # that are not a physical lens model, so rectified ROI is deliberately
+        # verified only against the live camera by verify_calibration.py.
+        intrinsic_stddev=result["intrinsic_stddev"],
     )
     fx_error = abs(float(result["camera_matrix"][0, 0]) - expected[0, 0]) / expected[0, 0]
     fy_error = abs(float(result["camera_matrix"][1, 1]) - expected[1, 1]) / expected[1, 1]

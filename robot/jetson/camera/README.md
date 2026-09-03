@@ -60,13 +60,17 @@ Configured in `config/camera.yaml`, deployed as
 
 ## Calibration
 
-**This camera has not yet completed its physical calibration.** The calibration
-tooling is deployed and the configured calibration path is
-`/home/animesh/echora/camera_calibration.yaml`. Until a validated file exists,
-the node publishes an explicitly uncalibrated `CameraInfo`: `D`, `K`, `R` and
-`P` are all zeroed and `distortion_model` is empty, which is the documented
-`sensor_msgs/CameraInfo` marker for an uncalibrated camera (`K[0] == 0.0`).
-`/camera/status` reports `"calibrated": false` with the reason.
+**The camera is physically calibrated at 640×480.** The accepted file is
+committed as `config/camera_calibration.yaml` and deployed at
+`/home/animesh/echora/camera_calibration.yaml`. The camera publishes it as a
+standard `plumb_bob` `CameraInfo`; `/camera/status` reports
+`"calibrated": true` and names the loaded file.
+
+Accepted intrinsics are fx 416.371, fy 413.608, cx 338.723 and cy 235.303.
+The 30-view solve measured 0.596 px RMS and 1.351 px worst-view error. Full-FOV
+rectification has a 609×450 valid ROI (89.2% of the 640×480 image), and a live
+raw-versus-rectified comparison showed mild, sensible correction without the
+destructive warping seen in the rejected first attempt.
 
 Intrinsics are never invented. A calibration file is refused, with the reason
 reported, when it is missing, unparseable, zeroed, or recorded at a different
@@ -94,10 +98,13 @@ parts of the view. The collector accepts 30 diverse views, rejects duplicate
 poses, removes a limited number of reprojection outliers, and refuses to write
 calibration unless at least 20 views remain, RMS error is at most 1.0 px, every
 remaining view is at most 1.5 px, and the intrinsics are numerically plausible.
-Every attempt writes `camera_calibration_report.json`, including failures. It
-writes the calibration YAML atomically only after all acceptance checks pass.
+It fixes poorly constrained k3 at zero and also checks whole-sensor coverage,
+focal uncertainty, and that full-FOV rectification retains at least 55% valid
+pixels. Every attempt writes `camera_calibration_report.json`, including
+failures. It writes the calibration YAML atomically only after all acceptance
+checks pass.
 
-After a successful capture, restart `echora-camera.service` and require all of
+After any future capture, restart `echora-camera.service` and require all of
 the following before calling calibration complete:
 
 - `/camera/status` says `"calibrated": true` and names the loaded file.
@@ -110,6 +117,15 @@ the following before calling calibration complete:
 `self_test_charuco.py` is the hardware-independent Jetson test. It renders 36
 physically consistent synthetic camera views, detects the board, calibrates,
 and checks the recovered focal lengths against the known model.
+
+`preview_server.py` provides an unauthenticated LAN MJPEG preview with live
+corner count, board coverage and accepted-view progress. It is installed as
+the static (not boot-enabled) `echora-preview.service`; start it only during an
+operator-assisted test and stop it afterward. It never stores frames.
+
+`verify_calibration.py` checks exact image/CameraInfo timestamp pairing,
+calibration shape and finiteness, and renders a temporary raw/rectified image
+for visual review.
 
 ## Failure handling
 

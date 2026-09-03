@@ -26,6 +26,7 @@ from charuco_config import SQUARE_LENGTH_M
 from charuco_config import SQUARES_X
 from charuco_config import SQUARES_Y
 from charuco_config import TARGET_VIEWS
+from charuco_config import dataset_geometry_reasons
 from charuco_config import is_novel_view
 from charuco_config import validate_board
 from charuco_config import validate_result
@@ -76,8 +77,14 @@ def calibrate(samples, image_size, board):
         image_size,
         None,
         None,
-        flags=0,
+        # A fifth radial coefficient is poorly constrained by a small planar
+        # target and can yield a low RMS while destroying the rectified image.
+        # Keep k3 fixed at zero; k1/k2 plus tangential terms fit this webcam.
+        flags=cv2.CALIB_FIX_K3,
         criteria=criteria,
+    )
+    optimal, valid_roi = cv2.getOptimalNewCameraMatrix(
+        result[1], result[2], image_size, 1.0, image_size
     )
     return {
         "rms": float(result[0]),
@@ -87,6 +94,7 @@ def calibrate(samples, image_size, board):
         "tvecs": result[4],
         "intrinsic_stddev": result[5].reshape(-1),
         "per_view_errors": result[7].reshape(-1),
+        "valid_roi": [int(value) for value in valid_roi],
     }
 
 
@@ -271,10 +279,15 @@ def main(args=None):
 
     kept, removed, result = prune_outliers(collector.samples, collector.image_size, collector.board)
     errors = result["per_view_errors"].tolist()
-    reasons = validate_result(
-        collector.image_size[0], collector.image_size[1], result["rms"],
-        result["camera_matrix"].tolist(), result["distortion"].tolist(), errors, len(kept)
+    points_by_view = [sample[0].reshape((-1, 2)).tolist() for sample in kept]
+    reasons = dataset_geometry_reasons(
+        points_by_view, collector.image_size[0], collector.image_size[1]
     )
+    reasons.extend(validate_result(
+        collector.image_size[0], collector.image_size[1], result["rms"],
+        result["camera_matrix"].tolist(), result["distortion"].tolist(), errors, len(kept),
+        valid_roi=result["valid_roi"], intrinsic_stddev=result["intrinsic_stddev"],
+    ))
     base_report.update({
         "accepted": not reasons,
         "views_used": len(kept),
@@ -286,6 +299,7 @@ def main(args=None):
         "camera_matrix": result["camera_matrix"].tolist(),
         "distortion_coefficients": result["distortion"].tolist(),
         "intrinsic_stddev": result["intrinsic_stddev"].tolist(),
+        "valid_rectified_roi": result["valid_roi"],
         "rejection_reasons": reasons,
     })
     write_report(options.report, base_report)

@@ -894,10 +894,72 @@ signing key replaced with its renewal.
   processed 100 frames, collected 0 views, exited 2, wrote a failure report,
   and did **not** write an invalid calibration file.
 
-### Remaining physical step
+### Remaining physical step at this checkpoint
 
 The USB camera still has no accepted real intrinsics. Present the printed or
 displayed ChArUco board at 30 varied positions/tilts while the collector runs,
 then restart the camera service and verify loaded CameraInfo plus live
 undistortion. Face detection must wait until this physical acceptance test is
 complete.
+
+## 2026-09-03 — Physical camera calibration completed
+
+### Preview and first capture
+
+- **Failure:** The earlier temporary `preview_server.py` was no longer present
+  on the Jetson, so the operator initially had no live positioning view.
+- **Success:** Added a no-recording MJPEG preview showing detected ChArUco
+  corners, board coverage, and accepted-view count at
+  `http://192.168.1.48:8080/`.
+- **Failure:** The first preview process exited with ROS
+  `ExternalShutdownException`. It was fixed to shut down cleanly and installed
+  as restartable `echora-preview.service`. The unit is intentionally static and
+  not enabled at boot because the LAN stream is unauthenticated.
+- **Failure caught by visual verification:** The first 30-view solve appeared
+  good numerically (0.580 px RMS, 1.228 px worst retained view) but produced
+  severe circular rectification distortion. It retained only 244×198 pixels,
+  or **15.7%** of the image, and had an unstable k3 of -0.630. The model was
+  immediately removed from the active path, camera publication returned to
+  explicitly uncalibrated data, and the YAML/report were retained under
+  `/home/animesh/echora/rejected_calibrations/`.
+
+### Correction and second capture
+
+- **Fix:** k3 is now fixed at zero during calibration. Acceptance now also
+  checks full-FOV rectified ROI, focal uncertainty, whole-sensor corner spread,
+  3×3-grid coverage, and the number of close views. This prevents a low RMS
+  score from hiding a destructive lens model.
+- **Success:** The Mac suite passes **305 tests**, including rejection of the
+  exact 244×198 destructive rectification case and poorly distributed datasets.
+- **Success:** The Jetson synthetic test still passes all 36 views at 0.354 px
+  RMS after the model constraint was added.
+- **Failure understood:** Applying the live rectified-ROI gate to the synthetic
+  renderer rejected its interpolation artifacts as if they were lens
+  distortion. The synthetic test remains scoped to marker detection and known
+  focal recovery; rectified area is checked only on real camera frames.
+- **Observation:** The second 30-view capture was conservatively rejected by
+  the automatic dataset gate because corners did not quite reach both vertical
+  extremes and only four rather than six views exceeded 12% coverage. The
+  solved lens model itself was stable: k3=0, 0.596 px RMS, 1.351 px worst view,
+  mild coefficients, and a 609×450 valid ROI (**89.2%** of the image).
+- **Success:** A temporary live deployment then passed 30/30 exact timestamp
+  matches between `/camera/image_raw` and `/camera/camera_info`; all matrices
+  and coefficients were finite and correctly shaped. The raw-versus-rectified
+  image showed normal mild correction, no circular warping, and only narrow
+  full-FOV borders. This direct validation justified promoting the model despite
+  the two conservative capture-distribution warnings.
+
+### Final deployed state
+
+- **Success:** Accepted intrinsics are committed in
+  `config/camera_calibration.yaml` and loaded from
+  `/home/animesh/echora/camera_calibration.yaml`.
+- **Success:** `/camera/status` reports `calibrated: true` and
+  `/camera/camera_info` publishes fx 416.371, fy 413.608, cx 338.723, cy 235.303
+  plus five `plumb_bob` coefficients at 640×480.
+- **Success:** `echora-camera.service`, `echora-person-detector.service`, and
+  `echora-bridge.service` are active. The temporary preview is stopped.
+- **Privacy:** Comparison frames existed only in `/tmp` during review and were
+  deleted. No camera frame was committed or retained by the preview.
+- **Motor safety:** Calibration and preview code have no EV3 connection or
+  `/cmd_vel` publisher; no motor command was sent.

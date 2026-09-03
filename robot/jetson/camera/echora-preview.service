@@ -1,0 +1,19 @@
+[Unit]
+Description=Echora temporary camera calibration preview
+After=echora-camera.service
+Requires=echora-camera.service
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/preview_server.py'
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=5
+NoNewPrivileges=true
+
+# Intentionally not enabled at boot. Start only for operator-assisted tests,
+# then stop it because the HTTP preview is unauthenticated on the local LAN.
