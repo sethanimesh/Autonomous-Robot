@@ -11,8 +11,9 @@ detection, plus the deployed target-person enrollment and recognition stack.
 The real target is enrolled and passes stationary known-person recognition;
 a different real person also passed the stationary rejection test with zero
 false matches. Varied-distance/lighting validation was explicitly deferred.
-Phase 4 encoder-odometry floor calibration is complete, and Phase 5 mapping
-readiness has started.
+Phase 4 encoder-odometry floor calibration is complete. The active next phase
+is camera-only autonomous movement inside one prepared room. Mapping, Nav2, and
+multi-room search are deliberately deferred until after the PWA.
 
 ## Working rules
 
@@ -45,8 +46,7 @@ The first ROS 2 vertical slice is also live: enabled `echora-bridge.service` on
 the Jetson subscribes to `/cmd_vel` and publishes EV3 feedback on
 `/robot_status`, encoder odometry on `/odom`, track state on `/joint_states`, and
 the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
-tests passed. Metric geometry remains provisional until the chassis is
-physically measured.
+tests passed. Effective floor geometry is now measured and deployed.
 
 Phase 4 has a bounded ROS calibration runner that records encoder and pose
 start/end values, requires confirmed stop feedback, saves both successful and
@@ -56,6 +56,20 @@ real straight and turn calibration after connectivity returned. The deployed
 effective geometry is a 0.0144504 m drive radius and 0.182557 m track width. A
 final measured turn matched 90 degrees left, straight travel was reported as
 straight, and every run ended with confirmed stopped feedback.
+
+## Active roadmap
+
+1. Camera-head limits and forward/down positions.
+2. Camera-only 360-degree scan and visual floor guidance in one room.
+3. Target-person search, route changes, cautious approach, and safe stop.
+4. Voice and higher-level intelligence for the single-room mission.
+5. PWA for enrollment, live status, and mission control.
+6. Deferred: mapping/localization, whole-home Nav2, and multi-room search.
+
+The single-room controller will move only in short segments and inspect the
+forward and downward views between them. Uncertain or stale vision means stop.
+The camera-head motion and chassis motion are coordinated so the recognition
+pipeline never assumes the camera is forward while it is checking the floor.
 
 The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,

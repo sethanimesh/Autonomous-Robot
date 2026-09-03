@@ -1249,3 +1249,27 @@ complete.
   are effective tracked-chassis values, not physical sprocket dimensions;
   surface-dependent track slip remains expected and visual localization should
   correct accumulated encoder drift.
+
+## 2026-09-03 — Roadmap changed to camera-only single-room autonomy
+
+- **Owner decision:** Build the useful single-room find-person experience
+  before mapping. The active sequence is camera-head control, camera-only
+  single-room guidance/search, find-person mission, voice/intelligence, then
+  the PWA.
+- **Deferred, not removed:** Visual mapping/localization, whole-home Nav2, and
+  multi-room search now follow the PWA.
+- **Camera strategy:** Motor A will move the camera between bounded forward and
+  downward views. The chassis can perform controlled 360-degree scans. Before
+  approaching a person, the controller checks the floor and route, moves only
+  a short segment, stops, and checks again.
+- **Route behavior:** Visible obstacles such as footwear should mark a route as
+  blocked. The robot should compare left/right alternatives and rescan rather
+  than continue blindly. Uncertain, stale, dark, or obstructed camera input is
+  treated as blocked.
+- **Architecture boundary:** This phase is reactive and local; it does not
+  require RTAB-Map, a persistent occupancy map, or Nav2. The already installed
+  RTAB-Map packages remain inactive and available for the deferred mapping
+  phase.
+- **Safety:** External or loose cables must not enter the tracks or be wound by
+  chassis rotation. Camera-head encoder limits and physical clearance must be
+  established before autonomous scan motion.

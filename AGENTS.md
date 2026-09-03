@@ -536,11 +536,72 @@ Exact precision is not required initially.
 
 ---
 
-### Phase 5 — Mapping
+### Phase 5 — Camera-only single-room movement
 
-Run visual SLAM while manually driving the robot.
+Use the movable camera and calibrated odometry without a persistent map.
 
-Goal:
+Demonstrate:
+
+- safe limits and named forward/down positions for camera-head motor A
+- a controlled 360-degree chassis scan
+- forward and downward visual checks before each movement
+- short low-speed movement segments with a stop and recheck between them
+- visually detect blocked floor, choose a clearer left/right route, and retry
+- remain within one prepared room
+
+The camera is the active safety and guidance sensor in this phase. Coordinate
+camera angles in a deterministic state machine so person recognition pauses
+while the camera checks the floor. Treat uncertain, stale, dark, or obstructed
+vision as blocked and stop. Mapping and Nav2 are deliberately deferred.
+
+---
+
+### Phase 6 — Find a person in one room
+
+Create the single-room mission:
+
+```text
+scan chassis and camera
+ ↓
+detect people
+ ↓
+identify the target
+ ↓
+check the floor and route
+ ↓
+approach in short segments
+ ↓
+stop at a safe distance
+```
+
+If the target disappears or the route becomes uncertain, stop, rescan, and
+choose another visible route instead of continuing blindly.
+
+---
+
+### Phase 7 — Voice and intelligence for one room
+
+Add:
+
+- voice commands and speech recognition
+- intent translation such as `FindPerson(target=mom)`
+- spoken mission status and result
+- deterministic mission execution beneath the intelligence layer
+
+The LLM or intent layer must not command motors directly.
+
+---
+
+### Phase 8 — PWA
+
+Build the phone interface after the single-room voice mission works. Include
+face registration, live camera/status, mission start/stop, and diagnostics.
+
+---
+
+### Phase 9 — Mapping and localization (deferred)
+
+Run visual SLAM while manually driving the robot:
 
 ```text
 camera + odometry
@@ -548,69 +609,22 @@ camera + odometry
 map + robot pose
 ```
 
-Do not add autonomous navigation until localization is reasonably stable.
+The RTAB-Map runtime may be installed earlier for experiments, but it should not
+be active or required by the single-room mission.
 
 ---
 
-### Phase 6 — Autonomous navigation
+### Phase 10 — Whole-home autonomous navigation (deferred)
 
-Introduce Nav2.
-
-Test:
-
-```text
-click destination on map
-        ↓
-robot drives there
-```
-
-Then test obstacle avoidance and recovery.
+Introduce Nav2 only after localization is reasonably stable. Test selected map
+destinations, obstacle recovery, doorways, and return paths.
 
 ---
 
-### Phase 7 — Autonomous search
+### Phase 11 — Multi-room autonomous search (deferred)
 
-Create the search state machine.
-
-Example:
-
-```text
-navigate to room
- ↓
-rotate 360°
- ↓
-run person detection
- ↓
-run target identification
- ↓
-continue or finish
-```
-
----
-
-### Phase 8 — Higher-Level Intelligence
-
-Only after the robotics stack is reliable, consider:
-
-- voice commands
-- speech recognition
-- LLM mission planning
-- room semantics
-- object search
-- conversational interaction
-- remembering where people were last observed
-
-For example:
-
-```text
-"Find Mom"
-       ↓
-LLM / intent parser
-       ↓
-FindPerson(target=mom)
-       ↓
-deterministic robotics mission
-```
+Extend the proven single-room find-person state machine with mapped rooms,
+search coverage, room status, and navigation between rooms.
 
 ---
 
