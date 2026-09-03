@@ -1133,7 +1133,22 @@ complete.
   102 contained the target. Similarity ranged from 0.9364 to 0.9616 with a
   0.9502 mean. All seven sampled health reports remained
   `target_confirmed`; inference errors remained zero.
-- **Still required:** A different real person must be shown alone to the live
-  camera to measure false acceptance. The target should then be rechecked at
-  farther distance and under changed lighting before recognition is considered
-  physically complete.
+- **Invalid first rejection attempt:** The nominal unknown-person window still
+  showed the enrolled target. The system matched that face at 0.7245–0.9094;
+  a temporary diagnostic frame and one retained enrollment crop confirmed it
+  was the same identity. Both temporary diagnostic copies were deleted, and no
+  threshold was changed based on the invalid trial.
+- **Incomplete second rejection attempt:** A face appeared in only 37/144
+  frames while the camera transitioned from the enrolled target to an empty
+  view. Because the person did not remain visible for the test window, those
+  readings were not accepted as unknown-person evidence.
+- **Real unknown-person rejection passed:** The verifier waited for a stable
+  face before starting. During the resulting 15-second window, a different
+  real person was detected in 148/148 face frames and 119 recognition frames
+  were correlated to those detections. There were zero target detections.
+  Similarity was 0.1014–0.1666 (0.1334 mean), safely below the configured 0.45
+  threshold. All seven health reports stayed `searching`; inference errors
+  remained zero.
+- **Still required:** Recheck the enrolled target at farther distance and under
+  changed indoor lighting before recognition is considered physically
+  complete.

@@ -140,8 +140,12 @@ ROS test published three known-target frames, all three matched at up to 0.9713;
 three unknown-person frames produced zero matches. The real target is now
 enrolled from 18 diverse live views. A 15-second stationary acceptance run
 matched 102/102 frames, scoring 0.9364–0.9616 (0.9502 mean), with seven of seven
-health reports confirmed and zero inference errors. A different real person
-and varied distance/lighting still require physical acceptance.
+health reports confirmed and zero inference errors. A stable 15-second test
+with a different real person then observed a face in 148/148 frames and
+produced zero target matches. Similarity stayed at 0.1014–0.1666 (0.1334 mean),
+well below the 0.45 threshold; all seven health reports stayed `searching` and
+inference errors remained zero. Varied distance and lighting still require
+physical acceptance.
 
 ## Model
 

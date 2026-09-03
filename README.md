@@ -8,9 +8,10 @@ The project is being developed in small, testable stages. Phase 1 and 2 (safe
 Jetson-to-EV3 motor control and its ROS 2 integration) are complete. Phase 3 is
 now complete through calibrated camera acquisition, stationary person and face
 detection, plus the deployed target-person enrollment and recognition stack.
-The real target is enrolled and passes stationary known-person recognition.
-The next physical step is validating rejection of a different person, followed
-by known-target checks under varied distance and indoor lighting.
+The real target is enrolled and passes stationary known-person recognition;
+a different real person also passed the stationary rejection test with zero
+false matches. The next physical step is known-target checks under varied
+distance and indoor lighting.
 
 ## Working rules
 

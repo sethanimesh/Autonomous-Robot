@@ -49,7 +49,7 @@ verified.
 | Face preview | Static `echora-face-preview.service` at `http://192.168.1.48:8080/`; unauthenticated, temporary, and deliberately not enabled at boot |
 | Target recognizer | `/home/animesh/echora/target_recognizer.py`; enabled `echora-target-recognizer.service`; AntelopeV2 Glint360K ResNet-100 TensorRT FP16; 3-of-5 confirmation |
 | Recognition model | ONNX 260,665,334 bytes, SHA-256 `4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf`; Orin engine 131,373,148 bytes, SHA-256 `94bc49a39a76ed9cab5547bcba129757b71323f89b267021c74f04208ab5d2c1` |
-| Target data | `/home/animesh/echora/data/target_person.json`; real target enrolled from 18 live views (9 front, 6 left, 3 right); private directory 0700/file 0600; operator selected retention of 18 aligned 112×112 crops, each 0600 |
+| Target data | `/home/animesh/echora/data/target_person.json`; real target enrolled from 18 live views (9 front, 6 left, 3 right); private directory 0700/file 0600; operator selected retention of 18 aligned 112×112 crops, each 0600; stationary real-unknown rejection passed with 0/148 false matches |
 | Enrollment console | Static, active only during enrollment at `http://192.168.1.48:8080/`; mutually exclusive with the old face-only preview on the same port |
 | Provisional geometry | Wheel radius 0.03 m, track width 0.12 m; must be physically measured before metric odometry/navigation claims |
 
