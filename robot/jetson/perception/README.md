@@ -137,8 +137,11 @@ Measured public-image checks on the deployed engine: 0.9824 cosine similarity
 for one identity after a brightness change, 0.0250 for two different identities,
 and 14.37 ms mean embedding latency (23.0 ms p95 over 30 runs). A full temporary
 ROS test published three known-target frames, all three matched at up to 0.9713;
-three unknown-person frames produced zero matches. The real target still needs
-operator enrollment and physical multi-condition acceptance.
+three unknown-person frames produced zero matches. The real target is now
+enrolled from 18 diverse live views. A 15-second stationary acceptance run
+matched 102/102 frames, scoring 0.9364–0.9616 (0.9502 mean), with seven of seven
+health reports confirmed and zero inference errors. A different real person
+and varied distance/lighting still require physical acceptance.
 
 ## Model
 

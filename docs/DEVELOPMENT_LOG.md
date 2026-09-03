@@ -1117,3 +1117,23 @@ complete.
   then measure acceptance for front/left/right, different light, distance, and
   glasses as applicable, followed by at least one unknown person to check false
   acceptance.
+
+### Real target enrolled and known-person acceptance passed
+
+- **Success:** The operator completed enrollment with 18 live samples: nine
+  front, six left, and three right. No uploaded photograph was needed. The
+  stored model ID and ONNX checksum match the deployed AntelopeV2 recognizer.
+- **Retention:** The operator explicitly selected aligned-crop retention. The
+  target JSON is mode 0600 inside a mode 0700 directory; all 18 retained
+  112×112 crops are also mode 0600. No full camera frame was retained.
+- **Immediate recognition:** The running service loaded the enrollment without
+  a restart and reported five hits in its five-frame window, similarity 0.8643,
+  `target_confirmed`, and zero inference errors.
+- **15-second acceptance:** 102 target-match messages were observed and all
+  102 contained the target. Similarity ranged from 0.9364 to 0.9616 with a
+  0.9502 mean. All seven sampled health reports remained
+  `target_confirmed`; inference errors remained zero.
+- **Still required:** A different real person must be shown alone to the live
+  camera to measure false acceptance. The target should then be rechecked at
+  farther distance and under changed lighting before recognition is considered
+  physically complete.
