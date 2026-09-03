@@ -19,6 +19,6 @@ echora_camera:
     max_read_failures: 15
     read_failure_pause_sec: 0.02
     status_interval_sec: 5.0
-    # No calibration has been performed yet. While this is empty the node
-    # publishes an explicitly uncalibrated CameraInfo with zeroed D, K, R, P.
-    calibration_file: ''
+    # Written by calibrate_charuco.py only after numeric quality checks pass.
+    # Until that file exists, the node publishes explicitly uncalibrated data.
+    calibration_file: /home/animesh/echora/camera_calibration.yaml

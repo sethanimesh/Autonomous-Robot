@@ -47,8 +47,10 @@ The stationary camera pipeline is live. Enabled
 and `/camera/status` from the USB camera at a measured **27.3 fps** (MJPG
 640×480, requested 30). The node validates every frame, recovers automatically
 from a camera disconnect, and was verified over a continuous five-minute run.
-The camera is **not calibrated**: `CameraInfo` is published explicitly zeroed
-and must not be used for metric vision.
+The camera is **not yet physically calibrated**: ChArUco collection, strict
+quality checks, a printable target, and deployment are ready, but `CameraInfo`
+remains explicitly zeroed until a real board capture passes. It must not yet be
+used for metric vision.
 
 Stationary person detection is live on top of it. Enabled
 `echora-person-detector.service` runs **YOLOX-s (Apache-2.0)** as a **TensorRT

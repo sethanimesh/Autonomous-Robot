@@ -852,3 +852,52 @@ signing key replaced with its renewal.
 - The camera node reports `streaming` while publishing frozen black frames.
   Treating a persistently dark or duplicated stream as a fault is worth adding
   to that node, and is not done here.
+
+## 2026-09-03 — ChArUco camera-calibration tooling deployed
+
+### Technology choice and implementation
+
+- **Choice:** OpenCV ChArUco (`DICT_5X5_100`, 5×7 squares) was selected over a
+  plain checkerboard because identified corners and partial-board support make
+  real-world collection more robust. Output remains standard ROS 2
+  `sensor_msgs/CameraInfo` using the `plumb_bob` model.
+- **Success:** Added the exact 2000×2800 printable target, board generator,
+  ROS image-topic collector, diverse-view selection, reprojection outlier
+  pruning, atomic ROS calibration YAML writer, and a JSON report for every
+  successful or failed attempt.
+- **Safety:** The collector subscribes only to `/camera/image_raw`; it has no
+  EV3 connection, `/cmd_vel` publisher, or motor-control path.
+- **Acceptance boundary:** A result is not written unless at least 20 views
+  remain, RMS reprojection error is no more than 1.0 px, the worst view is no
+  more than 1.5 px, all values are finite, focal lengths are plausible, and the
+  principal point lies inside the image.
+
+### Tests and deployment
+
+- **Success:** The complete Mac suite now passes **300 tests**, including new
+  board validation, view-diversity, angle-wrap, and calibration-result rejection
+  tests.
+- **Success:** On the Jetson, OpenCV 4.5.4 exposes `aruco`,
+  `CharucoBoard_create`, `interpolateCornersCharuco`, and
+  `calibrateCameraCharucoExtended`.
+- **Success:** The generated target was detected as all **24 ChArUco corners**.
+- **Success:** The synthetic end-to-end Jetson test detected 36/36 rendered
+  views, calibrated at **0.354 px RMS**, and recovered focal lengths within
+  **0.35% (fx)** and **0.25% (fy)** of the known camera model.
+- **Success:** `charuco_config.py`, `generate_charuco_board.py`,
+  `calibrate_charuco.py`, `self_test_charuco.py`, and the updated `camera.yaml`
+  are deployed under `/home/animesh/echora`.
+- **Success:** After the configuration restart, both `echora-camera.service`
+  and `echora-person-detector.service` remained active. Camera status honestly
+  reports `calibration_file_not_found` until capture succeeds.
+- **Expected failure verified:** A four-second live run with no board visible
+  processed 100 frames, collected 0 views, exited 2, wrote a failure report,
+  and did **not** write an invalid calibration file.
+
+### Remaining physical step
+
+The USB camera still has no accepted real intrinsics. Present the printed or
+displayed ChArUco board at 30 varied positions/tilts while the collector runs,
+then restart the camera service and verify loaded CameraInfo plus live
+undistortion. Face detection must wait until this physical acceptance test is
+complete.

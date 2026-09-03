@@ -60,9 +60,11 @@ Configured in `config/camera.yaml`, deployed as
 
 ## Calibration
 
-**This camera has not been calibrated.** While `calibration_file` is empty the
-node publishes an explicitly uncalibrated `CameraInfo`: `D`, `K`, `R` and `P`
-are all zeroed and `distortion_model` is empty, which is the documented
+**This camera has not yet completed its physical calibration.** The calibration
+tooling is deployed and the configured calibration path is
+`/home/animesh/echora/camera_calibration.yaml`. Until a validated file exists,
+the node publishes an explicitly uncalibrated `CameraInfo`: `D`, `K`, `R` and
+`P` are all zeroed and `distortion_model` is empty, which is the documented
 `sensor_msgs/CameraInfo` marker for an uncalibrated camera (`K[0] == 0.0`).
 `/camera/status` reports `"calibrated": false` with the reason.
 
@@ -70,6 +72,44 @@ Intrinsics are never invented. A calibration file is refused, with the reason
 reported, when it is missing, unparseable, zeroed, or recorded at a different
 resolution than the configured one. Nothing in this milestone may be used for
 metric vision until a real calibration is performed.
+
+The chosen target is a 5×7 ChArUco board using OpenCV `DICT_5X5_100`. Compared
+with a plain checkerboard it tolerates partial visibility and gives identified
+corners, while the output remains normal ROS `CameraInfo` with the `plumb_bob`
+model. The exact board is committed at
+`assets/calibration/echora_charuco_5x7.png`. Print it at 125×175 mm for the
+configured 25 mm squares and mount it flat; uniform print scaling does not
+change the recovered intrinsics, but does scale any reported board pose.
+
+Run the collector while the camera service remains active:
+
+```text
+source /opt/ros/humble/setup.bash
+cd /home/animesh/echora
+python3 calibrate_charuco.py
+```
+
+Move and tilt the board so it covers the centre, edges, corners, near and far
+parts of the view. The collector accepts 30 diverse views, rejects duplicate
+poses, removes a limited number of reprojection outliers, and refuses to write
+calibration unless at least 20 views remain, RMS error is at most 1.0 px, every
+remaining view is at most 1.5 px, and the intrinsics are numerically plausible.
+Every attempt writes `camera_calibration_report.json`, including failures. It
+writes the calibration YAML atomically only after all acceptance checks pass.
+
+After a successful capture, restart `echora-camera.service` and require all of
+the following before calling calibration complete:
+
+- `/camera/status` says `"calibrated": true` and names the loaded file.
+- `/camera/camera_info` has non-zero `K`, five finite distortion coefficients,
+  640×480 dimensions, and the same timestamp/frame ID as its image.
+- A live undistortion check shows straight room edges as straight without
+  excessive cropping or warped borders.
+- The camera and person-detector services both remain active after reboot.
+
+`self_test_charuco.py` is the hardware-independent Jetson test. It renders 36
+physically consistent synthetic camera views, detects the board, calibrates,
+and checks the recovered focal lengths against the known model.
 
 ## Failure handling
 
@@ -101,4 +141,5 @@ python3 camera_node.py --ros-args --params-file camera.yaml
 ROS, OpenCV, or numpy, so configuration validation, frame validation, failure
 counting, reconnect timing, rate and gap measurement, duplicate detection,
 status generation, and calibration handling are all covered by the repository
-test suite.
+test suite. `charuco_config.py` similarly keeps board, view-diversity, and
+numeric acceptance rules testable on the Mac.
