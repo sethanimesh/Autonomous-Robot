@@ -133,6 +133,11 @@ duplicates, multiple people, and a face inconsistent with the session. The
 default stores embeddings only. Opt-in retention stores 112×112 aligned face
 crops with mode 0600; original uploads and room frames are never retained.
 
+During camera-head calibration, this same page shows the live encoder position
+and provides **Tilt up** / **Tilt down** controls. Each click is one five-degree
+step. Controls disable when head status is stale, unhomed, outside limits, or
+already moving. The EV3 still owns track isolation and rejects unsafe overlap.
+
 Measured public-image checks on the deployed engine: 0.9824 cosine similarity
 for one identity after a brightness change, 0.0250 for two different identities,
 and 14.37 ms mean embedding latency (23.0 ms p95 over 30 runs). A full temporary

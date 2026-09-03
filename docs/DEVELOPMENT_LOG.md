@@ -1331,3 +1331,25 @@ complete.
   enrolled target samples remain intact.
 - **Tests:** The protocol-v3 homing and client changes bring the Mac suite to
   372 passing tests with four dependency-based skips.
+
+### Manual camera-head controls deployed
+
+- **UI success:** Added two controls to the existing port-8080 live camera
+  page: `Tilt up` and `Tilt down`. Each click requests exactly one five-degree
+  step and the page displays current encoder position.
+- **UI safety:** Buttons disable on stale/unavailable status, before homing,
+  while moving/homing, or at the configured -180/0 software limits. Server-side
+  validation independently enforces the same rules.
+- **Visual confirmation:** The first corrected negative test moved A from top
+  zero to encoder -9. Across 67 tracked image features the camera view moved a
+  median 93.56 pixels, proving real camera movement in the opposite direction.
+- **Measurement-tool failure:** The following step reached encoder -28, but
+  changed the view too much for the small-motion optical-flow matcher to retain
+  ten features. The measurement tool now falls back to full-frame phase
+  correlation and pixel change instead of aborting; no images are stored.
+- **Button acceptance:** The deployed HTTP controls moved down from top to -6
+  and back up to -2. Throughout the cycle, B/C speeds stayed zero and their
+  encoders remained 0/1. The live status endpoint reports the head homed and
+  available.
+- **Tests:** Five camera-control validation tests bring the full suite to 377
+  passing tests with four dependency-based skips.

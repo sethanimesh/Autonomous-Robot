@@ -18,6 +18,7 @@ from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
+from camera_controls import validate_camera_jog
 from face_detections import FaceDetection, select_faces
 from face_inference import TensorRTMultiOutputBackend, YuNetFaceDetector
 from face_observations import FaceObservationError, parse_face_observations
@@ -35,15 +36,16 @@ PHOTO_DIRECTORY_PREFIX = "target_photos_"
 PAGE = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Echora Target Enrollment</title><style>
 :root{color-scheme:dark;font-family:ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1118;color:#edf4fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:980px;margin:auto;padding:20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:16px}h1{font-size:clamp(25px,4vw,40px);margin:0}p{color:#9fb0c1}.pill{padding:7px 12px;border-radius:999px;background:#172330;color:#9fc8ff;font-weight:700}.grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}.card{background:#121c27;border:1px solid #263442;border-radius:18px;padding:16px;box-shadow:0 12px 35px #0005}.preview{padding:0;overflow:hidden;background:#000;min-height:320px;display:grid;place-items:center}.preview img{display:block;width:100%;height:auto}.state{font-size:24px;font-weight:800;margin:5px 0}.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.count{background:#0c151e;border-radius:12px;padding:12px;text-align:center}.count b{display:block;font-size:23px}label{display:block;margin:11px 0 5px;color:#afbecd;font-weight:650}input,select,button{font:inherit;width:100%;border-radius:11px;border:1px solid #344658;padding:11px 12px;background:#0b141d;color:white}button{border:0;background:#2388ff;font-weight:800;cursor:pointer;margin-top:10px}button.secondary{background:#263747}button.danger{background:#6c2832}button:disabled{opacity:.45;cursor:not-allowed}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.consent{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#aebdca}.consent input{width:auto;margin-top:3px}.progress{height:8px;border-radius:99px;background:#263441;overflow:hidden}.progress i{display:block;height:100%;background:#35d49a;width:0}.message{min-height:42px;padding:10px 0;color:#84e8bc;font-weight:700}.small{font-size:12px;color:#8393a2}@media(max-width:760px){.grid{grid-template-columns:1fr}.hero{display:block}.preview{min-height:220px}}
-</style></head><body><div class="wrap"><div class="hero"><div><h1>Target person enrollment</h1><p>Use uploaded photos and a short live camera session for the most reliable result.</p></div><span class="pill" id="service">Connecting…</span></div><div class="grid"><div class="card preview"><img src="/stream" alt="Live camera preview"></div><div class="card"><div class="small">CURRENT GUIDANCE</div><div class="state" id="guide">Wait for camera</div><div class="progress"><i id="bar"></i></div><div class="counts"><div class="count"><b id="center">0</b>Front</div><div class="count"><b id="left">0</b>Left</div><div class="count"><b id="right">0</b>Right</div></div><div id="message" class="message"></div><label>Target label</label><input id="label" maxlength="40" placeholder="Example: Mom"><label>Photo storage</label><select id="retention"><option value="embeddings">Embeddings only — delete photos</option><option value="face_crops">Keep aligned face crops</option></select><label class="consent"><input type="checkbox" id="consent">I have this person’s permission to create a biometric face template.</label><button id="start" onclick="startEnrollment()">Start new enrollment</button><label>Add clear photographs</label><input id="files" type="file" accept="image/*" multiple><button class="secondary" id="upload" onclick="uploadPhotos()">Add selected photos</button><div class="row"><button class="secondary" id="cancel" onclick="action('/api/enrollment/cancel')">Cancel</button><button id="finish" onclick="action('/api/enrollment/finish')">Finish enrollment</button></div><button class="danger" onclick="deleteTarget()">Delete enrolled target</button><p class="small">The console is temporary and available only while its service is running. No full camera frames are stored.</p></div></div></div>
+</style></head><body><div class="wrap"><div class="hero"><div><h1>Target person enrollment</h1><p>Use uploaded photos and a short live camera session for the most reliable result.</p></div><span class="pill" id="service">Connecting…</span></div><div class="grid"><div class="card preview"><img src="/stream" alt="Live camera preview"></div><div class="card"><div class="small">CAMERA TILT</div><div class="state" id="headState">Checking motor…</div><div class="row"><button class="secondary" id="tiltUp" onclick="jogCamera(5)">Tilt up ▲</button><button class="secondary" id="tiltDown" onclick="jogCamera(-5)">Tilt down ▼</button></div><p class="small">One safe 5° step per click. The tracks stay stopped.</p><div class="small">CURRENT GUIDANCE</div><div class="state" id="guide">Wait for camera</div><div class="progress"><i id="bar"></i></div><div class="counts"><div class="count"><b id="center">0</b>Front</div><div class="count"><b id="left">0</b>Left</div><div class="count"><b id="right">0</b>Right</div></div><div id="message" class="message"></div><label>Target label</label><input id="label" maxlength="40" placeholder="Example: Mom"><label>Photo storage</label><select id="retention"><option value="embeddings">Embeddings only — delete photos</option><option value="face_crops">Keep aligned face crops</option></select><label class="consent"><input type="checkbox" id="consent">I have this person’s permission to create a biometric face template.</label><button id="start" onclick="startEnrollment()">Start new enrollment</button><label>Add clear photographs</label><input id="files" type="file" accept="image/*" multiple><button class="secondary" id="upload" onclick="uploadPhotos()">Add selected photos</button><div class="row"><button class="secondary" id="cancel" onclick="action('/api/enrollment/cancel')">Cancel</button><button id="finish" onclick="action('/api/enrollment/finish')">Finish enrollment</button></div><button class="danger" onclick="deleteTarget()">Delete enrolled target</button><p class="small">The console is temporary and available only while its service is running. No full camera frames are stored.</p></div></div></div>
 <script>
 const H={'X-Echora-Action':'1'};async function post(url,body,type='application/json'){let h={...H};if(type)h['Content-Type']=type;let r=await fetch(url,{method:'POST',headers:h,body});let j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j}
 async function action(url){try{await post(url,'{}');await refresh()}catch(e){alert(e.message)}}
+async function jogCamera(degrees){try{document.getElementById('tiltUp').disabled=true;document.getElementById('tiltDown').disabled=true;await post('/api/camera/jog',JSON.stringify({degrees}));setTimeout(refresh,350)}catch(e){alert(e.message);await refresh()}}
 async function startEnrollment(){let body={label:document.getElementById('label').value,retention:document.getElementById('retention').value,consent:document.getElementById('consent').checked};try{await post('/api/enrollment/start',JSON.stringify(body));await refresh()}catch(e){alert(e.message)}}
 async function normalizedBlob(file){let img=await createImageBitmap(file,{imageOrientation:'from-image'});let scale=Math.min(1,1600/Math.max(img.width,img.height));let c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return await new Promise(ok=>c.toBlob(ok,'image/jpeg',.92))}
 async function uploadPhotos(){let fs=[...document.getElementById('files').files];if(!fs.length)return alert('Choose one or more photos first.');for(let f of fs){try{let b=await normalizedBlob(f);let r=await post('/api/enrollment/upload',b,'image/jpeg');document.getElementById('message').textContent=r.message}catch(e){alert(f.name+': '+e.message)}}await refresh()}
 async function deleteTarget(){if(!confirm('Delete the enrolled target and any retained face crops?'))return;await action('/api/enrollment/delete')}
-async function refresh(){try{let s=await (await fetch('/api/status',{cache:'no-store'})).json();document.getElementById('service').textContent=s.enrolling?'Capturing':'Ready';document.getElementById('guide').textContent=s.guidance;for(let p of ['center','left','right'])document.getElementById(p).textContent=s.pose_counts[p]||0;document.getElementById('bar').style.width=Math.min(100,100*s.sample_count/s.minimum_total)+'%';document.getElementById('message').textContent=s.message||'';document.getElementById('finish').disabled=!s.ready;document.getElementById('upload').disabled=!s.enrolling;document.getElementById('cancel').disabled=!s.enrolling;if(!s.enrolling&&s.target_label&&!document.getElementById('label').value)document.getElementById('label').value=s.target_label}catch(e){document.getElementById('service').textContent='Offline'}}setInterval(refresh,900);refresh();
+async function refresh(){try{let s=await (await fetch('/api/status',{cache:'no-store'})).json();document.getElementById('service').textContent=s.enrolling?'Capturing':'Ready';document.getElementById('guide').textContent=s.guidance;for(let p of ['center','left','right'])document.getElementById(p).textContent=s.pose_counts[p]||0;document.getElementById('bar').style.width=Math.min(100,100*s.sample_count/s.minimum_total)+'%';document.getElementById('message').textContent=s.message||'';document.getElementById('finish').disabled=!s.ready;document.getElementById('upload').disabled=!s.enrolling;document.getElementById('cancel').disabled=!s.enrolling;let h=s.camera_head||{};let usable=h.available&&h.homed&&!h.moving&&!h.homing;document.getElementById('headState').textContent=h.available?(h.homing?'Homing…':h.moving?'Moving…':'Position '+h.position+'°'):'Motor unavailable';document.getElementById('tiltUp').disabled=!usable||h.position>=h.maximum_position;document.getElementById('tiltDown').disabled=!usable||h.position<=h.minimum_position;if(!s.enrolling&&s.target_label&&!document.getElementById('label').value)document.getElementById('label').value=s.target_label}catch(e){document.getElementById('service').textContent='Offline';document.getElementById('tiltUp').disabled=true;document.getElementById('tiltDown').disabled=true}}setInterval(refresh,900);refresh();
 </script></body></html>""".encode("utf-8")
 
 
@@ -122,9 +124,24 @@ class EnrollmentNode(Node):
         self.session = None
         self.latest_jpeg = None
         self.latest_frame_time = None
+        self.camera_head_status = None
+        self.camera_head_status_time = None
         self.last_message = "Start an enrollment or add photographs."
         self.create_subscription(Image, args.image_topic, self.on_image, BEST_EFFORT)
         self.create_subscription(String, args.observations_topic, self.on_observations, 10)
+        self.create_subscription(String, args.camera_head_status_topic, self.on_camera_head_status, 10)
+        self.camera_head_command_publisher = self.create_publisher(String, args.camera_head_command_topic, 10)
+
+    def on_camera_head_status(self, message):
+        try:
+            status = json.loads(message.data)
+        except (TypeError, ValueError):
+            return
+        if not isinstance(status, dict):
+            return
+        with self.lock:
+            self.camera_head_status = status
+            self.camera_head_status_time = time.monotonic()
 
     def on_image(self, message):
         if message.encoding not in ("bgr8", "rgb8") or len(message.data) != message.height * message.width * 3:
@@ -188,6 +205,10 @@ class EnrollmentNode(Node):
         with self.lock:
             session = self.session
             camera_ready = self.latest_frame_time is not None and time.monotonic() - self.latest_frame_time < 2.0
+            head_age = None if self.camera_head_status_time is None else time.monotonic() - self.camera_head_status_time
+            head_status = None if self.camera_head_status is None else dict(self.camera_head_status)
+            if head_status is not None:
+                head_status["available"] = head_age <= 2.0
             return {
                 "camera_ready": camera_ready,
                 "enrolling": session is not None,
@@ -202,7 +223,24 @@ class EnrollmentNode(Node):
                 "model": self.args.model_name,
                 "provider": self.recognizer.provider,
                 "privacy": "No full frames stored; aligned crops retained only if selected.",
+                "camera_head": {"available": False} if head_status is None else head_status,
             }
+
+    def jog_camera(self, request):
+        degrees = request.get("degrees")
+        if isinstance(degrees, bool) or not isinstance(degrees, (int, float)):
+            raise ValueError("Camera tilt step is invalid.")
+        degrees = int(degrees)
+        with self.lock:
+            status = None if self.camera_head_status is None else dict(self.camera_head_status)
+            age = None if self.camera_head_status_time is None else time.monotonic() - self.camera_head_status_time
+        target = validate_camera_jog(status, age, degrees)
+        message = String()
+        message.data = json.dumps({"action": "jog", "degrees": degrees}, separators=(",", ":"))
+        self.camera_head_command_publisher.publish(message)
+        with self.lock:
+            self.last_message = "Camera tilt requested: {0}° → {1}°.".format(status["position"], target)
+        return self.status()
 
     def start(self, request):
         label = str(request.get("label", "")).strip()
@@ -355,6 +393,7 @@ class Handler(BaseHTTPRequestHandler):
                     "/api/enrollment/cancel": self.node.cancel,
                     "/api/enrollment/finish": self.node.finish,
                     "/api/enrollment/delete": self.node.delete_target,
+                    "/api/camera/jog": lambda: self.node.jog_camera(request),
                 }
                 if self.path not in actions:
                     self.json_response({"error": "Not found."}, 404); return
@@ -386,6 +425,8 @@ def parse_args(argv=None):
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--image-topic", default="/camera/image_raw")
     parser.add_argument("--observations-topic", default="/perception/face_observations")
+    parser.add_argument("--camera-head-status-topic", default="/camera_head/status")
+    parser.add_argument("--camera-head-command-topic", default="/camera_head/command")
     parser.add_argument("--model-name", default="antelopev2_glintr100")
     parser.add_argument("--model-path", required=True)
     parser.add_argument("--model-sha256", required=True)

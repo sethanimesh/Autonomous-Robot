@@ -74,6 +74,11 @@ Jetson software bounds, and mutual exclusion between camera and chassis motion.
 The live enrollment console remains available on port 8080 as the operator
 camera view during calibration.
 
+The same page now provides two manual calibration controls: **Tilt up** and
+**Tilt down**. Each click requests one bounded five-degree encoder step, shows
+the current encoder position, disables itself while the head is moving or its
+status is stale, and relies on the EV3 to keep both tracks stopped.
+
 Protocol v2 passed its track-isolation test, but its first range interpretation
 was invalid: the owner observed that the camera started at the top limit and
 the positive test direction continued into that limit. Encoder changes up to
