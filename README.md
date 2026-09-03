@@ -6,7 +6,8 @@ low-level motor and sensor controller.
 
 The project is being developed in small, testable stages. Phase 1 and 2 (safe
 Jetson-to-EV3 motor control and its ROS 2 integration) are complete. Phase 3 is
-now complete for camera acquisition and stationary person detection.
+now complete through calibrated camera acquisition, stationary person
+detection, and stationary face detection. Target-person identity is next.
 
 ## Working rules
 
@@ -66,11 +67,20 @@ two-person poses — against an 80% target — with **zero false positives** acr
 1304 frames of an empty room. It survives camera loss, reports stale input, and
 resumes automatically.
 
+Stationary face detection is now live as a second bounded stage. Enabled
+`echora-face-detector.service` runs **YuNet 2023mar (MIT)** through **TensorRT
+FP16**, but only inside exact-frame YOLOX person regions. It publishes
+`/perception/face_detections`, `/perception/face_image`, and
+`/perception/face_status`. A live ten-second acceptance run found one face in
+**50/50 processed views**, with every face timestamp matching both the observed
+camera and person messages, zero malformed results, and zero inference errors.
+GPU inference plus decode averages roughly **16-18 ms** per person region.
+Five landmarks are drawn for validation but are not persisted.
+
 Note that the installed **PyTorch is a CPU-only build** and provides no
 acceleration; TensorRT is the working GPU path. Model weights and engines are
-**not** committed. No face detection, recognition, identity, tracking,
-following, mapping, or recording has been added, and the motors stayed stopped
-throughout.
+**not** committed. No recognition, identity, tracking, following, mapping, or
+recording has been added, and the motors stayed stopped throughout.
 
 See:
 

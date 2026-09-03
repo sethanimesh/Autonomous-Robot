@@ -1,0 +1,21 @@
+[Unit]
+Description=Echora ROS 2 face detector (YuNet TensorRT)
+After=network-online.target echora-camera.service echora-person-detector.service
+Wants=network-online.target echora-camera.service echora-person-detector.service
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/face_detector.py --ros-args --params-file /home/animesh/echora/perception.yaml'
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

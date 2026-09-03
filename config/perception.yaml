@@ -57,3 +57,45 @@ echora_person_detector:
 
     status_interval_sec: 5.0
     latency_window: 120
+
+# Face detection is a separate GPU stage and is gated by the exact-frame
+# YOLOX person boxes. It does not perform recognition or persist biometrics.
+echora_face_detector:
+  ros__parameters:
+    image_topic: /camera/image_raw
+    person_detections_topic: /perception/person_detections
+    face_detections_topic: /perception/face_detections
+    annotated_image_topic: /perception/face_image
+    status_topic: /perception/face_status
+
+    model_name: yunet_2023mar
+    model_path: /home/animesh/echora/models/yunet_2023mar_fp16.engine
+    model_input_width: 640
+    model_input_height: 640
+    confidence_threshold: 0.75
+    nms_iou_threshold: 0.30
+    max_faces: 20
+
+    # Only the largest three upper-person regions are processed per frame.
+    # This bounds worst-case GPU work in a crowded scene.
+    max_person_rois: 3
+    person_roi_padding: 0.08
+    person_roi_height_fraction: 0.72
+    minimum_person_roi_pixels: 24
+    max_inference_rate_hz: 10.0
+
+    # 24 camera frames is roughly 0.9 seconds at the measured camera rate.
+    # Matching remains exact by timestamp; this only absorbs detector delay.
+    image_cache_size: 24
+    max_frame_age_sec: 0.5
+    frame_timeout_sec: 2.0
+    person_timeout_sec: 2.0
+
+    publish_annotated_image: true
+    annotate_only_when_subscribed: true
+    # The raw ROS image conversion is CPU-heavy. Three fps is smooth enough
+    # for positioning without slowing the structured detection stream.
+    max_annotated_rate_hz: 3.0
+    enable_timing_diagnostics: true
+    status_interval_sec: 5.0
+    latency_window: 120

@@ -1,0 +1,19 @@
+[Unit]
+Description=Echora temporary face-detection preview
+After=echora-face-detector.service
+Requires=echora-face-detector.service
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/detection_preview.py --port 8080 --image-topic /perception/face_image --detections-topic /perception/face_detections --label faces'
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=5
+NoNewPrivileges=true
+
+# Intentionally not enabled at boot. It exposes unauthenticated camera images
+# to the local network and is started only for operator-assisted tests.

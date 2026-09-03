@@ -963,3 +963,79 @@ complete.
   deleted. No camera frame was committed or retained by the preview.
 - **Motor safety:** Calibration and preview code have no EV3 connection or
   `/cmd_vel` publisher; no motor command was sent.
+
+## 2026-09-03 — GPU face detection deployed and live-tested
+
+### Technology and boundaries
+
+- **Choice changed after license verification:** SCRFD-2.5G was the initial
+  plan, but InsightFace's official pretrained weights are restricted to
+  non-commercial research. YuNet 2023mar from OpenCV Zoo was selected instead:
+  its model is MIT-licensed, provides five landmarks, and is only 232,589 bytes.
+- **Success:** The Orin parsed all 12 YuNet outputs and built a 559,156-byte
+  TensorRT engine in 137.9 seconds. Engine inspection measured 98 FP16 and 64
+  FP32 tensors, so the service reports `tensorrt_fp16` from evidence rather
+  than the requested build flag.
+- **Scope:** Face detection only. No identity, recognition, embeddings,
+  enrollment, tracking, disk storage, EV3 connection, or motor command exists
+  in this stage.
+
+### Implementation failures caught and corrected
+
+- **Failure:** The first implementation resized every upper-person crop
+  directly to a square. The live camera's person box was roughly 455×254, so
+  this distorted the face and made detection intermittent even though a direct
+  full-frame test scored the same face above 0.91.
+- **Fix:** Person crops now use aspect-preserving top-left letterboxing. The
+  corrected live preview immediately showed a 0.91 face box with five
+  correctly placed landmarks; a later partial/profile view scored 0.79.
+- **Failure:** The first synchronizer assumed the camera callback always
+  arrived before its YOLOX result. DDS sometimes delivered them in the other
+  order, causing valid exact-frame pairs to be dropped and throughput to fall
+  to roughly 4.5 Hz.
+- **Fix:** A two-sided bounded exact-timestamp matcher now accepts either
+  callback order. Unmatched images and person messages are independently
+  bounded and reported rather than growing without limit.
+- **Expected observer failure:** One verification run saw 36 of 37 face stamps
+  in its own best-effort camera subscription while all 37 matched the reliable
+  person stream. The face service had the source frame; the verifier itself
+  dropped one best-effort sample. Its acceptance rule now tolerates up to 10%
+  observer loss while requiring at least 90% camera observation and 95% person
+  observation.
+- **Performance finding:** Subscribing to full annotated ROS images reduces
+  throughput because converting a 640×480 raw frame is CPU-heavy. Only the
+  diagnostic image is now capped to 3 Hz; structured results keep their own
+  10 Hz ceiling.
+
+### Acceptance evidence
+
+- **Success:** A live ten-second run with one visible face received 176 camera
+  messages, 123 person messages, and 50 face messages. All 50 contained one
+  valid face, all 50 timestamps were observed in both source streams, the
+  provider was `tensorrt_fp16`, and inference errors were zero.
+- **Success:** With preview disabled, 89 face messages arrived in the first
+  ten-second check and all 89 contained the visible face. After the final
+  restart, status measured the full configured **10.01 Hz** across 99
+  inferences with one current face, 18.09 ms mean inference plus decode, and
+  zero errors. With the 3 Hz operator preview active, the structured stream
+  remained around 5-7 Hz.
+- **Success:** A temporary OpenCV sample photograph was published only for a
+  bounded end-to-end test and produced face detections through YOLOX → exact
+  timestamp match → YuNet. The image was never added to Git.
+- **Success:** `tegrastats` independently observed `GR3D_FREQ` peaks of 44%,
+  61%, 33%, and 57% while both detectors were active, confirming GPU work.
+- **Recovery:** Stopping `echora-person-detector.service` left the face service
+  active and changed `/perception/face_status` to `stale_input`. Restarting the
+  upstream service restored `detecting`, one live face, and zero errors without
+  restarting the camera or face service.
+- **Tests:** The development Mac passes **333 tests**; four NumPy decoder tests
+  are skipped in its deliberately lightweight Python environment. The same
+  decode path loaded the real Orin engine, decoded live faces, and passed the
+  end-to-end verifier.
+- **Reboot recovery:** A later Jetson reboot automatically restored the camera,
+  YOLOX person detector, YuNet face detector, and EV3 bridge. The face node
+  briefly reported stale input while clocks and streams settled, then returned
+  to `detecting`. The unauthenticated preview correctly remained inactive.
+- **Deployed state:** Camera, YOLOX person detector, YuNet face detector, and
+  EV3 bridge are active. The face detector is enabled at boot; the temporary
+  preview is static, inactive, and not enabled.

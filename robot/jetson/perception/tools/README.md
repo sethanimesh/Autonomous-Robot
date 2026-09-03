@@ -1,8 +1,10 @@
 # Perception test tools
 
-Operator tools for testing the person detector against real hardware. They are
-**not** part of the runtime: nothing here is started by a systemd unit, and the
-detector neither imports nor depends on any of it.
+Operator tools for testing the person and face detectors against real hardware. They are
+**not** part of the autonomous runtime. The detector neither imports nor
+depends on them. The MJPEG preview can be started by the static
+`echora-face-preview.service`, but that service is deliberately not enabled at
+boot.
 
 They import `rclpy`, `cv2` and `numpy`, so they run on the Jetson only and are
 not covered by the repository test suite. The detector's own logic is tested in
@@ -12,8 +14,8 @@ Copy them to the Jetson and run them with `/opt/ros/humble/setup.bash` sourced.
 
 ## `detection_preview.py`
 
-Serves the annotated person-detection stream as MJPEG so the operator can see
-what the detector sees while standing in front of the robot.
+Serves any annotated detection stream as MJPEG so the operator can see what
+the detector sees while standing in front of the robot.
 
 Not to be confused with the camera calibration preview, which overlays ChArUco
 corners instead of person boxes and lives with the camera node.
@@ -21,6 +23,8 @@ corners instead of person boxes and lives with the camera node.
 ```text
 python3 detection_preview.py          # then open http://<jetson>:8088/
 python3 detection_preview.py --port 9000 --bind 127.0.0.1
+python3 detection_preview.py --port 8080 --image-topic /perception/face_image \
+  --detections-topic /perception/face_detections --label faces
 ```
 
 This is the tool that makes physical testing practical. Asked to hit marks
@@ -34,6 +38,22 @@ immediately.
 the network can watch the camera. Run it while testing and stop it afterwards.
 Do not install it as a service without adding authentication and restricting
 the bind address.
+
+## `verify_face_pipeline.py`
+
+Checks the live camera, YOLOX, face output, status JSON, provider, result
+geometry, and timestamp propagation together. It never saves frames.
+
+```text
+python3 verify_face_pipeline.py --seconds 10 --require-face
+```
+
+## `publish_test_image.py`
+
+Publishes a temporary photograph as stamped `bgr8` messages for a bounded
+pipeline test. It is deliberately manual because it briefly adds a second
+publisher to the camera topic. Test photographs are kept outside Git and
+removed after the run.
 
 ## `measure_phase.py`
 

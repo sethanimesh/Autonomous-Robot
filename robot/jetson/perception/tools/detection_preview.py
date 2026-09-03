@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the annotated person-detection stream as MJPEG over HTTP.
+"""Serve any annotated detection stream as MJPEG over HTTP.
 
 Named to distinguish it from the camera calibration preview, which overlays
 ChArUco corners rather than person boxes.
@@ -55,18 +55,19 @@ PAGE = (
 
 # Shared between the ROS thread and the HTTP threads. Only whole objects are
 # swapped in, never mutated in place, so no lock is needed.
-latest = {"jpeg": None, "people": 0, "score": 0.0}
+latest = {"jpeg": None, "count": 0, "score": 0.0}
 
 
 class PreviewNode(Node):
-    def __init__(self, image_topic, detections_topic, quality):
+    def __init__(self, image_topic, detections_topic, quality, label):
         super().__init__("echora_detection_preview")
         self.quality = int(quality)
+        self.label = str(label)
         self.create_subscription(Image, image_topic, self.on_image, BEST_EFFORT)
         self.create_subscription(Detection2DArray, detections_topic, self.on_detections, 10)
 
     def on_detections(self, message):
-        latest["people"] = len(message.detections)
+        latest["count"] = len(message.detections)
         latest["score"] = max(
             [d.results[0].hypothesis.score for d in message.detections if d.results],
             default=0.0,
@@ -85,7 +86,9 @@ class PreviewNode(Node):
         cv2.rectangle(canvas, (0, 0), (message.width, BANNER_HEIGHT), (0, 0, 0), -1)
         cv2.putText(
             canvas,
-            "people: {0}   best: {1:.2f}".format(latest["people"], latest["score"]),
+            "{0}: {1}   best: {2:.2f}".format(
+                self.label, latest["count"], latest["score"]
+            ),
             (8, 19),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.6,
@@ -144,11 +147,14 @@ def main(argv=None):
     )
     parser.add_argument("--image-topic", default="/perception/person_image")
     parser.add_argument("--detections-topic", default="/perception/person_detections")
+    parser.add_argument("--label", default="people", help="name shown in the banner")
     parser.add_argument("--quality", type=int, default=75, help="JPEG quality, 1-100")
     args = parser.parse_args(argv)
 
     rclpy.init()
-    node = PreviewNode(args.image_topic, args.detections_topic, args.quality)
+    node = PreviewNode(
+        args.image_topic, args.detections_topic, args.quality, args.label
+    )
     server = ThreadingHTTPServer((args.bind, args.port), PreviewHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(

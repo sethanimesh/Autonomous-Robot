@@ -44,6 +44,9 @@ verified.
 | EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
 | ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service`; publishes `/robot_status`, `/odom`, `/joint_states`, and odom TF |
 | ROS 2 camera source | `/home/animesh/echora/camera_node.py`; managed by enabled and active `echora-camera.service`; publishes `/camera/image_raw`, `/camera/camera_info`, `/camera/status` |
+| ROS 2 face detector | `/home/animesh/echora/face_detector.py`; enabled `echora-face-detector.service`; YuNet 2023mar TensorRT FP16; exact-frame YOLOX person-region gate |
+| Face detector model | ONNX 232,589 bytes, SHA-256 `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4`; Orin-built engine 559,156 bytes, SHA-256 `b1a09ee0e20e33aaefdb0b902286b79d72eefdeade5f3d08ec9db8521fc7d196` |
+| Face preview | Static `echora-face-preview.service` at `http://192.168.1.48:8080/`; unauthenticated, temporary, and deliberately not enabled at boot |
 | Provisional geometry | Wheel radius 0.03 m, track width 0.12 m; must be physically measured before metric odometry/navigation claims |
 
 ## LEGO EV3 with ev3dev

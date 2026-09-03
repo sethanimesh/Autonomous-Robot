@@ -1,13 +1,14 @@
-# Jetson Person Detector
+# Jetson Perception
 
-`person_detector.py` is the Phase 3 perception node. It consumes the live
-camera stream, runs a YOLOX person detector on the Jetson GPU through
-TensorRT, and publishes structured detections, an annotated image, and health
-information.
+`person_detector.py` and `face_detector.py` form the stationary Phase 3
+perception pipeline. YOLOX finds people in the live camera stream; YuNet then
+looks for faces only inside exact-frame person regions. Both models execute on
+the Jetson GPU through TensorRT FP16 and publish structured detections,
+optional annotated images, and honest health information.
 
-It only looks. There is no face detection, no recognition, no identity, no
-tracking across frames, no following, and no motor command. It holds no
-connection to the EV3 and never writes a camera frame to disk.
+These nodes only look. There is no recognition, identity, tracking across
+frames, following, or motor command. Neither node connects to the EV3 or writes
+a camera frame to disk.
 
 ## Topics
 
@@ -28,10 +29,68 @@ how a subscriber tells "nobody here" apart from "the detector has stopped".
 
 ### The pose field is deliberately empty
 
-`ObjectHypothesisWithPose.pose` is left at its zero default. This camera is
-**uncalibrated** — the camera node publishes explicitly zeroed intrinsics — so
-no metric position exists to report. Nothing here may be used for 3D
-reasoning. Bounding boxes are pixel coordinates in the source image only.
+`ObjectHypothesisWithPose.pose` is left at its zero default. The camera now has
+accepted intrinsics, but a monocular 2D box still has no measured depth, so no
+metric position exists to report. Nothing here may be used as a 3D person or
+face position. Bounding boxes are source-image pixels only.
+
+## Face detector
+
+| Topic | Type | Purpose |
+| --- | --- | --- |
+| `/camera/image_raw` (in) | `sensor_msgs/msg/Image` | Timestamped source frame |
+| `/perception/person_detections` (in) | `vision_msgs/msg/Detection2DArray` | YOLOX gate |
+| `/perception/face_detections` | `vision_msgs/msg/Detection2DArray` | Face boxes and confidence |
+| `/perception/face_image` | `sensor_msgs/msg/Image` | Optional boxes plus five landmarks |
+| `/perception/face_status` | `std_msgs/msg/String` (JSON) | Health, latency, matching, provider |
+
+The face node maintains two small bounded timestamp caches because ROS may
+deliver the camera callback or the downstream person callback first. A pair is
+accepted only when seconds, nanoseconds, and frame ID agree exactly. The
+largest three upper-person regions are processed per output cycle, bounding
+worst-case work in a crowded room. Overlap across person boxes is removed with
+global NMS.
+
+### YuNet model
+
+| | |
+| --- | --- |
+| Name | YuNet `face_detection_yunet_2023mar.onnx` |
+| Source | OpenCV Zoo, `models/face_detection_yunet` |
+| License | MIT |
+| Input | `1x3x640x640`, raw BGR 0-255 |
+| Outputs | 12 tensors: class, objectness, box, and five keypoints at strides 8/16/32 |
+| ONNX | 232,589 bytes; SHA-256 `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` |
+| Orin engine | 559,156 bytes; SHA-256 `b1a09ee0e20e33aaefdb0b902286b79d72eefdeade5f3d08ec9db8521fc7d196` |
+
+Model files are ignored by Git. Download the official OpenCV Zoo ONNX file,
+verify the checksum above, then build the machine-specific engine on the Orin:
+
+```text
+python3 build_engine.py models/yunet_2023mar.onnx models/yunet_2023mar_fp16.engine --fp16
+```
+
+SCRFD was evaluated first but its official pretrained weights are restricted
+to non-commercial research. YuNet was selected because its model is explicitly
+MIT-licensed, it is tiny enough to coexist with YOLOX on the Orin, and its five
+landmarks are useful for the later face-alignment stage.
+
+The crop is aspect-preserving and top-left letterboxed before inference.
+Directly stretching the wide upper-body crop to 640x640 was tested and failed:
+it narrowed the face enough to make detections intermittent. The corrected
+pipeline detected one live face in 50/50 processed views at 0.75 threshold.
+
+The annotated image is capped at 3 Hz because converting a full raw ROS image
+is CPU-heavy; structured detections remain uncapped up to the configured 10 Hz.
+After the final restart, with preview disabled, the live stream measured its
+full configured **10.0 Hz** across 99 inferences, with mean per-region inference
+plus decode near 18 ms. With the preview active it remains around 5-7 Hz while
+still providing a usable operator view.
+
+`echora-face-detector.service` is enabled at boot. The optional
+`echora-face-preview.service` serves `http://192.168.1.48:8080/`, is not enabled
+at boot, and should be stopped after physical testing because it is an
+unauthenticated LAN camera stream.
 
 ## Model
 
