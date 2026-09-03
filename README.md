@@ -10,8 +10,9 @@ now complete through calibrated camera acquisition, stationary person and face
 detection, plus the deployed target-person enrollment and recognition stack.
 The real target is enrolled and passes stationary known-person recognition;
 a different real person also passed the stationary rejection test with zero
-false matches. Varied-distance/lighting validation was explicitly deferred, and
-Phase 4 encoder-odometry floor calibration is now underway.
+false matches. Varied-distance/lighting validation was explicitly deferred.
+Phase 4 encoder-odometry floor calibration is complete, and Phase 5 mapping
+readiness has started.
 
 ## Working rules
 
@@ -47,13 +48,14 @@ the `odom → base_link` transform. Raised-chassis linear, angular, and odometry
 tests passed. Metric geometry remains provisional until the chassis is
 physically measured.
 
-Phase 4 now has a bounded ROS calibration runner that records encoder and pose
+Phase 4 has a bounded ROS calibration runner that records encoder and pose
 start/end values, requires confirmed stop feedback, saves both successful and
 failed attempts, and calculates effective wheel radius and track width from
-real measurements. Its first deployed connectivity capture failed closed while
-the EV3 was offline. After the EV3 returned, a short smoke test and the first
-straight floor capture both succeeded with confirmed stops. Metric calibration
-now awaits the measured floor displacement; no geometry value is guessed.
+real measurements. It failed closed while the EV3 was offline, then completed
+real straight and turn calibration after connectivity returned. The deployed
+effective geometry is a 0.0144504 m drive radius and 0.182557 m track width. A
+final measured turn matched 90 degrees left, straight travel was reported as
+straight, and every run ended with confirmed stopped feedback.
 
 The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,

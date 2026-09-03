@@ -51,7 +51,7 @@ verified.
 | Recognition model | ONNX 260,665,334 bytes, SHA-256 `4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf`; Orin engine 131,373,148 bytes, SHA-256 `94bc49a39a76ed9cab5547bcba129757b71323f89b267021c74f04208ab5d2c1` |
 | Target data | `/home/animesh/echora/data/target_person.json`; real target enrolled from 18 live views (9 front, 6 left, 3 right); private directory 0700/file 0600; operator selected retention of 18 aligned 112×112 crops, each 0600; stationary real-unknown rejection passed with 0/148 false matches |
 | Enrollment console | Static, active only during enrollment at `http://192.168.1.48:8080/`; mutually exclusive with the old face-only preview on the same port |
-| Provisional geometry | Wheel radius 0.03 m, track width 0.12 m; must be physically measured before metric odometry/navigation claims |
+| Odometry geometry | Calibrated effective drive radius **0.0144504 m**; effective track width **0.182557 m**; final turn check measured 90° left and odometry predicted 90.64° |
 
 ## LEGO EV3 with ev3dev
 
@@ -73,7 +73,7 @@ verified.
 | IR sensor | Not detected and explicitly deferred by owner |
 | Positive motor direction | Unknown for both tracks |
 | Positive encoder response | Confirmed on A, B, and C during short +100°/s pulses |
-| Wheel/track geometry | Unknown |
+| Wheel/track geometry | Effective drive radius 0.0144504 m; effective track width 0.182557 m; calibrated on the floor and deployed |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 
@@ -90,6 +90,21 @@ without configuration changes. A 0.5-second straight smoke test advanced both
 encoders by exactly 56 counts, and a 3-second straight capture advanced left by
 424 counts and right by 419 counts; both runs ended with confirmed stopped
 feedback.
+
+A repeated marked run advanced the left encoder by 368 counts and right by 361
+counts. The owner measured **0.10 m actual travel** and reported that the robot
+went straight. This yields an initial effective drive radius of **0.015719 m**.
+The short measurement makes this a first calibration value to validate over a
+longer distance, not yet a precision claim.
+
+The second in-place turn capture moved the encoders -398/+400 counts. The
+owner measured **70 degrees left**, producing an initial effective track width
+of **0.179197 m**. This value must be checked by another measured turn.
+
+The repeat turn physically measured 90 degrees left. After the final straight
+check, the geometry was refined and deployed as **0.0144504 m effective drive
+radius** and **0.182557 m effective track width**. The final pre-refinement turn
+check predicted 90.64 degrees and physically measured 90 degrees left.
 
 ## Safety facts to confirm before motor testing
 

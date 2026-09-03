@@ -2,8 +2,8 @@ ev3_bridge:
   ros__parameters:
     ev3_host: 192.168.1.25
     ev3_port: 9999
-    wheel_radius_m: 0.03
-    track_width_m: 0.12
+    wheel_radius_m: 0.0144504
+    track_width_m: 0.182557
     left_sign: 1
     right_sign: 1
     max_motor_speed: 120

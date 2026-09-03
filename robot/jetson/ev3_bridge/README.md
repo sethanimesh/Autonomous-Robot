@@ -51,6 +51,9 @@ python3 calibrate_odometry.py calculate --report calibration/turn-01.json \
   --measured-yaw-degrees 185
 ```
 
+If a later straight run refines the wheel radius, recalculate an existing turn
+capture with `--wheel-radius-m VALUE`; the raw report remains unchanged.
+
 The calculated values are printed for review; the tool deliberately does not
 rewrite `robot.yaml` automatically. Use the measured floor displacement or yaw,
 not the commanded value.

@@ -30,6 +30,7 @@ except (ImportError, ValueError):
 
 
 DEFAULT_REPORT = "/home/animesh/echora/calibration/latest_motion.json"
+COMMAND_INTERVAL_SECONDS = 0.1
 
 
 def print_json(value):
@@ -51,7 +52,9 @@ def capture(options):
             self.status = None
             self.status_count = 0
             self.odom = None
-            self.publisher = self.create_publisher(Twist, "/cmd_vel", 10)
+            # Keep only the newest command so a stop cannot sit behind a burst
+            # of stale motion messages in the DDS queue.
+            self.publisher = self.create_publisher(Twist, "/cmd_vel", 1)
             self.create_subscription(String, "/robot_status", self.on_status, 10)
             self.create_subscription(Odometry, "/odom", self.on_odom, 10)
 
@@ -105,16 +108,26 @@ def capture(options):
         start_status = copy.deepcopy(node.status)
         start_odom = copy.deepcopy(node.odom)
         motion_deadline = time.monotonic() + options.duration
+        next_command_at = time.monotonic()
         while time.monotonic() < motion_deadline:
-            node.command(True)
-            rclpy.spin_once(node, timeout_sec=0.08)
+            now = time.monotonic()
+            if now >= next_command_at:
+                node.command(True)
+                next_command_at = now + COMMAND_INTERVAL_SECONDS
+            remaining = min(motion_deadline - now, next_command_at - now)
+            rclpy.spin_once(node, timeout_sec=max(0.0, min(0.05, remaining)))
 
         status_count_before_stop = node.status_count
         stop_deadline = time.monotonic() + options.stop_timeout
         stopped = False
+        next_stop_at = time.monotonic()
         while time.monotonic() < stop_deadline:
-            node.command(False)
-            rclpy.spin_once(node, timeout_sec=0.1)
+            now = time.monotonic()
+            if now >= next_stop_at:
+                node.command(False)
+                next_stop_at = now + COMMAND_INTERVAL_SECONDS
+            remaining = min(stop_deadline - now, next_stop_at - now)
+            rclpy.spin_once(node, timeout_sec=max(0.0, min(0.05, remaining)))
             if (
                 node.status_count > status_count_before_stop
                 and not node.status.get("motion_active", True)
@@ -176,6 +189,7 @@ def calculate(options):
         report,
         measured_distance_m=options.measured_distance_m,
         measured_yaw_degrees=options.measured_yaw_degrees,
+        wheel_radius_m=options.wheel_radius_m,
     )
     result["source_report"] = options.report
     result["measurement"] = (
@@ -209,6 +223,11 @@ def parse_args(argv):
     measurement = calculate_parser.add_mutually_exclusive_group(required=True)
     measurement.add_argument("--measured-distance-m", type=float)
     measurement.add_argument("--measured-yaw-degrees", type=float)
+    calculate_parser.add_argument(
+        "--wheel-radius-m",
+        type=float,
+        help="override the capture radius when recalculating track width",
+    )
     return parser.parse_args(argv)
 
 

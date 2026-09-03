@@ -1194,3 +1194,58 @@ complete.
 - **Pending measurement:** The actual floor displacement and observed steering
   direction are required before computing and applying an effective wheel
   radius. Track-width calibration follows that result.
+
+### Straight measurement received
+
+- **Repeat capture:** The marked 3-second run advanced the left encoder by 368
+  counts and the right by 361 counts, with a confirmed stop.
+- **Owner observation:** Actual floor displacement was **0.10 m**, and the robot
+  travelled straight.
+- **Calculated result:** The average 364.5-count rotation gives an initial
+  effective wheel radius of **0.015719 m**, replacing the provisional 0.03 m in
+  `config/robot.yaml`.
+- **Caveat:** A 10 cm hand measurement has substantial relative uncertainty.
+  Validate this radius over a longer straight run before navigation acceptance.
+- **Next test:** Perform a measured in-place turn using the new radius, compute
+  effective track width, then repeat straight and turn validation.
+
+### Initial turn measurement received
+
+- **First turn capture:** A nominal 90-degree left command produced balanced
+  -353/+353 encoder counts and a confirmed stop; it was not physically measured.
+- **Repeated turn capture:** The same command produced -398/+400 counts and a
+  confirmed stop. The encoder difference was 798 counts.
+- **Owner observation:** The repeated run physically turned **70 degrees left**.
+- **Calculated result:** Using the calibrated 0.015719 m effective wheel radius,
+  the measurement gives an initial effective track width of **0.179197 m**,
+  replacing the provisional 0.12 m in `config/robot.yaml`.
+- **Variation noted:** The two nominally identical turns differed by about 13%
+  in encoder travel. The value is therefore provisional until a slower repeat
+  turn validates it.
+
+### Calibration refinement and Phase 4 acceptance
+
+- **Turn validation:** With the first calibrated geometry, a slower turn moved
+  -563/+566 encoder counts. The owner measured exactly 90 degrees left, while
+  odometry predicted 99.1 degrees. Track width was refined to 0.197186 m.
+- **Turn repeat:** A second slower run moved -568/+569 counts, physically turned
+  90 degrees left, and odometry predicted 90.64 degrees. Both track commands
+  were balanced and stopped feedback was confirmed.
+- **Tooling failure found:** The first straight validator published `/cmd_vel`
+  whenever any ROS callback arrived. Camera-independent odometry and status
+  callbacks could therefore create bursts and queue stale forward commands.
+  The robot still stopped, but the run was rejected for timing repeatability.
+- **Fix:** Calibration commands now publish at a strict 10 Hz and use a
+  one-message publisher queue so a zero command cannot wait behind stale motion
+  messages. The full local suite increased to 359 passing tests with four
+  dependency-based skips.
+- **Final straight check:** The corrected runner produced balanced 396/397
+  counts; odometry reported 10.88 cm and the owner measured 10 cm straight.
+- **Final geometry:** The effective drive radius was refined to **0.0144504 m**.
+  Recomputing the confirmed 90-degree turn with that radius produced an
+  effective track width of **0.182557 m**. Both are deployed in
+  `/home/animesh/echora/robot.yaml`.
+- **Acceptance:** Phase 4 is complete for initial mapping experiments. These
+  are effective tracked-chassis values, not physical sprocket dimensions;
+  surface-dependent track slip remains expected and visual localization should
+  correct accumulated encoder drift.

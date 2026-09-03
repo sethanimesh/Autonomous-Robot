@@ -80,6 +80,21 @@ class CalibrationResultTests(unittest.TestCase):
         result = calibration_result(report, measured_yaw_degrees=90.0)
         self.assertAlmostEqual(0.12, result["track_width_m"])
 
+    def test_turn_can_use_refined_wheel_radius(self):
+        report = {
+            "outcome": "success",
+            "motion": "turn",
+            "encoder_delta": {"left": -180, "right": 180},
+            "encoder_counts_per_rev": 360,
+            "wheel_radius_m": 0.03,
+        }
+        result = calibration_result(
+            report,
+            measured_yaw_degrees=90.0,
+            wheel_radius_m=0.025,
+        )
+        self.assertAlmostEqual(0.10, result["track_width_m"])
+
     def test_rejects_failed_capture(self):
         with self.assertRaises(CalibrationError):
             calibration_result({"outcome": "failure"}, measured_distance_m=1.0)

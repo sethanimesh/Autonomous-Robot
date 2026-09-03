@@ -72,7 +72,12 @@ def validate_encoder_motion(motion, left_delta, right_delta, minimum_counts=10):
     return True
 
 
-def calibration_result(report, measured_distance_m=None, measured_yaw_degrees=None):
+def calibration_result(
+    report,
+    measured_distance_m=None,
+    measured_yaw_degrees=None,
+    wheel_radius_m=None,
+):
     """Calculate one effective geometry value from a successful capture."""
 
     if report.get("outcome") != "success":
@@ -99,10 +104,13 @@ def calibration_result(report, measured_distance_m=None, measured_yaw_degrees=No
     if motion == "turn":
         if measured_yaw_degrees is None or measured_distance_m is not None:
             raise CalibrationError("turn calibration requires only measured yaw")
-        try:
-            wheel_radius_m = float(report["wheel_radius_m"])
-        except (KeyError, TypeError, ValueError):
-            raise CalibrationError("turn capture is missing wheel_radius_m")
+        if wheel_radius_m is None:
+            try:
+                wheel_radius_m = float(report["wheel_radius_m"])
+            except (KeyError, TypeError, ValueError):
+                raise CalibrationError("turn capture is missing wheel_radius_m")
+        else:
+            wheel_radius_m = float(wheel_radius_m)
         width = estimate_track_width(
             math.radians(float(measured_yaw_degrees)),
             left_delta,
