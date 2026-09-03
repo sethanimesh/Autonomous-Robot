@@ -148,6 +148,14 @@ class Ev3Client(object):
             }
         )
 
+    def home_tool(self, speed=25):
+        return self.request(
+            {
+                "command": "tool_home",
+                "speed": self._validate_speed("tool home", speed),
+            }
+        )
+
     def zero_tool(self):
         return self.request({"command": "tool_zero"})
 
@@ -217,6 +225,8 @@ def parse_args(argv):
     subparsers.add_parser("status")
     subparsers.add_parser("stop")
     subparsers.add_parser("tool-zero")
+    tool_home = subparsers.add_parser("tool-home")
+    tool_home.add_argument("--speed", type=int, default=25)
 
     tool_move = subparsers.add_parser("tool-move")
     tool_move.add_argument("--position", type=int, required=True)
@@ -243,6 +253,8 @@ def main(argv=None):
             print_json(client.stop())
         elif args.action == "tool-zero":
             print_json(client.zero_tool())
+        elif args.action == "tool-home":
+            print_json(client.home_tool(args.speed))
         elif args.action == "tool-move":
             print_json(client.move_tool(args.position, args.speed))
         elif args.action == "pulse":

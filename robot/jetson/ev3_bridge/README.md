@@ -42,8 +42,10 @@ ros2 topic pub --once /camera_head/command std_msgs/msg/String \
 
 After physical calibration, supported named commands are `look_forward` and
 `look_down`. A `zero` command is available only while the configuration remains
-uncalibrated. Every camera command stops or locks both tracks at zero, and the
-EV3 rejects non-zero chassis motion until the camera move finishes.
+uncalibrated. The `home` command slowly returns to the confirmed physical
+minimum and establishes encoder zero after any reboot. Every camera command
+stops or locks both tracks at zero, and the EV3 rejects non-zero chassis motion
+until the camera move finishes.
 
 `odometry.py` also contains helpers to estimate effective wheel radius from a
 measured straight run and effective track width from a measured turn. Encoder
@@ -88,6 +90,7 @@ python3 ev3_client.py status
 python3 ev3_client.py stop
 python3 ev3_client.py pulse --left 80 --right 80 --duration 0.25
 python3 ev3_client.py tool-zero
+python3 ev3_client.py tool-home --speed 25
 python3 ev3_client.py tool-move --position 10 --speed 40
 ```
 

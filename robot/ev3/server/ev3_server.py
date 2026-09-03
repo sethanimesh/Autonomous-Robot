@@ -16,7 +16,7 @@ import sys
 import time
 
 
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 9999
 DEFAULT_ALLOWED_CLIENT = "192.168.1.48"
@@ -25,6 +25,9 @@ DEFAULT_DRIVE_SPEED_LIMIT = 250
 DEFAULT_TOOL_SPEED_LIMIT = 150
 DEFAULT_TOOL_POSITION_LIMIT = 720
 DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 4.0
+DEFAULT_TOOL_HOME_SPEED_LIMIT = 30
+DEFAULT_TOOL_HOME_TIMEOUT_SECONDS = 8.0
+DEFAULT_TOOL_HOME_NO_PROGRESS_SECONDS = 0.4
 DEFAULT_POLL_SECONDS = 0.05
 DEFAULT_MAX_LINE_BYTES = 4096
 
@@ -131,6 +134,9 @@ class MotorController(object):
         tool_speed_limit=DEFAULT_TOOL_SPEED_LIMIT,
         tool_position_limit=DEFAULT_TOOL_POSITION_LIMIT,
         tool_move_timeout_seconds=DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS,
+        tool_home_speed_limit=DEFAULT_TOOL_HOME_SPEED_LIMIT,
+        tool_home_timeout_seconds=DEFAULT_TOOL_HOME_TIMEOUT_SECONDS,
+        tool_home_no_progress_seconds=DEFAULT_TOOL_HOME_NO_PROGRESS_SECONDS,
         clock=None,
     ):
         missing = sorted(set(MOTOR_PORTS) - set(motors))
@@ -145,15 +151,28 @@ class MotorController(object):
         self.tool_speed_limit = int(tool_speed_limit)
         self.tool_position_limit = int(tool_position_limit)
         self.tool_move_timeout_seconds = float(tool_move_timeout_seconds)
+        self.tool_home_speed_limit = int(tool_home_speed_limit)
+        self.tool_home_timeout_seconds = float(tool_home_timeout_seconds)
+        self.tool_home_no_progress_seconds = float(tool_home_no_progress_seconds)
         if self.tool_position_limit <= 0:
             raise ValueError("tool_position_limit must be positive")
         if self.tool_move_timeout_seconds <= 0:
             raise ValueError("tool_move_timeout_seconds must be positive")
+        if self.tool_home_speed_limit <= 0:
+            raise ValueError("tool_home_speed_limit must be positive")
+        if self.tool_home_timeout_seconds <= 0:
+            raise ValueError("tool_home_timeout_seconds must be positive")
+        if self.tool_home_no_progress_seconds <= 0:
+            raise ValueError("tool_home_no_progress_seconds must be positive")
         self.clock = clock or time.monotonic
         self.commanded = {"left": 0, "right": 0, "tool": 0}
         self.last_motion_at = None
         self.tool_move_started_at = None
         self.tool_target_position = None
+        self.tool_homing = False
+        self.tool_homed = False
+        self.tool_last_position = None
+        self.tool_last_progress_at = None
         self.track_motion_active = False
         self.tool_motion_active = False
         self.motion_active = False
@@ -186,7 +205,31 @@ class MotorController(object):
         if self.tool_motion_active:
             if tool_snapshot is None:
                 tool_snapshot = self.motors["tool"].snapshot()
-            if "running" not in tool_snapshot.get("state", []):
+            if self.tool_homing:
+                now = self.clock()
+                position = int(tool_snapshot["position"])
+                if (
+                    self.tool_last_position is None
+                    or abs(position - self.tool_last_position) >= 1
+                ):
+                    self.tool_last_position = position
+                    self.tool_last_progress_at = now
+                no_progress = (
+                    self.tool_last_progress_at is not None
+                    and now - self.tool_last_progress_at
+                    >= self.tool_home_no_progress_seconds
+                )
+                if "stalled" in tool_snapshot.get("state", []) or no_progress:
+                    self.motors["tool"].stop()
+                    self.motors["tool"].set_position(0)
+                    self.tool_motion_active = False
+                    self.tool_homing = False
+                    self.tool_homed = True
+                    self.commanded["tool"] = 0
+                    self.tool_move_started_at = None
+                    self.tool_target_position = 0
+                    self.last_stop_reason = "tool-home-complete"
+            elif "running" not in tool_snapshot.get("state", []):
                 self.tool_motion_active = False
                 self.commanded["tool"] = 0
                 self.tool_move_started_at = None
@@ -235,6 +278,8 @@ class MotorController(object):
     def move_tool(self, position, speed):
         if self.track_motion_active:
             raise ProtocolError("chassis is moving; camera-head command rejected")
+        if not self.tool_homed:
+            raise ProtocolError("camera head must be homed or zeroed before moving")
         target = self._normalize_position(
             "tool position", position, self.tool_position_limit
         )
@@ -269,9 +314,40 @@ class MotorController(object):
         self.tool_motion_active = True
         self.tool_target_position = target
         self.tool_move_started_at = self.clock()
+        self.tool_homing = False
         self.last_stop_reason = None
         self.motion_active = True
         return {"position": target, "speed": applied_speed}
+
+    def home_tool(self, speed=25):
+        if self.track_motion_active:
+            raise ProtocolError("chassis is moving; camera-head command rejected")
+        applied_speed = abs(
+            self._normalize_speed("tool home", speed, self.tool_home_speed_limit)
+        )
+        if applied_speed == 0:
+            raise ProtocolError("tool home speed must be greater than zero")
+        try:
+            self.motors["left"].stop()
+            self.motors["right"].stop()
+            snapshot = self.motors["tool"].snapshot()
+            self.motors["tool"].set_speed(-applied_speed)
+        except Exception:
+            self.stop_all("tool-home-failure", suppress_errors=True)
+            raise
+        now = self.clock()
+        self.commanded = {"left": 0, "right": 0, "tool": -applied_speed}
+        self.track_motion_active = False
+        self.tool_motion_active = True
+        self.tool_homing = True
+        self.tool_homed = False
+        self.tool_target_position = None
+        self.tool_move_started_at = now
+        self.tool_last_position = int(snapshot["position"])
+        self.tool_last_progress_at = now
+        self.last_stop_reason = None
+        self.motion_active = True
+        return {"direction": -1, "speed": applied_speed}
 
     def zero_tool(self):
         self._refresh_motion_flags()
@@ -279,6 +355,7 @@ class MotorController(object):
             raise ProtocolError("all motors must be stopped before zeroing camera head")
         self.motors["tool"].set_position(0)
         self.tool_target_position = 0
+        self.tool_homed = True
         return 0
 
     def stop_all(self, reason, suppress_errors=False):
@@ -293,6 +370,9 @@ class MotorController(object):
         self.track_motion_active = False
         self.tool_motion_active = False
         self.tool_move_started_at = None
+        self.tool_homing = False
+        self.tool_last_position = None
+        self.tool_last_progress_at = None
         self.motion_active = False
         self.last_motion_at = None
         self.last_stop_reason = reason
@@ -313,9 +393,15 @@ class MotorController(object):
             self.tool_motion_active
             and self.tool_move_started_at is not None
             and self.clock() - self.tool_move_started_at
-            >= self.tool_move_timeout_seconds
+            >= (
+                self.tool_home_timeout_seconds
+                if self.tool_homing
+                else self.tool_move_timeout_seconds
+            )
         ):
-            self.stop_all("tool-move-timeout")
+            self.stop_all(
+                "tool-home-timeout" if self.tool_homing else "tool-move-timeout"
+            )
             return True
         self._refresh_motion_flags()
         return stopped
@@ -333,6 +419,8 @@ class MotorController(object):
             "last_stop_reason": self.last_stop_reason,
             "watchdog_timeout_ms": int(self.watchdog_seconds * 1000),
             "tool_motion_active": self.tool_motion_active,
+            "tool_homing": self.tool_homing,
+            "tool_homed": self.tool_homed,
             "tool_target_position": self.tool_target_position,
             "tool_position_limit": self.tool_position_limit,
             "tool_move_timeout_ms": int(self.tool_move_timeout_seconds * 1000),
@@ -366,6 +454,9 @@ def handle_request(controller, request):
         if "position" not in request or "speed" not in request:
             raise ProtocolError("tool_move requires position and speed")
         applied = controller.move_tool(request["position"], request["speed"])
+        return {"status": "ok", "applied": applied}
+    if command == "tool_home":
+        applied = controller.home_tool(request.get("speed", 25))
         return {"status": "ok", "applied": applied}
     if command == "tool_zero":
         return {"status": "ok", "position": controller.zero_tool()}

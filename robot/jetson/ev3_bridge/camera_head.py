@@ -97,6 +97,9 @@ class CameraHeadController(object):
             raise CameraHeadError("disable calibration before changing camera-head zero")
         return self.client.zero_tool()
 
+    def home(self):
+        return self.client.home_tool()
+
     def execute(self, payload):
         if isinstance(payload, str):
             try:
@@ -115,6 +118,8 @@ class CameraHeadController(object):
             return self.client.stop()
         if action == "zero":
             return self.zero()
+        if action == "home":
+            return self.home()
         if action == "jog":
             if "degrees" not in request:
                 raise CameraHeadError("jog requires degrees")
@@ -147,4 +152,6 @@ class CameraHeadController(object):
         except (KeyError, TypeError, ValueError):
             result["position"] = None
         result["moving"] = bool(ev3_status.get("tool_motion_active", False))
+        result["homing"] = bool(ev3_status.get("tool_homing", False))
+        result["homed"] = bool(ev3_status.get("tool_homed", False))
         return result

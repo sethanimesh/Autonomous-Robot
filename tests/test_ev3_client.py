@@ -43,6 +43,8 @@ class FakeSocket(object):
             response = {"status": "ok", "applied": request}
         elif request.get("command") == "tool_move":
             response = {"status": "ok", "applied": request}
+        elif request.get("command") == "tool_home":
+            response = {"status": "ok", "applied": request}
         elif request.get("command") == "tool_zero":
             response = {"status": "ok", "position": 0}
         else:
@@ -136,11 +138,13 @@ class Ev3ClientTests(unittest.TestCase):
         client, fake_socket, _ = self.make_client()
 
         client.move_tool(25, 40)
+        client.home_tool()
         client.zero_tool()
 
         self.assertEqual(
             [
                 {"command": "tool_move", "position": 25, "speed": 40},
+                {"command": "tool_home", "speed": 25},
                 {"command": "tool_zero"},
             ],
             fake_socket.sent,

@@ -74,6 +74,13 @@ Jetson software bounds, and mutual exclusion between camera and chassis motion.
 The live enrollment console remains available on port 8080 as the operator
 camera view during calibration.
 
+Protocol v2 passed its first real motor-A position test. From a stopped zero,
+a +10-degree target reached encoder 8 and held; the return target settled at
+encoder 2. Both track encoders remained unchanged and both track speeds stayed
+zero. The owner confirmed that this starting pose was the mechanism minimum.
+A repeatable low-speed home-to-minimum operation is now implemented for future
+boots; the maximum and useful forward/down positions still need measurement.
+
 The single-room controller will move only in short segments and inspect the
 forward and downward views between them. Uncertain or stale vision means stop.
 The camera-head motion and chassis motion are coordinated so the recognition

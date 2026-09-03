@@ -65,10 +65,9 @@ verified.
 | Memory | 56 MiB RAM and 95 MiB swap |
 | Root storage | 15 GB, approximately 13 GB available during inventory |
 | Battery | Approximately 7.95 V during inventory |
-| Output A | EV3 large motor; tool/camera head — owner confirmed |
-| Output B | EV3 large motor; left track — owner confirmed |
-| Output C | EV3 large motor; right track — owner confirmed |
-| Medium motor | Not detected during inventory |
+| Output A | Medium motor; tool/camera head — owner confirmed. Current ev3dev driver: `lego-ev3-m-motor`, 1560°/s maximum, 360 counts/revolution. |
+| Output B | Left track — owner confirmed. Current ev3dev driver: `lego-ev3-l-motor`, 1050°/s maximum, 360 counts/revolution. |
+| Output C | Right track — owner confirmed. Current ev3dev driver reports `lego-ev3-m-motor`, 1560°/s maximum, 360 counts/revolution; physically verify this unexpected medium-motor identification later. |
 | Sensor inputs | Input 1 reports `error`; inputs 2–4 report `no-sensor` |
 | IR sensor | Not detected and explicitly deferred by owner |
 | Positive motor direction | Unknown for both tracks |
@@ -116,6 +115,21 @@ Jetson correctly reported the powered-off host unreachable. No camera or track
 movement command had been sent. The Jetson bridge was upgraded and remains
 active; the EV3 service and real motor-A jog still require verification after
 the battery is charged and the brick is on again.
+
+After charging, output B initially reported `status=error`, so the fail-safe
+service correctly refused to start with a required track missing. Reapplying
+the output port's automatic driver probe restored B as a tacho motor; protocol
+v2 then started normally. This recovery did not move any motor.
+
+The owner confirmed the initial camera-head pose was its physical minimum. It
+was zeroed there. A +10-degree target at 40°/s settled at +8 in `holding` state,
+and a return target of zero settled at +2. Outputs B/C stayed stopped and their
+encoders remained 0/1 throughout. Additional +15-degree steps reached 13, 27,
+40, 52, and 71 degrees cleanly. The EV3 lost power/connectivity before the next
+step could be read, so **71 degrees is the last verified safe position, not the
+maximum**. The encoder reference will be lost on reboot while the mechanism is
+away from minimum; use the low-speed home operation before another position
+move.
 
 ## Safety facts to confirm before motor testing
 

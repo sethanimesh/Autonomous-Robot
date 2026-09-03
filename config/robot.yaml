@@ -16,7 +16,7 @@ ev3_bridge:
     camera_head_calibrated: false
     camera_head_forward_position: 0
     camera_head_down_position: 0
-    camera_head_minimum_position: -180
+    camera_head_minimum_position: 0
     camera_head_maximum_position: 180
     camera_head_speed: 40
     camera_head_max_jog_degrees: 15

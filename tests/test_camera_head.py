@@ -24,6 +24,10 @@ class FakeClient(object):
         self.position = 0
         return {"position": 0}
 
+    def home_tool(self):
+        self.commands.append(("home",))
+        return {"applied": {"direction": -1, "speed": 25}}
+
     def stop(self):
         self.commands.append(("stop",))
         return {"stopped": True}
@@ -70,6 +74,14 @@ class CameraHeadControllerTests(unittest.TestCase):
         uncalibrated.execute("zero")
         with self.assertRaises(CameraHeadError):
             calibrated.execute("zero")
+
+    def test_home_is_available_after_reboot(self):
+        client = FakeClient(position=50)
+        head = CameraHeadController(client, calibrated=True)
+
+        head.execute("home")
+
+        self.assertEqual([("home",)], client.commands)
 
     def test_description_reports_named_position(self):
         client = FakeClient(position=-74)

@@ -1299,3 +1299,31 @@ complete.
   B/C feedback, zero motor A at the current known view, then issue one positive
   10-degree jog while watching the live port-8080 camera view. Record physical
   direction before expanding the range.
+
+### Battery recovery, camera-lead test, and tilt-range start
+
+- **EV3 recovery:** After charging, output B initially reported `error`; the
+  service correctly failed closed. Reapplying its automatic driver probe
+  restored the motor, and the protocol-v2 service started normally.
+- **Motor success:** The owner confirmed motor A was at its physical minimum.
+  That pose was zeroed. A +10-degree target reached +8 and held; returning to
+  zero settled at +2. B/C speeds stayed zero and their encoders stayed 0/1.
+- **Range progress:** Further 15-degree steps settled cleanly at 13, 27, 40,
+  52, and 71 degrees. The EV3 went offline before the following result arrived,
+  so 71 is recorded only as the last verified safe position—not as maximum.
+- **Repeatability improvement:** Added protocol v3 home-to-minimum. It drives A
+  slowly in the negative direction with B/C braked, monitors encoder progress
+  locally, stops after 0.4 seconds without progress (or a driver stall), and
+  then zeros the encoder. An eight-second outer timeout fails closed. Absolute
+  head moves are now rejected until the head has been homed or manually zeroed.
+- **Camera-lead failure:** The replacement USB lead caused repeated disconnects,
+  failed URB resubmissions, USB error `-71`, and a frozen black stream despite
+  `state=streaming` (intensity 10.0, 309 consecutive identical frames). A USB
+  software power cycle did not recover it.
+- **Camera recovery:** Restoring the original lead recovered calibrated live
+  video at 640×480 MJPG. Final health measured 27.36 fps, mean intensity 106.19,
+  zero consecutive duplicates, and zero consecutive read failures. The port
+  8080 enrollment preview is active and reports `camera_ready=true`; all 18
+  enrolled target samples remain intact.
+- **Tests:** The protocol-v3 homing and client changes bring the Mac suite to
+  372 passing tests with four dependency-based skips.

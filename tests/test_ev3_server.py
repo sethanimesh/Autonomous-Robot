@@ -130,7 +130,7 @@ class ProtocolTests(unittest.TestCase):
         status = handle_request(controller, {"command": "status"})
 
         self.assertEqual("pong", ping["message"])
-        self.assertEqual(2, ping["protocol_version"])
+        self.assertEqual(3, ping["protocol_version"])
         self.assertEqual(123, status["motors"]["left"]["position"])
         self.assertEqual(500, status["watchdog_timeout_ms"])
 
@@ -152,6 +152,7 @@ class ProtocolTests(unittest.TestCase):
 
     def test_position_move_locks_tracks_and_is_bounded(self):
         controller, motors = make_controller()
+        controller.zero_tool()
 
         response = handle_request(
             controller, {"command": "tool_move", "position": 30, "speed": 40}
@@ -169,6 +170,7 @@ class ProtocolTests(unittest.TestCase):
     def test_tool_move_has_independent_timeout(self):
         clock = FakeClock()
         controller, motors = make_controller(clock=clock)
+        controller.zero_tool()
         controller.move_tool(-20, 30)
 
         clock.advance(3.99)
@@ -178,6 +180,30 @@ class ProtocolTests(unittest.TestCase):
 
         self.assertEqual(0, motors["tool"].speed)
         self.assertEqual("tool-move-timeout", controller.last_stop_reason)
+
+    def test_tool_must_be_homed_before_position_move(self):
+        controller, _ = make_controller()
+
+        with self.assertRaises(ProtocolError):
+            controller.move_tool(10, 30)
+
+    def test_home_stops_and_zeroes_after_no_encoder_progress(self):
+        clock = FakeClock()
+        controller, motors = make_controller(clock=clock)
+        motors["tool"].position = 75
+
+        applied = controller.home_tool(25)
+        clock.advance(0.39)
+        self.assertFalse(controller.enforce_watchdog())
+        clock.advance(0.02)
+        self.assertFalse(controller.enforce_watchdog())
+
+        self.assertEqual({"direction": -1, "speed": 25}, applied)
+        self.assertTrue(controller.tool_homed)
+        self.assertFalse(controller.tool_homing)
+        self.assertEqual(0, motors["tool"].position)
+        self.assertEqual(0, motors["tool"].speed)
+        self.assertEqual("tool-home-complete", controller.last_stop_reason)
 
     def test_tool_zero_requires_all_motion_stopped(self):
         controller, motors = make_controller()

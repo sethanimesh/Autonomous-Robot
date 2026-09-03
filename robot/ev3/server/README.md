@@ -27,6 +27,11 @@ attached motors' reported maximum of 1050.
 - Stops on an explicit `stop` command.
 - Stops chassis/run-forever motion 500 ms after the last non-zero drive command.
 - Limits camera-head position moves to ±720 encoder degrees and four seconds.
+- Requires the camera head to be homed or explicitly zeroed after server boot
+  before accepting an absolute position move.
+- Homes toward the confirmed minimum at no more than 30°/s, stopping and
+  zeroing after 0.4 seconds without encoder progress; an eight-second outer
+  timeout stops without declaring success.
 - Rejects chassis movement while a camera-head position move is active, and
   rejects camera-head movement while the chassis is active.
 - Stops when the TCP client disconnects.
@@ -70,6 +75,12 @@ Set the stopped camera's current position to zero during calibration:
 
 ```json
 {"command":"tool_zero"}
+```
+
+Repeatably find the physical minimum after a reboot:
+
+```json
+{"command":"tool_home","speed":25}
 ```
 
 Stop:
