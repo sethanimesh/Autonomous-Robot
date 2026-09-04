@@ -65,6 +65,17 @@ def largest_body_observation(boxes, image_width, image_height):
     }
 
 
+def chassis_motion_active(status):
+    """Separate track motion from the EV3 server's all-motor activity flag."""
+    if not isinstance(status, dict):
+        return True
+    if "track_motion_active" in status:
+        return bool(status["track_motion_active"])
+    return bool(status.get("motion_active", True)) and not bool(
+        status.get("tool_motion_active", False)
+    )
+
+
 def run(args):
     headings = cable_safe_scan_headings(args.step_degrees, args.sweep_limit_degrees)
     if args.first_direction == "left":
@@ -239,7 +250,7 @@ def run(args):
             now = time.monotonic()
             if self.robot_at is None or now - self.robot_at > 1.0:
                 return "robot status is stale"
-            if self.robot.get("motion_active", True):
+            if chassis_motion_active(self.robot):
                 return "robot unexpectedly reports motion"
             if self.head_at is None or now - self.head_at > 1.0:
                 return "camera-head status is stale"
@@ -254,6 +265,18 @@ def run(args):
             return None
 
         def look_forward(self):
+            if (
+                self.head_status.get("homed", False)
+                and not self.head_status.get("moving", True)
+                and not self.head_status.get("homing", True)
+                and abs(
+                    int(self.head_status.get("position", -999))
+                    - int(self.head_status.get("forward_position", 999))
+                )
+                <= 5
+            ):
+                self.wait_for_camera_after_head_move()
+                return
             previous = self.head_at or 0.0
             message = String()
             message.data = "look_forward"
@@ -363,7 +386,8 @@ def run(args):
                     limit = max(minimum, int(requested_limit))
                 if position <= limit + 2:
                     return self.wait_for_target(args.up_dwell_seconds)
-                step = max(-15, limit - position)
+                step = max(-abs(args.tilt_step_degrees), limit - position)
+                target_position = position + step
                 previous = self.head_at or 0.0
                 message = String()
                 message.data = json.dumps(
@@ -374,11 +398,19 @@ def run(args):
                     lambda: self.head_at is not None
                     and self.head_at > previous
                     and not self.head_status.get("moving", True)
-                    and not self.head_status.get("homing", True),
+                    and not self.head_status.get("homing", True)
+                    and abs(
+                        int(self.head_status.get("position", -999))
+                        - target_position
+                    )
+                    <= 5,
                     4.0,
                     "camera head did not settle during upward reacquisition",
                 )
                 self.wait_for_camera_after_head_move()
+                report.setdefault("camera_tilt_positions", []).append(
+                    int(self.head_status.get("position", target_position))
+                )
                 if self.wait_for_target(args.up_dwell_seconds):
                     return True
 
@@ -429,9 +461,10 @@ def run(args):
                 report.setdefault("body_guided_tilts", []).append(
                     {"heading_degrees": heading, "body": dict(node.body)}
                 )
-                if node.seek_target_upward():
+                if node.seek_target_upward(args.face_search_position):
                     return target_seen_at(heading)
-                node.look_forward()
+                if not args.vertical_only:
+                    node.look_forward()
             elif args.search_up:
                 report.setdefault("high_view_checks", []).append(heading)
                 if node.seek_target_upward(args.high_search_position):
@@ -440,12 +473,16 @@ def run(args):
                     report.setdefault("body_guided_tilts", []).append(
                         {"heading_degrees": heading, "body": dict(node.body)}
                     )
-                    if node.seek_target_upward():
+                    if node.seek_target_upward(args.face_search_position):
                         return target_seen_at(heading)
-                node.look_forward()
+                if not args.vertical_only:
+                    node.look_forward()
             return False
 
         if observe_heading(0):
+            return report
+        if args.vertical_only:
+            report["outcome"] = "vertical_scan_complete_no_target"
             return report
         for target_heading, turn in zip(headings[1:], incremental_scan_turns(headings)):
             actual = node.turn_relative(turn)
@@ -493,6 +530,13 @@ def parse_args(argv=None):
     parser.add_argument("--high-search-position", type=int, default=-15)
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--up-dwell-seconds", type=float, default=3.0)
+    parser.add_argument("--tilt-step-degrees", type=int, default=5)
+    parser.add_argument("--face-search-position", type=int, default=-30)
+    parser.add_argument(
+        "--vertical-only",
+        action="store_true",
+        help="search camera height at the current chassis heading without rotating",
+    )
     parser.add_argument("--turn-speed", type=float, default=0.30)
     parser.add_argument("--turn-timeout", type=float, default=8.0)
     parser.add_argument("--yaw-tolerance-degrees", type=float, default=3.0)

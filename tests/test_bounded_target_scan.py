@@ -1,6 +1,7 @@
 import unittest
 
 from robot.jetson.mission.bounded_target_scan import incremental_scan_turns
+from robot.jetson.mission.bounded_target_scan import chassis_motion_active
 from robot.jetson.mission.bounded_target_scan import largest_body_observation
 from robot.jetson.mission.bounded_target_scan import parse_args
 from robot.jetson.mission.bounded_target_scan import run
@@ -45,6 +46,12 @@ class BoundedTargetScanTests(unittest.TestCase):
         self.assertEqual(report["requested_headings"][-1], 0)
         self.assertEqual(sum(report["incremental_turns"]), 0)
 
+    def test_vertical_only_mode_is_available_for_locked_chassis_calibration(self):
+        args = parse_args(["--vertical-only"])
+        self.assertTrue(args.vertical_only)
+        self.assertEqual(5, args.tilt_step_degrees)
+        self.assertEqual(-30, args.face_search_position)
+
     def test_largest_person_box_drives_vertical_camera_guidance(self):
         body = largest_body_observation(
             [(300, 300, 100, 200), (320, 240, 300, 440)], 640, 480
@@ -56,6 +63,18 @@ class BoundedTargetScanTests(unittest.TestCase):
     def test_no_valid_person_box_produces_no_guidance(self):
         self.assertIsNone(largest_body_observation([], 640, 480))
         self.assertIsNone(largest_body_observation([(1, 2, 0, 4)], 640, 480))
+
+    def test_camera_head_motion_is_not_mistaken_for_chassis_motion(self):
+        self.assertFalse(
+            chassis_motion_active(
+                {"motion_active": True, "tool_motion_active": True}
+            )
+        )
+        self.assertTrue(
+            chassis_motion_active(
+                {"motion_active": True, "tool_motion_active": False}
+            )
+        )
 
 
 if __name__ == "__main__":
