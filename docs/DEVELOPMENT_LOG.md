@@ -1538,3 +1538,11 @@ complete.
   footprint, and distance gates.
 - **Tests:** The real-scene corridor logic brings the suite to 401 passing tests
   with four dependency-based skips.
+## 2026-09-04 — First closed-loop camera-only detour
+
+- Added Mac MPS route service and Jetson stop-look-turn-look-move runner.
+- Tightened route image coverage and floor threshold from 90% to 95%.
+- Fixed stale preview authorization; camera health is checked around capture.
+- Expected stops: missing slipper, cold-model stale result, head overshoot.
+- Success: chose left, turned 28.18°, rechecked, drove 9.60 cm, stopped.
+- Report: `/home/animesh/echora/logs/detour-physical-01.json`.

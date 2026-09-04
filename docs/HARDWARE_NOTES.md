@@ -76,6 +76,7 @@ verified.
 | Chassis envelope | 20 cm maximum width × 25 cm maximum length; owner measured on 2026-09-04 |
 | Camera lens height | 15 cm above the floor with the robot on the ground; owner measured on 2026-09-04 |
 | External cable | One very long cable remains attached during operation. Autonomous scans must use a bounded out-and-back sweep and return to the starting heading; repeated same-direction rotations are forbidden. |
+| First camera-only detour | With a slipper about 35 cm ahead, the robot turned 28.18° left, rechecked the route, drove 9.60 cm, and stopped. Initial target was 30°/10 cm. |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 | Camera-head direction | **Encoder counts increase as the lens tilts DOWN.** Confirmed on 2026-09-03 by watching the lens while jogging: positive is down, negative is up. The earlier "top = 0" reading was wrong and had inverted both the browser controls and the named positions. |

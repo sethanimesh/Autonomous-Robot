@@ -28,11 +28,16 @@ camera pitch plus a per-frame relative-depth scale. A poor plane fit is rejected
 Pixels substantially closer than the fitted plane are obstacle candidates;
 farther or invalid pixels remain unknown rather than being declared clear.
 
-The first real obstacle gate also uses semantic segmentation. Three broad,
+The first real obstacle gate also uses semantic segmentation on the Mac's MPS
+device, exposed to the Jetson as a small HTTP service on port 8091. It checks
+the live-camera health endpoint before and after acquiring every frame and
+warms the model before accepting requests. Three broad,
 overlapping perspective corridors represent left, straight, and right routes.
-A corridor must be at least 90% traversable floor before it receives any clear
+A corridor must be at least 95% traversable floor before it receives any clear
 distance. In the first slipper frame, SegFormer-B0 labelled the slipper mostly
 as non-floor while retaining the surrounding floor; the left corridor was
 97.6% floor, straight 86.5%, and right 80.4%, so the deterministic planner chose
-the left detour. These image trapezoids are provisional until a measured floor
-homography replaces them.
+the left detour. A closed-loop Jetson runner turns only after a fresh route,
+stops, obtains a different post-turn frame, and drives no more than 10 cm only
+if the new straight corridor is at least 95% floor. These image trapezoids are
+provisional until a measured floor homography replaces them.

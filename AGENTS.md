@@ -662,6 +662,10 @@ Log enough information to replay failures:
 - detections
 - mission state
 
+Keep development notes crisp: record the result, essential measurement, failure
+cause, and next action only. Prioritize implementation and real-world testing
+over lengthy documentation.
+
 Use ROS bags when useful.
 
 Do not optimize prematurely for perfect autonomy.

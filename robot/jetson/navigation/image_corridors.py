@@ -27,9 +27,12 @@ class CorridorEvidence:
 # Broad overlapping trapezoids match the 640x480 route view. They are normalized
 # so the same test works if the camera image size changes later.
 DEFAULT_CORRIDORS = (
-    ImageCorridor(-30, 0.50, 0.98, 0.293, 0.227, 0.098, 0.195),
-    ImageCorridor(0, 0.50, 0.98, 0.512, 0.500, 0.098, 0.195),
-    ImageCorridor(30, 0.50, 0.98, 0.707, 0.781, 0.098, 0.203),
+    # The calibrated down view reaches the floor near y=0.35. Starting at the
+    # old y=0.50 omitted the upper half of a slipper 35 cm from the robot and
+    # could incorrectly approve the straight corridor.
+    ImageCorridor(-30, 0.35, 0.98, 0.293, 0.227, 0.098, 0.195),
+    ImageCorridor(0, 0.35, 0.98, 0.512, 0.500, 0.098, 0.195),
+    ImageCorridor(30, 0.35, 0.98, 0.707, 0.781, 0.098, 0.203),
 )
 
 
@@ -82,7 +85,7 @@ def evaluate_corridor(floor_mask, corridor, stride=2):
 def semantic_route_candidates(
     floor_mask,
     corridors=DEFAULT_CORRIDORS,
-    minimum_floor_fraction=0.90,
+    minimum_floor_fraction=0.95,
     proven_clear_distance_m=0.15,
     stride=2,
 ):
@@ -106,4 +109,3 @@ def semantic_route_candidates(
             )
         )
     return tuple(candidates), tuple(evidence)
-
