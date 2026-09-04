@@ -27,3 +27,12 @@ Raw monocular metres are not trusted directly. `ground_plane.py` uses the known
 camera pitch plus a per-frame relative-depth scale. A poor plane fit is rejected.
 Pixels substantially closer than the fitted plane are obstacle candidates;
 farther or invalid pixels remain unknown rather than being declared clear.
+
+The first real obstacle gate also uses semantic segmentation. Three broad,
+overlapping perspective corridors represent left, straight, and right routes.
+A corridor must be at least 90% traversable floor before it receives any clear
+distance. In the first slipper frame, SegFormer-B0 labelled the slipper mostly
+as non-floor while retaining the surrounding floor; the left corridor was
+97.6% floor, straight 86.5%, and right 80.4%, so the deterministic planner chose
+the left detour. These image trapezoids are provisional until a measured floor
+homography replaces them.

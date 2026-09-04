@@ -194,6 +194,11 @@ more than thirteen minutes while the camera service retried. Treat this USB
 extender as failed for continuous operation; remove/reseat it or return to the
 known working direct/original lead before perception or movement tests.
 
+The owner physically reconnected it at 06:47. It enumerated on `1-2.4`, dropped
+once after three seconds, then enumerated again and recovered fresh calibrated
+video at 18.26 fps. Continue treating the extender as suspect until a longer
+soak passes; the always-on port-8080 page correctly survives and reconnects.
+
 All four USB-A ports on the Orin Nano sit behind an internal Realtek 4-port hub
 (`0bda:5489` on USB 2.0, `0bda:0489` on USB 3.0), so there is no USB-A path
 that bypasses the hub. Only the USB-C port is off it.

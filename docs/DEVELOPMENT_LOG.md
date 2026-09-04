@@ -1516,3 +1516,25 @@ complete.
 - **Deployment recovery:** Directly replacing the root-owned deployed Python
   file over SCP was denied. Staging it under `/tmp` and installing it with root
   ownership succeeded; the updated page and boot-enabled systemd unit are live.
+- **Camera returned:** Physical reconnection brought the camera back on
+  downstream path `1-2.4`. It enumerated at 06:47:51, dropped once three seconds
+  later, and re-enumerated at 06:47:56. It now publishes fresh frames at 18.26
+  fps with zero consecutive failures or duplicates; accumulated counters retain
+  the earlier extender failure rather than hiding it.
+- **Real slipper detection success:** With a slipper placed approximately 35 cm
+  ahead, SegFormer-B0 ADE20K marked most of it as non-floor while retaining the
+  surrounding floor. The exact object label is irrelevant to collision safety.
+  The three overlapping route corridors measured 97.4% floor left, 86.5%
+  straight, and 80.0% right against a 90% threshold. The deterministic planner
+  rejected straight/right and selected a -30° left detour followed by one
+  bounded 0.10 m step. No chassis command was sent.
+- **Segmentation performance:** SegFormer-B0 ran on Mac M2 Pro MPS in 472.0 ms
+  for first compilation, then 25.7, 14.7, and 13.9 ms (18.1 ms steady mean).
+  Together with the earlier depth timing, the Mac has sufficient headroom for
+  the live route-perception loop.
+- **Implementation:** Added model-independent semantic corridor evaluation.
+  Unknown pixels reduce known coverage, a corridor below 90% floor receives
+  zero clearance, and the route planner still applies confidence, coverage,
+  footprint, and distance gates.
+- **Tests:** The real-scene corridor logic brings the suite to 401 passing tests
+  with four dependency-based skips.
