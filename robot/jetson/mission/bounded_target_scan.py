@@ -38,6 +38,33 @@ def incremental_scan_turns(headings):
     return tuple(values[index] - values[index - 1] for index in range(1, len(values)))
 
 
+def largest_body_observation(boxes, image_width, image_height):
+    """Normalize the largest valid person box for vertical camera guidance."""
+    if image_width <= 0 or image_height <= 0:
+        return None
+    valid = []
+    for center_x, center_y, width, height in boxes:
+        values = tuple(float(value) for value in (center_x, center_y, width, height))
+        if not all(math.isfinite(value) for value in values):
+            continue
+        if width <= 0 or height <= 0:
+            continue
+        valid.append(values)
+    if not valid:
+        return None
+    center_x, center_y, width, height = max(
+        valid, key=lambda value: value[2] * value[3]
+    )
+    return {
+        "center_x_fraction": center_x / float(image_width),
+        "center_y_fraction": center_y / float(image_height),
+        "height_fraction": height / float(image_height),
+        "top_fraction": max(0.0, center_y - height / 2.0) / float(image_height),
+        "bottom_fraction": min(float(image_height), center_y + height / 2.0)
+        / float(image_height),
+    }
+
+
 def run(args):
     headings = cable_safe_scan_headings(args.step_degrees, args.sweep_limit_degrees)
     if args.first_direction == "left":
@@ -67,6 +94,7 @@ def run(args):
     from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
     from sensor_msgs.msg import Image
     from std_msgs.msg import String
+    from vision_msgs.msg import Detection2DArray
 
     class ScanNode(Node):
         def __init__(self):
@@ -76,6 +104,10 @@ def run(args):
             self.camera = None
             self.camera_at = None
             self.camera_frame_at = None
+            self.image_width = 640
+            self.image_height = 480
+            self.body = None
+            self.body_at = None
             self.head_status = None
             self.head_at = None
             self.target = None
@@ -92,6 +124,12 @@ def run(args):
             )
             self.create_subscription(
                 Image, "/camera/image_raw", self.on_camera_frame, sensor_qos
+            )
+            self.create_subscription(
+                Detection2DArray,
+                "/perception/person_detections",
+                self.on_people,
+                10,
             )
             self.create_subscription(String, "/camera_head/status", self.on_head, 10)
             self.create_subscription(
@@ -116,8 +154,25 @@ def run(args):
             if value is not None:
                 self.camera, self.camera_at = value, time.monotonic()
 
-        def on_camera_frame(self, _message):
+        def on_camera_frame(self, message):
             self.camera_frame_at = time.monotonic()
+            self.image_width = int(message.width)
+            self.image_height = int(message.height)
+
+        def on_people(self, message):
+            boxes = [
+                (
+                    detection.bbox.center.position.x,
+                    detection.bbox.center.position.y,
+                    detection.bbox.size_x,
+                    detection.bbox.size_y,
+                )
+                for detection in message.detections
+            ]
+            self.body = largest_body_observation(
+                boxes, self.image_width, self.image_height
+            )
+            self.body_at = time.monotonic()
 
         def on_head(self, message):
             value = self.parse(message)
@@ -288,12 +343,23 @@ def run(args):
                     return True
             return False
 
-        def look_fully_up(self):
+        def body_is_visible(self):
+            return (
+                self.body is not None
+                and self.body_at is not None
+                and time.monotonic() - self.body_at <= 1.0
+            )
+
+        def seek_target_upward(self):
+            """Stop the chassis and inspect upward only after seeing a person."""
+            self.stop()
             while True:
+                if target_is_confirmed(self.target):
+                    return True
                 position = int(self.head_status.get("position", -999))
                 minimum = int(self.head_status.get("minimum_position", -999))
                 if position <= minimum + 2:
-                    break
+                    return self.wait_for_target(args.up_dwell_seconds)
                 step = max(-15, minimum - position)
                 previous = self.head_at or 0.0
                 message = String()
@@ -309,7 +375,9 @@ def run(args):
                     4.0,
                     "camera head did not settle during upward reacquisition",
                 )
-            self.wait_for_camera_after_head_move()
+                self.wait_for_camera_after_head_move()
+                if self.wait_for_target(args.up_dwell_seconds):
+                    return True
 
     rclpy.init()
     node = ScanNode()
@@ -345,30 +413,33 @@ def run(args):
                 }
             )
             report["observed_headings"].append(0)
-        if node.wait_for_target():
-            report["target_heading_degrees"] = 0
+        def target_seen_at(heading):
+            report["target_heading_degrees"] = heading
             report["target_observation"] = node.target
             report["outcome"] = "target_found"
+            return True
+
+        def observe_heading(heading):
+            if node.wait_for_target():
+                return target_seen_at(heading)
+            if args.try_up and node.body_is_visible():
+                report.setdefault("body_guided_tilts", []).append(
+                    {"heading_degrees": heading, "body": dict(node.body)}
+                )
+                if node.seek_target_upward():
+                    return target_seen_at(heading)
+                node.look_forward()
+            return False
+
+        if observe_heading(0):
             return report
-        if args.try_up:
-            node.look_fully_up()
-            time.sleep(0.5)
-            if node.wait_for_target(args.up_dwell_seconds):
-                report["target_heading_degrees"] = 0
-                report["target_observation"] = node.target
-                report["outcome"] = "target_found"
-                return report
-            node.look_forward()
         for target_heading, turn in zip(headings[1:], incremental_scan_turns(headings)):
             actual = node.turn_relative(turn)
             report["turns"].append(
                 {"requested_degrees": turn, "actual_degrees": actual}
             )
             report["observed_headings"].append(target_heading)
-            if node.wait_for_target():
-                report["target_heading_degrees"] = target_heading
-                report["target_observation"] = node.target
-                report["outcome"] = "target_found"
+            if observe_heading(target_heading):
                 return report
         report["outcome"] = "scan_complete_no_target"
     except Exception as exc:
@@ -398,7 +469,7 @@ def parse_args(argv=None):
     parser.add_argument(
         "--try-up",
         action="store_true",
-        help="try the camera's upper limit before a close-range chassis scan",
+        help="tilt upward in steps when a person body is seen without a face",
     )
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--up-dwell-seconds", type=float, default=3.0)

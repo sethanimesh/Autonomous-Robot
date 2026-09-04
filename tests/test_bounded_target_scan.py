@@ -1,6 +1,7 @@
 import unittest
 
 from robot.jetson.mission.bounded_target_scan import incremental_scan_turns
+from robot.jetson.mission.bounded_target_scan import largest_body_observation
 from robot.jetson.mission.bounded_target_scan import parse_args
 from robot.jetson.mission.bounded_target_scan import run
 from robot.jetson.mission.bounded_target_scan import target_is_confirmed
@@ -43,6 +44,18 @@ class BoundedTargetScanTests(unittest.TestCase):
         self.assertEqual(report["requested_headings"][1], -30)
         self.assertEqual(report["requested_headings"][-1], 0)
         self.assertEqual(sum(report["incremental_turns"]), 0)
+
+    def test_largest_person_box_drives_vertical_camera_guidance(self):
+        body = largest_body_observation(
+            [(300, 300, 100, 200), (320, 240, 300, 440)], 640, 480
+        )
+        self.assertAlmostEqual(0.5, body["center_x_fraction"])
+        self.assertAlmostEqual(440 / 480.0, body["height_fraction"])
+        self.assertLess(body["top_fraction"], 0.05)
+
+    def test_no_valid_person_box_produces_no_guidance(self):
+        self.assertIsNone(largest_body_observation([], 640, 480))
+        self.assertIsNone(largest_body_observation([(1, 2, 0, 4)], 640, 480))
 
 
 if __name__ == "__main__":
