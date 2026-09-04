@@ -22,3 +22,8 @@ Depth backends will be compared on real Echora frames before one is selected:
 The Mac may run the heavier backend. A stale result is rejected. Groq or another
 LLM may describe a scene but does not produce motor commands or safety clearance.
 
+Raw monocular metres are not trusted directly. `ground_plane.py` uses the known
+15 cm lens height, calibrated focal length, and the visible flat floor to fit
+camera pitch plus a per-frame relative-depth scale. A poor plane fit is rejected.
+Pixels substantially closer than the fitted plane are obstacle candidates;
+farther or invalid pixels remain unknown rather than being declared clear.

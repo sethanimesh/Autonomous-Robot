@@ -1484,3 +1484,18 @@ complete.
   truth and the camera head is not homed.
 - **Tests:** The planner tests bring the suite to 393 passing tests with four
   dependency-based skips; whitespace validation passes.
+- **Reference restored:** With both tracks stopped, the current visually level
+  view was set to encoder zero. `look_down` settled at +18 and showed a clear
+  floor/doorway/rug route view; `look_forward` returned to +2. Motor A held its
+  position and B/C stayed stopped at encoder 0/-2 throughout.
+- **Raw metric-depth failure:** On the confirmed down view, YOLO26n-depth
+  reported the nearby visible floor at roughly 1.8–4.5 m despite the lens being
+  only 0.15 m high. The model's uncalibrated absolute metres are rejected.
+- **Floor-anchor prototype:** Fitting the relative depth gradient to the known
+  0.15 m-high flat-floor geometry estimated 27.0° downward pitch, a 0.06756
+  model scale, and 0.0345 median log residual over the lower central image.
+  Added model-independent ground-plane fitting so raw depth can be anchored and
+  rejected when the plane fit is inconsistent. This still needs an obstacle
+  test before it is allowed to declare a corridor clear.
+- **Tests:** Ground-plane tests bring the suite to 397 passing tests with four
+  dependency-based skips.
