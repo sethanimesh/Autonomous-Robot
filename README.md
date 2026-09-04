@@ -157,9 +157,9 @@ reporting `target_confirmed`. It publishes `/perception/target_matches` and
 **non-commercial research/personal use**, which the owner explicitly confirmed
 for this project.
 
-The temporary enrollment console is available at
-`http://192.168.1.48:8080/` while `echora-enrollment-console.service` is
-running. It accepts both guided live views and uploaded photos, rejects mixed
+The live camera and enrollment console is kept active at
+`http://192.168.1.48:8080/` by the boot-enabled
+`echora-enrollment-console.service`. It accepts both guided live views and uploaded photos, rejects mixed
 identities and poor samples, requires front/left/right diversity, and stores
 only private numerical embeddings by default. The opt-in photo setting retains
 only aligned 112×112 face crops, never full camera frames.

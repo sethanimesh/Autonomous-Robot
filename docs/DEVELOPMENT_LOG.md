@@ -1499,3 +1499,20 @@ complete.
   test before it is allowed to declare a corridor clear.
 - **Tests:** Ground-plane tests bring the suite to 397 passing tests with four
   dependency-based skips.
+- **Persistent operator view:** At the owner's request, the port-8080 camera
+  and enrollment console is no longer a manually started temporary service.
+  Its systemd unit now installs into `multi-user.target` so it remains active
+  and returns automatically after a Jetson reboot.
+- **Extender endurance failure:** The earlier 20-frame acceptance was only a
+  short smoke test. At 06:31:58 the camera disconnected again; the kernel then
+  logged repeated interface failures, could not enable downstream port 4,
+  attempted a power cycle, and finally reported `unable to enumerate USB
+  device`. No `/dev/video*` node remains, so the extender is rejected for
+  continuous use until it is physically reseated or removed.
+- **Operator-page state:** The port-8080 service is enabled and active and will
+  reconnect automatically when camera frames return. The page itself is
+  reachable now, but correctly reports `camera_ready=false` and the snapshot
+  endpoint returns 503 while the USB camera is physically absent.
+- **Deployment recovery:** Directly replacing the root-owned deployed Python
+  file over SCP was denied. Staging it under `/tmp` and installing it with root
+  ownership succeeded; the updated page and boot-enabled systemd unit are live.

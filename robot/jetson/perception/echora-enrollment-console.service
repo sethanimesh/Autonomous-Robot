@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora temporary target-person enrollment console
+Description=Echora live camera and target-person enrollment console
 After=network-online.target echora-camera.service echora-face-detector.service
 Wants=network-online.target echora-camera.service
 
@@ -18,5 +18,5 @@ ProtectSystem=strict
 ReadWritePaths=/home/animesh/echora/data
 PrivateTmp=true
 
-# Intentionally static: the LAN enrollment UI is started only when an operator
-# is enrolling or deleting a target. It is never enabled at boot.
+[Install]
+WantedBy=multi-user.target

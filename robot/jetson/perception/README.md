@@ -124,9 +124,9 @@ signal, not a security or liveness guarantee.
 `/home/animesh/echora/data/target_person.json`, mode 0600 in a mode 0700
 directory, atomically replaced, and bound to the exact model checksum.
 
-For enrollment, start the static `echora-enrollment-console.service` and open
-`http://192.168.1.48:8080/`. It is deliberately not enabled at boot because it
-is an unauthenticated LAN operator interface. The workflow accepts uploaded
+The boot-enabled `echora-enrollment-console.service` keeps the live camera and
+enrollment page available at `http://192.168.1.48:8080/` on the trusted local
+network. The workflow accepts uploaded
 photos plus live views, requires consent, at least ten accepted samples, and
 front/left/right coverage. It rejects blur, poor lighting, small faces,
 duplicates, multiple people, and a face inconsistent with the session. The

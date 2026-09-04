@@ -33,7 +33,7 @@ verified.
 | USB camera | USB `0c45:6366` on bus `1-2.3` (`Arducam_8mp`; `lsusb` labels it Microdia Webcam Vitade AF) |
 | Camera capture node | `/dev/video0` — `ID_V4L_CAPABILITIES=:capture:`, index 0 |
 | Camera metadata node | `/dev/video1` — empty V4L2 capabilities; **cannot be opened by OpenCV**, do not use |
-| Camera sysfs path | `/sys/bus/usb/devices/1-2.4` with the USB extender fitted on 2026-09-04; `authorized` toggles a safe simulated unplug |
+| Camera sysfs path | Last appeared as `/sys/bus/usb/devices/1-2.4` with the USB extender fitted on 2026-09-04; the extender later failed enumeration and no `/dev/video*` device is currently present |
 | Camera formats (MJPG) | 640×480@30, 800×600@30, 1280×720@30, 1920×1080@30, 1600×1200@30, 2592×1944@15, 3264×2448@15 |
 | Camera formats (YUYV) | 320×240, 640×480, 800×600, 1280×720 — **all 10 fps only** |
 | OpenCV default format | YUYV, so it defaults to 10 fps; `MJPG` must be requested explicitly |
@@ -185,6 +185,14 @@ and reported zero consecutive read failures or duplicates. A separate HTTP
 check received 20/20 snapshots with 20 unique JPEGs and no request failures;
 no further USB or UVC kernel errors appeared during the check. The enrollment
 preview was restarted and is active on port 8080.
+
+That short extender check did **not** hold. At 06:31:58 the camera started
+returning read failures, disappeared from `/dev/video*`, then produced repeated
+`usb_set_interface failed (-19)`, `Cannot enable`, attempted a kernel power
+cycle, and ended with `unable to enumerate USB device`. It remained absent for
+more than thirteen minutes while the camera service retried. Treat this USB
+extender as failed for continuous operation; remove/reseat it or return to the
+known working direct/original lead before perception or movement tests.
 
 All four USB-A ports on the Orin Nano sit behind an internal Realtek 4-port hub
 (`0bda:5489` on USB 2.0, `0bda:0489` on USB 3.0), so there is no USB-A path
