@@ -220,9 +220,27 @@ def run(args):
             self.spin_until(
                 lambda: self.robot_at is not None
                 and self.robot_at > previous
-                and not self.robot.get("motion_active", True),
+                and not chassis_motion_active(self.robot),
                 2.0,
                 "stopped status was not confirmed",
+            )
+
+        def startup_ready(self):
+            now = time.monotonic()
+            return (
+                self.robot_at is not None
+                and now - self.robot_at <= 1.0
+                and not chassis_motion_active(self.robot)
+                and self.head_at is not None
+                and now - self.head_at <= 1.0
+                and not self.head_status.get("moving", True)
+                and not self.head_status.get("homing", True)
+                and self.camera_at is not None
+                and now - self.camera_at <= 6.5
+                and self.camera.get("state") == "streaming"
+                and self.camera_frame_at is not None
+                and now - self.camera_frame_at <= 0.5
+                and self.yaw is not None
             )
 
         def safety_ready(self):
@@ -273,7 +291,7 @@ def run(args):
                     int(self.head_status.get("position", -999))
                     - int(self.head_status.get("forward_position", 999))
                 )
-                <= 5
+                <= 8
             ):
                 self.wait_for_camera_after_head_move()
                 return
@@ -290,10 +308,30 @@ def run(args):
                     int(self.head_status.get("position", -999))
                     - int(self.head_status.get("forward_position", 999))
                 )
-                <= 5,
-                4.0,
+                <= 8,
+                10.0,
                 "camera head did not settle at the forward position",
             )
+            self.wait_for_camera_after_head_move()
+
+        def ensure_homed(self):
+            if self.head_status.get("homed", False):
+                return
+            previous = self.head_at or 0.0
+            message = String()
+            message.data = "home"
+            self.head.publish(message)
+            self.spin_until(
+                lambda: self.head_at is not None
+                and self.head_at > previous
+                and self.head_status.get("homed", False)
+                and not self.head_status.get("moving", True)
+                and not self.head_status.get("homing", True)
+                and abs(int(self.head_status.get("position", 999))) <= 8,
+                10.0,
+                "camera head did not establish its downward mechanical zero",
+            )
+            report["fresh_mechanical_home"] = True
             self.wait_for_camera_after_head_move()
 
         def wait_for_camera_after_head_move(self, timeout=8.0):
@@ -315,8 +353,9 @@ def run(args):
             raise ScanError("camera did not recover after camera-head movement")
 
         def prepare(self):
-            self.spin_until(self.safety_ready, 10.0, "scan sensors are unavailable")
+            self.spin_until(self.startup_ready, 10.0, "scan sensors are unavailable")
             self.stop()
+            self.ensure_homed()
             self.look_forward()
 
         def turn_relative(self, image_degrees, camera_required=True):
@@ -403,8 +442,8 @@ def run(args):
                         int(self.head_status.get("position", -999))
                         - target_position
                     )
-                    <= 2,
-                    8.0,
+                    <= 8,
+                    10.0,
                     "camera head did not settle during upward reacquisition",
                 )
                 self.wait_for_camera_after_head_move()

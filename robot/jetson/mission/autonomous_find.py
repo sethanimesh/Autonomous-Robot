@@ -79,6 +79,18 @@ def run_child(command, report_path, timeout_seconds):
     return report
 
 
+def calibration_command(args, report_path):
+    return [
+        sys.executable,
+        args.calibration_script,
+        "--execute",
+        "--route-url",
+        args.route_url,
+        "--report",
+        report_path,
+    ]
+
+
 def run(args):
     report = {
         "outcome": "failure",
@@ -163,6 +175,22 @@ def run(args):
         return child
 
     try:
+        if not args.skip_camera_calibration:
+            calibration_path = os.path.join(log_dir, "mission-head-calibration.json")
+            calibration = run_child(
+                calibration_command(args, calibration_path),
+                calibration_path,
+                args.child_timeout_seconds,
+            )
+            report["steps"].append(
+                {"kind": "camera_head_calibration", "report": calibration}
+            )
+            if calibration.get("outcome") != "calibrated":
+                raise RuntimeError(
+                    calibration.get("error", "camera-head calibration failed")
+                )
+            report["events"].append("camera_head_calibrated")
+
         target_scan = None
         for search_index in range(args.maximum_search_moves + 1):
             target_scan = scan(local=False, unwind=True)
@@ -224,6 +252,15 @@ def parse_args(argv=None):
     )
     parser.add_argument(
         "--scan-script", default="/home/animesh/echora/bounded_target_scan.py"
+    )
+    parser.add_argument(
+        "--calibration-script",
+        default="/home/animesh/echora/camera_head_calibration.py",
+    )
+    parser.add_argument(
+        "--skip-camera-calibration",
+        action="store_true",
+        help="reuse the current boot's already verified camera calibration",
     )
     parser.add_argument(
         "--approach-script", default="/home/animesh/echora/closed_loop_detour.py"

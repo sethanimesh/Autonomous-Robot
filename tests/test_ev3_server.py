@@ -237,6 +237,17 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(0, motors["tool"].speed)
         self.assertEqual("tool-home-complete", controller.last_stop_reason)
 
+    def test_loaded_camera_can_home_at_calibration_speed(self):
+        controller, motors = make_controller()
+
+        self.assertEqual(
+            {"direction": 1, "speed": 60}, controller.home_tool(60)
+        )
+        self.assertEqual(60, motors["tool"].speed)
+        self.assertEqual(
+            {"direction": 1, "speed": 100}, controller.home_tool(101)
+        )
+
     def test_tool_zero_requires_all_motion_stopped(self):
         controller, motors = make_controller()
         motors["tool"].position = 123

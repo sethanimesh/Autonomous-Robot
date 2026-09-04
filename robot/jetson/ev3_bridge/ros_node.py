@@ -44,6 +44,7 @@ class Ev3BridgeNode(Node):
         self.declare_parameter("camera_head_minimum_position", -180)
         self.declare_parameter("camera_head_maximum_position", 180)
         self.declare_parameter("camera_head_speed", 40)
+        self.declare_parameter("camera_head_home_speed", 60)
         self.declare_parameter("camera_head_max_jog_degrees", 15)
 
         self.wheel_radius_m = float(self.get_parameter("wheel_radius_m").value)
@@ -82,6 +83,7 @@ class Ev3BridgeNode(Node):
                 self.get_parameter("camera_head_maximum_position").value
             ),
             speed=int(self.get_parameter("camera_head_speed").value),
+            home_speed=int(self.get_parameter("camera_head_home_speed").value),
             max_jog_degrees=int(
                 self.get_parameter("camera_head_max_jog_degrees").value
             ),

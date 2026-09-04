@@ -2,6 +2,7 @@
 
 import json
 import math
+import time
 
 
 class CameraHeadError(ValueError):
@@ -20,14 +21,25 @@ class CameraHeadController(object):
         minimum_position=-180,
         maximum_position=0,
         speed=40,
+        home_speed=60,
         max_jog_degrees=15,
+        settle_tolerance=8,
+        step_timeout_seconds=10.0,
+        clock=None,
+        sleeper=None,
     ):
         if minimum_position >= maximum_position:
             raise ValueError("camera-head minimum must be below maximum")
         if speed <= 0:
             raise ValueError("camera-head speed must be positive")
+        if home_speed <= 0:
+            raise ValueError("camera-head home speed must be positive")
         if max_jog_degrees <= 0:
             raise ValueError("camera-head max jog must be positive")
+        if settle_tolerance < 0 or settle_tolerance >= max_jog_degrees:
+            raise ValueError("camera-head settle tolerance must be below jog size")
+        if step_timeout_seconds <= 0:
+            raise ValueError("camera-head step timeout must be positive")
         self.client = client
         self.calibrated = bool(calibrated)
         self.forward_position = int(forward_position)
@@ -35,7 +47,12 @@ class CameraHeadController(object):
         self.minimum_position = int(minimum_position)
         self.maximum_position = int(maximum_position)
         self.speed = int(speed)
+        self.home_speed = int(home_speed)
         self.max_jog_degrees = int(max_jog_degrees)
+        self.settle_tolerance = int(settle_tolerance)
+        self.step_timeout_seconds = float(step_timeout_seconds)
+        self.clock = clock or time.monotonic
+        self.sleeper = sleeper or time.sleep
         for name, position in (
             ("forward", self.forward_position),
             ("down", self.down_position),
@@ -77,7 +94,41 @@ class CameraHeadController(object):
         }
         if name not in positions:
             raise CameraHeadError("unknown camera-head position")
-        return self.client.move_tool(positions[name], self.speed)
+        return self.move_in_steps(positions[name])
+
+    def move_in_steps(self, destination):
+        """Move a loaded head using only the proven small increments."""
+
+        destination = self._validate_target("destination", int(destination))
+        current = self._current_position()
+        moves = []
+        while abs(destination - current) > self.settle_tolerance:
+            delta = destination - current
+            step = max(-self.max_jog_degrees, min(self.max_jog_degrees, delta))
+            target = current + step
+            self.client.move_tool(target, self.speed)
+            deadline = self.clock() + self.step_timeout_seconds
+            while True:
+                status = self.client.status()
+                try:
+                    actual = int(status["motors"]["tool"]["position"])
+                except (KeyError, TypeError, ValueError):
+                    raise CameraHeadError("EV3 status has no camera-head position")
+                if not status.get("tool_motion_active", False):
+                    if abs(actual - target) > self.settle_tolerance:
+                        raise CameraHeadError(
+                            "camera head stalled before position {0}".format(target)
+                        )
+                    moves.append({"requested": target, "actual": actual})
+                    current = actual
+                    break
+                if self.clock() >= deadline:
+                    self.client.stop()
+                    raise CameraHeadError(
+                        "camera head timed out before position {0}".format(target)
+                    )
+                self.sleeper(0.1)
+        return {"position": current, "destination": destination, "steps": moves}
 
     def jog(self, degrees):
         degrees = self._number("jog degrees", degrees)
@@ -101,7 +152,21 @@ class CameraHeadController(object):
         return self.client.zero_tool()
 
     def home(self):
-        return self.client.home_tool()
+        return self.client.home_tool(self.home_speed)
+
+    def set_runtime_positions(self, forward, down):
+        try:
+            forward = self._validate_target(
+                "forward", self._number("forward", forward)
+            )
+            down = self._validate_target("down", self._number("down", down))
+        except ValueError as exc:
+            raise CameraHeadError(str(exc))
+        if forward >= down:
+            raise CameraHeadError("forward position must be above down position")
+        self.forward_position = forward
+        self.down_position = down
+        return {"forward_position": forward, "down_position": down}
 
     def acknowledge_position(self):
         return self.client.acknowledge_tool_position()
@@ -128,6 +193,12 @@ class CameraHeadController(object):
             return self.home()
         if action == "acknowledge_position":
             return self.acknowledge_position()
+        if action == "set_runtime_positions":
+            if "forward" not in request or "down" not in request:
+                raise CameraHeadError(
+                    "set_runtime_positions requires forward and down"
+                )
+            return self.set_runtime_positions(request["forward"], request["down"])
         if action == "jog":
             if "degrees" not in request:
                 raise CameraHeadError("jog requires degrees")
@@ -146,6 +217,8 @@ class CameraHeadController(object):
             "minimum_position": self.minimum_position,
             "maximum_position": self.maximum_position,
             "speed": self.speed,
+            "home_speed": self.home_speed,
+            "settle_tolerance": self.settle_tolerance,
         }
         try:
             position = int(ev3_status["motors"]["tool"]["position"])
