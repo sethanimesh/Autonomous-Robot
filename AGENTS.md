@@ -676,6 +676,11 @@ Do not optimize prematurely for perfect autonomy.
 
 Prefer small real-world tests.
 
+The EV3 battery drains quickly. Complete coding, simulation, and Jetson-only
+checks before powering it. Ask the user to turn the EV3 on only for a short,
+prepared hardware test, execute that test immediately, then explicitly tell the
+user to turn the EV3 off when it is no longer needed.
+
 Examples:
 
 - command the EV3 from the Jetson
