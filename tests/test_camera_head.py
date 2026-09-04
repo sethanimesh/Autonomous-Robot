@@ -46,8 +46,16 @@ class CameraHeadControllerTests(unittest.TestCase):
         with self.assertRaises(CameraHeadError):
             head.execute('{"action":"jog","degrees":16}')
 
-    def test_jog_cannot_cross_software_limit(self):
+    def test_jog_is_trimmed_to_the_software_limit(self):
         client = FakeClient(position=-175)
+        head = CameraHeadController(client)
+
+        head.jog(-10)
+
+        self.assertEqual([("move", -180, 40)], client.commands)
+
+    def test_jog_is_rejected_once_the_head_sits_on_the_limit(self):
+        client = FakeClient(position=-180)
         head = CameraHeadController(client)
 
         with self.assertRaises(CameraHeadError):

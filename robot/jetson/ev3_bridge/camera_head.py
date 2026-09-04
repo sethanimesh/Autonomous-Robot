@@ -87,9 +87,12 @@ class CameraHeadController(object):
                     self.max_jog_degrees
                 )
             )
-        target = self._current_position() + degrees
-        if target < self.minimum_position or target > self.maximum_position:
-            raise CameraHeadError("jog would cross the configured camera-head limit")
+        position = self._current_position()
+        target = min(
+            self.maximum_position, max(self.minimum_position, position + degrees)
+        )
+        if target == position:
+            raise CameraHeadError("camera head is already at the configured limit")
         return self.client.move_tool(target, self.speed)
 
     def zero(self):

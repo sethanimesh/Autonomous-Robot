@@ -78,12 +78,12 @@ class MotorControllerTests(unittest.TestCase):
     def test_drive_applies_confirmed_roles_and_speed_limits(self):
         controller, motors = make_controller()
 
-        applied = controller.drive(999, -999, 999)
+        applied = controller.drive(999, -999, 2000)
 
-        self.assertEqual({"left": 250, "right": -250, "tool": 150}, applied)
+        self.assertEqual({"left": 250, "right": -250, "tool": 1000}, applied)
         self.assertEqual(250, motors["left"].speed)
         self.assertEqual(-250, motors["right"].speed)
-        self.assertEqual(150, motors["tool"].speed)
+        self.assertEqual(1000, motors["tool"].speed)
         self.assertTrue(controller.motion_active)
 
     def test_zero_drive_stops_all_motors(self):

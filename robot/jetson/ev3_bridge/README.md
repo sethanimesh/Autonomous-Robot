@@ -42,8 +42,12 @@ ros2 topic pub --once /camera_head/command std_msgs/msg/String \
 
 After physical calibration, supported named commands are `look_forward` and
 `look_down`. A `zero` command is available only while the configuration remains
-uncalibrated. The `home` command slowly returns to the confirmed physical upper
-limit and establishes encoder zero after any reboot. Every camera command
+uncalibrated. The `home` command drives slowly in the positive (downward)
+direction until it stops making progress and then calls that point encoder
+zero. With the current heavy camera, its 25-count/s speed can falsely report no
+progress before the mechanism moves, so it is not yet a valid autonomous
+reference. Use a visually verified forward frame and `zero` during calibration.
+Every camera command
 stops or locks both tracks at zero, and the EV3 rejects non-zero chassis motion
 until the camera move finishes.
 

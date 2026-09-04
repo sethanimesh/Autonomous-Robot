@@ -14,9 +14,14 @@ ev3_bridge:
     base_frame: base_link
     publish_odom_tf: true
     camera_head_calibrated: false
+    # Motor A's encoder counts increase as the lens tilts DOWN (positive = down,
+    # negative = up). A live 15-degree sequence on 2026-09-04 moved from ceiling
+    # through the wall/ceiling edge and into a forward room view at the old +81;
+    # that verified forward view was then re-zeroed to 0. Named moves remain
+    # disabled until the floor view and repeatability are measured.
     camera_head_forward_position: 0
     camera_head_down_position: 0
     camera_head_minimum_position: -180
-    camera_head_maximum_position: 0
-    camera_head_speed: 40
+    camera_head_maximum_position: 180
+    camera_head_speed: 1000
     camera_head_max_jog_degrees: 15

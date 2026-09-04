@@ -74,18 +74,29 @@ Jetson software bounds, and mutual exclusion between camera and chassis motion.
 The live enrollment console remains available on port 8080 as the operator
 camera view during calibration.
 
-The same page now provides two manual calibration controls: **Tilt up** and
-**Tilt down**. Each click requests one bounded five-degree encoder step, shows
+The same page provides **Tilt up** and **Tilt down** controls in bounded 5° and
+15° steps. Each click requests one encoder position move, shows
 the current encoder position, disables itself while the head is moving or its
 status is stale, and relies on the EV3 to keep both tracks stopped.
 
-Protocol v2 passed its track-isolation test, but its first range interpretation
-was invalid: the owner observed that the camera started at the top limit and
-the positive test direction continued into that limit. Encoder changes up to
-+71 therefore measure drivetrain compliance/backlash, not verified camera
-travel. The corrected convention is **top = 0** and downward travel is negative.
-A repeatable low-speed home-to-top operation is prepared for future boots; the
-actual lower limit and useful forward/down positions still need measurement.
+The tilt direction was settled on 2026-09-03 by watching the lens while jogging
+and checking the live camera frames: **encoder counts increase as the lens
+tilts down**, so positive is down and negative is up. Both earlier readings —
+the "camera started at its top limit" note and the "top = 0" convention that
+replaced it — had the sign backwards, which is why the browser controls moved
+the opposite way from their labels. `camera_controls.py` now records the
+convention in one place as `CAMERA_UP_SIGN`/`CAMERA_DOWN_SIGN`.
+
+Encoder 0 is not intrinsically a physical angle. On 2026-09-04, settled camera
+frames established a sequence from ceiling through the wall/ceiling edge to a
+forward room view; a further +16° showed the nearby route/floor. The loaded
+upward direction later failed at one linkage point even at 1000 counts/s, so
+calibration remains disabled until both named views can be repeated.
+
+The console also exposes `/snapshot.jpg`, a no-store copy of the latest frame
+for one-shot visual classification. Runtime motion will use local image-change
+checks on every step. An optional cloud vision label may identify
+ceiling/forward/floor, but a network or model failure always means stop.
 
 The single-room controller will move only in short segments and inspect the
 forward and downward views between them. Uncertain or stale vision means stop.

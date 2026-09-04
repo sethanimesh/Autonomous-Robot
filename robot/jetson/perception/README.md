@@ -134,9 +134,15 @@ default stores embeddings only. Opt-in retention stores 112×112 aligned face
 crops with mode 0600; original uploads and room frames are never retained.
 
 During camera-head calibration, this same page shows the live encoder position
-and provides **Tilt up** / **Tilt down** controls. Each click is one five-degree
-step. Controls disable when head status is stale, unhomed, outside limits, or
-already moving. The EV3 still owns track isolation and rejects unsafe overlap.
+and provides **Tilt up** / **Tilt down** controls in 5° and 15° steps. Controls
+disable when head status is stale, unhomed, outside limits, or already moving.
+The EV3 still owns track isolation and rejects unsafe overlap. A current
+one-shot JPEG is available at `/snapshot.jpg` for visual classification without
+opening another MJPEG stream.
+
+The console has no hard systemd dependency on the face detector. It continues
+serving raw camera preview and head controls while face processing restarts;
+enrollment guidance resumes when face observations return.
 
 Measured public-image checks on the deployed engine: 0.9824 cosine similarity
 for one identity after a brightness change, 0.0250 for two different identities,

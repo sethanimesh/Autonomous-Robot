@@ -1,7 +1,7 @@
 [Unit]
 Description=Echora temporary target-person enrollment console
-After=echora-face-detector.service
-Requires=echora-face-detector.service
+After=network-online.target echora-camera.service echora-face-detector.service
+Wants=network-online.target echora-camera.service
 
 [Service]
 Type=simple

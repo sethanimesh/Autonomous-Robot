@@ -22,7 +22,7 @@ DEFAULT_PORT = 9999
 DEFAULT_ALLOWED_CLIENT = "192.168.1.48"
 DEFAULT_WATCHDOG_SECONDS = 0.5
 DEFAULT_DRIVE_SPEED_LIMIT = 250
-DEFAULT_TOOL_SPEED_LIMIT = 150
+DEFAULT_TOOL_SPEED_LIMIT = 1000
 DEFAULT_TOOL_POSITION_LIMIT = 720
 DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 4.0
 DEFAULT_TOOL_HOME_SPEED_LIMIT = 30
@@ -624,7 +624,9 @@ def parse_args(argv):
     parser.add_argument("--allowed-client", default=DEFAULT_ALLOWED_CLIENT)
     parser.add_argument("--watchdog-ms", type=int, default=500)
     parser.add_argument("--drive-speed-limit", type=int, default=250)
-    parser.add_argument("--tool-speed-limit", type=int, default=150)
+    parser.add_argument(
+        "--tool-speed-limit", type=int, default=DEFAULT_TOOL_SPEED_LIMIT
+    )
     parser.add_argument(
         "--tool-position-limit", type=int, default=DEFAULT_TOOL_POSITION_LIMIT
     )

@@ -1353,3 +1353,75 @@ complete.
   available.
 - **Tests:** Five camera-control validation tests bring the full suite to 377
   passing tests with four dependency-based skips.
+
+### Camera tilt direction corrected and UI limits opened
+
+- **Direction settled:** Motor A's encoder counts **increase as the lens tilts
+  down**. The owner confirmed it from the physical lens while jogging, and the
+  live frames agree. Both previous readings were wrong in the same way, which is
+  why the browser buttons moved opposite to their labels.
+- **Frame evidence:** At encoder -3 the lens was aimed steeply at the cove
+  ceiling and its batten light; by -7 it showed a floor-standing appliance and a
+  wooden door. So `camera_head_forward_position: 0` had been labelling the
+  *downward* end of travel as the forward view.
+- **Image orientation ruled out:** The sensor is **not** mounted inverted. A
+  zoom of a framed wall photograph shows the snow peaks pointing up and the
+  frame's lower edge visible from below, so preview up/down can be trusted. The
+  inversion was entirely in the encoder sign convention.
+- **Torque, not calibration:** At speed 40 the head could not lift itself.
+  Three +5 jogs wound the encoder from -10 to -2 while the frames stayed
+  pixel-identical (profile cross-correlation residual 4-9 at zero shift, versus
+  ~1700 for a genuinely different pose). Raising `camera_head_speed` to 150, the
+  EV3's `tool_speed_limit`, restored real travel. Note that `speed_sp` is not a
+  torque control: it only helped because the head was being driven, not held.
+- **"Extreme angles are invalid" root cause:** `jog()` and `validate_camera_jog`
+  refused any step crossing a software limit instead of trimming to it. Since
+  the head settles a few degrees off round numbers, a +5 step from -4 targeted
+  +1 and was rejected outright, making the last degrees permanently unreachable.
+  Both now clamp to the limit and refuse only a head already sitting on it.
+- **Encoder zero is provisional.** It is only where homing last stalled, not a
+  verified stop: with limits opened to -180..180 the head reached +47 and -41.
+  The real end stops are still unmeasured.
+- **Repeatability:** Returning to encoder -7 reproduced the earlier -7 scene
+  (residual 730, against 1732 for a different pose), so the encoder is usable as
+  a coarse reference even though it is not precise.
+- **Deployed:** `camera_head.py`, `camera_controls.py`, and
+  `enrollment_console.py` updated on the Jetson; bridge and enrollment console
+  restarted; `robot.yaml` backed up to `robot.yaml.bak-tiltcal`. The console now
+  offers 5-degree and 15-degree steps in both directions.
+- **Tests:** 384 passing with four dependency-based skips.
+- **Still open:** measure the true end stops and the forward/down positions,
+  then set `camera_head_calibrated: true`. Named moves stay refused until then.
+
+### Image-guided camera-head sweep and load failure (2026-09-04)
+
+- **Direction confirmed from images:** A settled 15-degree sequence moved from
+  a ceiling-only view at the old encoder 0, across the ceiling/wall edge at
+  +52/+66, to a level room view at +81. Positive is down and negative is up.
+  The earlier low-speed `home` at the ceiling did not move the loaded mechanism
+  and therefore supplied false direction evidence.
+- **Forward and down candidates:** The verified room-forward view was re-zeroed
+  to 0. From it, +16 showed the floor/route ahead; +32 was dominated by the
+  nearby fabric surface, +49 showed a close cable, and +67 was occluded by the
+  robot/body. The useful down view is therefore near +16, not a hard stop.
+- **Load failure documented:** At 150 and 300 counts/s, upward targets either
+  timed out or lost position after the driver left regulated hold. At 600,
+  results varied with linkage angle. At 1000, one -15 request completed at -14
+  in under 0.4 seconds and stayed in `holding`, but a later step toward a more
+  heavily loaded angle timed out and the camera fell back. The tracks remained
+  stopped throughout.
+- **Conclusion:** Visual classification can choose ceiling/forward/floor and
+  image change can prove that each command moved the camera, but software cannot
+  compensate for a mechanism that cannot lift or hold its payload. Use hand
+  support for calibration now and add a LEGO counterweight, stronger gearing,
+  or a better-balanced mount before autonomous motion.
+- **Preview reliability:** Added `/snapshot.jpg` for one settled frame without
+  opening another MJPEG stream. Raw camera preview is independent of
+  face-observation freshness. The console service no longer `Requires` the face
+  detector, so restarting face inference does not take the controls offline.
+  Regression passed: with `echora-face-detector.service` stopped, the console
+  remained active and `/api/status` continued reporting `camera_ready=true`;
+  all perception services were then restored active.
+- **Cloud option:** A cloud vision model may label occasional settled snapshots
+  during calibration. Motor motion and image-change checks stay local; missing,
+  slow, or uncertain cloud output must stop the sequence.
