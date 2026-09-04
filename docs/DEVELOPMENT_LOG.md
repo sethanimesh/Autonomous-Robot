@@ -1548,3 +1548,4 @@ complete.
 - Report: `/home/animesh/echora/logs/detour-physical-01.json`.
 - Target-observer deploy first failed on flat imports; shared type split fixed it.
 - Target observer is enabled/active and publishes live mission-ready ROS state.
+- Cable-safe target scan dry-run passed: 30° steps, ±180° sweeps, final unwind to 0°.
