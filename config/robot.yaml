@@ -23,7 +23,7 @@ ev3_bridge:
     # room/person view at 13 and a useful near-floor route view at 31.
     camera_head_forward_position: 13
     camera_head_down_position: 31
-    camera_head_minimum_position: -60
+    camera_head_minimum_position: -135
     camera_head_maximum_position: 70
     camera_head_speed: 300
     camera_head_max_jog_degrees: 15

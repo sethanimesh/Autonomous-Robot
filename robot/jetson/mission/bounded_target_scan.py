@@ -527,11 +527,11 @@ def parse_args(argv=None):
         action="store_true",
         help="check one higher view before rotating when the low view sees nobody",
     )
-    parser.add_argument("--high-search-position", type=int, default=-15)
+    parser.add_argument("--high-search-position", type=int, default=-90)
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--up-dwell-seconds", type=float, default=3.0)
     parser.add_argument("--tilt-step-degrees", type=int, default=15)
-    parser.add_argument("--face-search-position", type=int, default=-30)
+    parser.add_argument("--face-search-position", type=int, default=-120)
     parser.add_argument(
         "--vertical-only",
         action="store_true",

@@ -50,7 +50,7 @@ class BoundedTargetScanTests(unittest.TestCase):
         args = parse_args(["--vertical-only"])
         self.assertTrue(args.vertical_only)
         self.assertEqual(15, args.tilt_step_degrees)
-        self.assertEqual(-30, args.face_search_position)
+        self.assertEqual(-120, args.face_search_position)
 
     def test_largest_person_box_drives_vertical_camera_guidance(self):
         body = largest_body_observation(
