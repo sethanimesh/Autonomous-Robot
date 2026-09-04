@@ -19,10 +19,11 @@ ev3_bridge:
     # through the wall/ceiling edge and into a forward room view at the old +81;
     # that verified forward view was then re-zeroed to 0. A reconnect-and-repeat
     # test returned 0 -> +17 -> +2 with matching forward and route-view frames,
-    # so only the small useful range is now exposed.
-    camera_head_forward_position: 0
-    camera_head_down_position: 17
+    # Live camera validation after the 2026-09-04 reboot/re-zero found a clear
+    # room/person view at 13 and a useful near-floor route view at 31.
+    camera_head_forward_position: 13
+    camera_head_down_position: 31
     camera_head_minimum_position: -5
-    camera_head_maximum_position: 25
+    camera_head_maximum_position: 70
     camera_head_speed: 300
     camera_head_max_jog_degrees: 15

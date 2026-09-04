@@ -146,6 +146,18 @@ def run(args):
             if now - self.robot_status_at > 1.0 or now - self.head_status_at > 1.0:
                 raise DetourError("robot state is stale")
             self.stop()
+            if (
+                self.head_status.get("homed", False)
+                and not self.head_status.get("moving", True)
+                and not self.head_status.get("homing", True)
+                and abs(
+                    int(self.head_status.get("position", -999))
+                    - int(self.head_status.get("down_position", 999))
+                )
+                <= 5
+            ):
+                time.sleep(0.3)
+                return
             previous_head_at = self.head_status_at or 0.0
             request = String()
             request.data = "look_down"

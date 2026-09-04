@@ -36,6 +36,64 @@ DEFAULT_CORRIDORS = (
 )
 
 
+def estimate_floor_horizon(
+    floor_mask,
+    minimum_y=0.20,
+    maximum_y=0.75,
+    minimum_row_floor_fraction=0.55,
+    consecutive_rows=5,
+    stride=2,
+):
+    """Find the first sustained broad floor band in a route-view image."""
+    height = len(floor_mask)
+    if height == 0:
+        raise ValueError("floor mask is empty")
+    width = len(floor_mask[0])
+    if width == 0 or any(len(row) != width for row in floor_mask):
+        raise ValueError("floor mask must be a non-empty rectangle")
+    y_start = int(round(minimum_y * (height - 1)))
+    y_stop = int(round(maximum_y * (height - 1)))
+    x_start = int(round(0.05 * (width - 1)))
+    x_stop = int(round(0.95 * (width - 1)))
+    run_start = None
+    run_length = 0
+    for y in range(y_start, y_stop + 1):
+        values = [floor_mask[y][x] for x in range(x_start, x_stop + 1, stride)]
+        fraction = sum(value is True for value in values) / float(len(values))
+        if fraction >= minimum_row_floor_fraction:
+            if run_start is None:
+                run_start = y
+            run_length += 1
+            if run_length >= consecutive_rows:
+                return run_start / float(height - 1)
+        else:
+            run_start = None
+            run_length = 0
+    return None
+
+
+def trim_corridor_top(corridor, top_y):
+    """Trim a trapezoid at the detected horizon without changing its sides."""
+    top = min(corridor.bottom_y, max(corridor.top_y, float(top_y)))
+    span = corridor.bottom_y - corridor.top_y
+    progress = 0.0 if span <= 0 else (top - corridor.top_y) / span
+    center = corridor.top_center_x + progress * (
+        corridor.bottom_center_x - corridor.top_center_x
+    )
+    half_width = corridor.top_half_width + progress * (
+        corridor.bottom_half_width - corridor.top_half_width
+    )
+    return ImageCorridor(
+        corridor.heading_degrees,
+        top,
+        corridor.bottom_y,
+        center,
+        corridor.bottom_center_x,
+        half_width,
+        corridor.bottom_half_width,
+    )
+
+
 def evaluate_corridor(floor_mask, corridor, stride=2):
     """Measure known and floor pixels inside one perspective trapezoid.
 
@@ -87,17 +145,27 @@ def semantic_route_candidates(
     corridors=DEFAULT_CORRIDORS,
     minimum_floor_fraction=0.95,
     proven_clear_distance_m=0.15,
+    minimum_route_y=0.50,
     stride=2,
 ):
-    """Convert floor masks to candidates; failed corridors have zero clearance."""
+    """Convert the near-floor footprint to bounded short-route candidates."""
+    horizon = estimate_floor_horizon(floor_mask)
+    active_corridors = (
+        corridors
+        if horizon is None
+        else tuple(
+            trim_corridor_top(corridor, max(horizon, minimum_route_y))
+            for corridor in corridors
+        )
+    )
     candidates = []
     evidence = []
-    for corridor in corridors:
+    for corridor in active_corridors:
         item = evaluate_corridor(floor_mask, corridor, stride=stride)
         evidence.append(item)
         clear = (
             proven_clear_distance_m
-            if item.floor_fraction >= minimum_floor_fraction
+            if horizon is not None and item.floor_fraction >= minimum_floor_fraction
             else 0.0
         )
         candidates.append(

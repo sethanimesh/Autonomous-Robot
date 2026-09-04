@@ -2,6 +2,7 @@ import unittest
 
 from robot.jetson.navigation.image_corridors import DEFAULT_CORRIDORS
 from robot.jetson.navigation.image_corridors import evaluate_corridor
+from robot.jetson.navigation.image_corridors import estimate_floor_horizon
 from robot.jetson.navigation.image_corridors import semantic_route_candidates
 from robot.jetson.navigation.local_planner import LocalRoutePlanner
 
@@ -38,7 +39,40 @@ class ImageCorridorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evaluate_corridor([[True], [True, False]], DEFAULT_CORRIDORS[0])
 
+    def test_floor_horizon_skips_a_wall_but_keeps_floor_obstacles(self):
+        mask = [[False for _ in range(120)] for _ in range(100)]
+        for y in range(55, 100):
+            for x in range(120):
+                mask[y][x] = True
+        for y in range(60, 82):
+            for x in range(50, 76):
+                mask[y][x] = False
+        self.assertAlmostEqual(0.5556, estimate_floor_horizon(mask), places=3)
+        candidates, evidence = semantic_route_candidates(mask)
+        decision = LocalRoutePlanner().choose(candidates)
+        center = next(item for item in evidence if item.heading_degrees == 0)
+        self.assertLess(center.floor_fraction, 0.95)
+        self.assertFalse(decision.blocked)
+        self.assertNotEqual(decision.heading_degrees, 0)
+
+    def test_no_detected_floor_fails_closed(self):
+        mask = [[False for _ in range(120)] for _ in range(90)]
+        candidates, _ = semantic_route_candidates(mask)
+        self.assertTrue(LocalRoutePlanner().choose(candidates).blocked)
+
+    def test_far_object_does_not_block_a_ten_centimetre_near_floor_step(self):
+        mask = [[False for _ in range(120)] for _ in range(100)]
+        for y in range(30, 100):
+            for x in range(120):
+                mask[y][x] = True
+        for y in range(32, 48):
+            for x in range(42, 78):
+                mask[y][x] = False
+        candidates, _ = semantic_route_candidates(mask)
+        decision = LocalRoutePlanner().choose(candidates)
+        self.assertFalse(decision.blocked)
+        self.assertEqual(0, decision.heading_degrees)
+
 
 if __name__ == "__main__":
     unittest.main()
-

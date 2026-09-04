@@ -40,16 +40,23 @@ def incremental_scan_turns(headings):
 
 def run(args):
     headings = cable_safe_scan_headings(args.step_degrees, args.sweep_limit_degrees)
+    if args.first_direction == "left":
+        headings = tuple(-heading for heading in headings)
     report = {
         "outcome": "failure",
         "started_at_unix": time.time(),
         "requested_headings": headings,
-        "observed_headings": [0],
+        "observed_headings": [args.initial_cable_heading_degrees],
         "turns": [],
     }
     if not args.execute:
         report["outcome"] = "dry_run_success"
-        report["incremental_turns"] = incremental_scan_turns(headings)
+        report["incremental_turns"] = (
+            (-args.initial_cable_heading_degrees,)
+            + incremental_scan_turns(headings)
+            if args.initial_cable_heading_degrees
+            else incremental_scan_turns(headings)
+        )
         report["finished_at_unix"] = time.time()
         return report
 
@@ -57,6 +64,8 @@ def run(args):
     from geometry_msgs.msg import Twist
     from nav_msgs.msg import Odometry
     from rclpy.node import Node
+    from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
+    from sensor_msgs.msg import Image
     from std_msgs.msg import String
 
     class ScanNode(Node):
@@ -66,6 +75,7 @@ def run(args):
             self.robot_at = None
             self.camera = None
             self.camera_at = None
+            self.camera_frame_at = None
             self.head_status = None
             self.head_at = None
             self.target = None
@@ -75,6 +85,14 @@ def run(args):
             self.head = self.create_publisher(String, "/camera_head/command", 1)
             self.create_subscription(String, "/robot_status", self.on_robot, 10)
             self.create_subscription(String, "/camera/status", self.on_camera, 10)
+            sensor_qos = QoSProfile(
+                depth=1,
+                history=QoSHistoryPolicy.KEEP_LAST,
+                reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            )
+            self.create_subscription(
+                Image, "/camera/image_raw", self.on_camera_frame, sensor_qos
+            )
             self.create_subscription(String, "/camera_head/status", self.on_head, 10)
             self.create_subscription(
                 String, "/mission/target_observation", self.on_target, 10
@@ -97,6 +115,9 @@ def run(args):
             value = self.parse(message)
             if value is not None:
                 self.camera, self.camera_at = value, time.monotonic()
+
+        def on_camera_frame(self, _message):
+            self.camera_frame_at = time.monotonic()
 
         def on_head(self, message):
             value = self.parse(message)
@@ -139,27 +160,45 @@ def run(args):
             )
 
         def safety_ready(self):
-            now = time.monotonic()
-            return (
-                self.robot_at is not None
-                and now - self.robot_at <= 1.0
-                and not self.robot.get("motion_active", True)
-                and self.camera_at is not None
-                and now - self.camera_at <= 2.0
-                and self.camera.get("state") == "streaming"
-                and float(self.camera.get("seconds_since_frame", 999.0)) <= 0.5
-                and float(self.camera.get("mean_intensity", 0.0)) >= 15.0
-                and self.head_at is not None
-                and now - self.head_at <= 1.0
-                and self.head_status.get("homed", False)
-                and not self.head_status.get("moving", True)
-                and not self.head_status.get("homing", True)
-                and self.yaw is not None
-            )
+            return self.safety_reason() is None
 
-        def prepare(self):
-            self.spin_until(self.safety_ready, 5.0, "scan sensors are unavailable")
-            self.stop()
+        def safety_reason(self):
+            now = time.monotonic()
+            motion_reason = self.motion_reason()
+            if motion_reason:
+                return motion_reason
+            if self.camera_at is None or now - self.camera_at > 6.5:
+                return "camera health status is stale"
+            if self.camera.get("state") != "streaming":
+                return "camera is not streaming"
+            if self.camera_frame_at is None or now - self.camera_frame_at > 0.5:
+                return "live camera frame heartbeat is stale"
+            if float(self.camera.get("mean_intensity", 0.0)) < 15.0:
+                return "camera image is too dark"
+            return None
+
+        def motion_ready(self):
+            return self.motion_reason() is None
+
+        def motion_reason(self):
+            now = time.monotonic()
+            if self.robot_at is None or now - self.robot_at > 1.0:
+                return "robot status is stale"
+            if self.robot.get("motion_active", True):
+                return "robot unexpectedly reports motion"
+            if self.head_at is None or now - self.head_at > 1.0:
+                return "camera-head status is stale"
+            if not self.head_status.get("homed", False):
+                return "camera head is not homed"
+            if self.head_status.get("moving", True) or self.head_status.get(
+                "homing", True
+            ):
+                return "camera head is moving"
+            if self.yaw is None:
+                return "odometry is unavailable"
+            return None
+
+        def look_forward(self):
             previous = self.head_at or 0.0
             message = String()
             message.data = "look_forward"
@@ -177,10 +216,36 @@ def run(args):
                 4.0,
                 "camera head did not settle at the forward position",
             )
+            self.wait_for_camera_after_head_move()
 
-        def turn_relative(self, image_degrees):
-            if not self.safety_ready():
-                raise ScanError("sensor state became unsafe before turn")
+        def wait_for_camera_after_head_move(self, timeout=8.0):
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                rclpy.spin_once(self, timeout_sec=0.05)
+                motion_problem = self.motion_reason()
+                if motion_problem:
+                    raise ScanError(motion_problem)
+                now = time.monotonic()
+                if (
+                    self.camera_at is not None
+                    and now - self.camera_at <= 6.5
+                    and self.camera.get("state") == "streaming"
+                    and self.camera_frame_at is not None
+                    and now - self.camera_frame_at <= 0.5
+                ):
+                    return
+            raise ScanError("camera did not recover after camera-head movement")
+
+        def prepare(self):
+            self.spin_until(self.safety_ready, 10.0, "scan sensors are unavailable")
+            self.stop()
+            self.look_forward()
+
+        def turn_relative(self, image_degrees, camera_required=True):
+            ready = self.safety_ready if camera_required else self.motion_ready
+            if not ready():
+                reason = self.safety_reason() if camera_required else self.motion_reason()
+                raise ScanError(reason or "sensor state became unsafe before turn")
             # Scan headings use image convention: positive is right.
             target = math.radians(-float(image_degrees))
             start = self.yaw
@@ -201,23 +266,99 @@ def run(args):
             finally:
                 self.stop()
 
-        def wait_for_target(self):
-            deadline = time.monotonic() + args.dwell_seconds
+        def wait_for_target(self, duration=None):
+            dwell = args.dwell_seconds if duration is None else float(duration)
+            deadline = time.monotonic() + dwell
+            recovered_once = False
             while time.monotonic() < deadline:
                 rclpy.spin_once(self, timeout_sec=0.05)
                 if not self.safety_ready():
-                    raise ScanError("sensor state became unsafe while observing")
+                    motion_problem = self.motion_reason()
+                    if motion_problem:
+                        raise ScanError(motion_problem)
+                    if recovered_once:
+                        raise ScanError(
+                            self.safety_reason()
+                            or "camera became unsafe again while observing"
+                        )
+                    self.wait_for_camera_after_head_move()
+                    recovered_once = True
+                    deadline = time.monotonic() + dwell
                 if target_is_confirmed(self.target):
                     return True
             return False
 
+        def look_fully_up(self):
+            while True:
+                position = int(self.head_status.get("position", -999))
+                minimum = int(self.head_status.get("minimum_position", -999))
+                if position <= minimum + 2:
+                    break
+                step = max(-15, minimum - position)
+                previous = self.head_at or 0.0
+                message = String()
+                message.data = json.dumps(
+                    {"action": "jog", "degrees": step}, separators=(",", ":")
+                )
+                self.head.publish(message)
+                self.spin_until(
+                    lambda: self.head_at is not None
+                    and self.head_at > previous
+                    and not self.head_status.get("moving", True)
+                    and not self.head_status.get("homing", True),
+                    4.0,
+                    "camera head did not settle during upward reacquisition",
+                )
+            self.wait_for_camera_after_head_move()
+
     rclpy.init()
     node = ScanNode()
     try:
+        if args.unwind_only:
+            if not args.initial_cable_heading_degrees:
+                raise ScanError("unwind-only requires the current cable heading")
+            node.spin_until(
+                node.motion_ready, 5.0, "motion state is unavailable for unwind"
+            )
+            node.stop()
+            actual = node.turn_relative(
+                -args.initial_cable_heading_degrees, camera_required=False
+            )
+            report["turns"].append(
+                {
+                    "requested_degrees": -args.initial_cable_heading_degrees,
+                    "actual_degrees": actual,
+                    "reason": "camera-independent_cable_unwind",
+                }
+            )
+            report["observed_headings"].append(0)
+            report["outcome"] = "cable_unwound"
+            return report
         node.prepare()
+        if args.initial_cable_heading_degrees:
+            actual = node.turn_relative(-args.initial_cable_heading_degrees)
+            report["turns"].append(
+                {
+                    "requested_degrees": -args.initial_cable_heading_degrees,
+                    "actual_degrees": actual,
+                    "reason": "initial_unwind",
+                }
+            )
+            report["observed_headings"].append(0)
         if node.wait_for_target():
+            report["target_heading_degrees"] = 0
+            report["target_observation"] = node.target
             report["outcome"] = "target_found"
             return report
+        if args.try_up:
+            node.look_fully_up()
+            time.sleep(0.5)
+            if node.wait_for_target(args.up_dwell_seconds):
+                report["target_heading_degrees"] = 0
+                report["target_observation"] = node.target
+                report["outcome"] = "target_found"
+                return report
+            node.look_forward()
         for target_heading, turn in zip(headings[1:], incremental_scan_turns(headings)):
             actual = node.turn_relative(turn)
             report["turns"].append(
@@ -226,6 +367,7 @@ def run(args):
             report["observed_headings"].append(target_heading)
             if node.wait_for_target():
                 report["target_heading_degrees"] = target_heading
+                report["target_observation"] = node.target
                 report["outcome"] = "target_found"
                 return report
         report["outcome"] = "scan_complete_no_target"
@@ -248,7 +390,18 @@ def parse_args(argv=None):
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--step-degrees", type=int, default=30)
     parser.add_argument("--sweep-limit-degrees", type=int, default=180)
+    parser.add_argument(
+        "--first-direction", choices=("right", "left"), default="right"
+    )
+    parser.add_argument("--initial-cable-heading-degrees", type=int, default=0)
+    parser.add_argument("--unwind-only", action="store_true")
+    parser.add_argument(
+        "--try-up",
+        action="store_true",
+        help="try the camera's upper limit before a close-range chassis scan",
+    )
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
+    parser.add_argument("--up-dwell-seconds", type=float, default=3.0)
     parser.add_argument("--turn-speed", type=float, default=0.30)
     parser.add_argument("--turn-timeout", type=float, default=8.0)
     parser.add_argument("--yaw-tolerance-degrees", type=float, default=3.0)

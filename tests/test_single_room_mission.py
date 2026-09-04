@@ -8,7 +8,7 @@ from robot.jetson.navigation.local_planner import RouteDecision
 
 
 class SingleRoomMissionTests(unittest.TestCase):
-    def target(self, confirmed=True, height=0.3, age=0.1):
+    def target(self, confirmed=True, height=0.2, age=0.1):
         return TargetObservation(confirmed, age, height)
 
     def ready_mission(self):
@@ -39,7 +39,7 @@ class SingleRoomMissionTests(unittest.TestCase):
 
     def test_close_target_finishes_without_motion(self):
         mission = self.ready_mission()
-        command = mission.observe_target(self.target(height=0.70))
+        command = mission.observe_target(self.target(height=0.30))
         self.assertEqual(command.action, MissionAction.ANNOUNCE_FOUND)
         self.assertEqual(mission.state, MissionState.FOUND)
 

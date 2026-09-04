@@ -11,6 +11,7 @@ import math
 import time
 from urllib.request import Request, urlopen
 
+from robot.jetson.navigation.image_corridors import estimate_floor_horizon
 from robot.jetson.navigation.image_corridors import semantic_route_candidates
 from robot.jetson.navigation.local_planner import LocalRoutePlanner
 
@@ -44,7 +45,12 @@ def fetch_camera_status(url, timeout_seconds=2.0):
 class RoutePerceptionEngine:
     """Lazy-loaded SegFormer floor segmentation plus deterministic planning."""
 
-    def __init__(self, model_name=DEFAULT_MODEL, device="mps", floor_ids=(3, 28)):
+    def __init__(
+        self,
+        model_name=DEFAULT_MODEL,
+        device="mps",
+        floor_ids=(3, 21, 28),
+    ):
         self.model_name = model_name
         self.device = device
         self.floor_ids = tuple(int(value) for value in floor_ids)
@@ -91,6 +97,7 @@ class RoutePerceptionEngine:
             labels = logits.argmax(dim=1)[0].cpu().numpy()
         inference_ms = (time.perf_counter() - started) * 1000.0
         floor_mask = self.numpy.isin(labels, self.floor_ids)
+        floor_horizon = estimate_floor_horizon(floor_mask.tolist())
         candidates, evidence = semantic_route_candidates(
             floor_mask.tolist(), stride=2
         )
@@ -107,6 +114,7 @@ class RoutePerceptionEngine:
             "device": self.device,
             "inference_ms": round(inference_ms, 1),
             "floor_label_ids": list(self.floor_ids),
+            "floor_horizon_y": floor_horizon,
             "evidence": [asdict(value) for value in evidence],
             "decision": decision_value,
         }
