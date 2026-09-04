@@ -1546,3 +1546,5 @@ complete.
 - Expected stops: missing slipper, cold-model stale result, head overshoot.
 - Success: chose left, turned 28.18°, rechecked, drove 9.60 cm, stopped.
 - Report: `/home/animesh/echora/logs/detour-physical-01.json`.
+- Target-observer deploy first failed on flat imports; shared type split fixed it.
+- Target observer is enabled/active and publishes live mission-ready ROS state.

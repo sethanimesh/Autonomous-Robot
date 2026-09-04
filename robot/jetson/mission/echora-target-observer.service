@@ -1,0 +1,16 @@
+[Unit]
+Description=Echora mission target-observation gate
+After=network-online.target echora-target-recognizer.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=animesh
+WorkingDirectory=/home/animesh/echora
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/target_observer.py'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
