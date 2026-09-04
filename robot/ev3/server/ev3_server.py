@@ -24,7 +24,7 @@ DEFAULT_WATCHDOG_SECONDS = 0.5
 DEFAULT_DRIVE_SPEED_LIMIT = 250
 DEFAULT_TOOL_SPEED_LIMIT = 300
 DEFAULT_TOOL_POSITION_LIMIT = 720
-DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 4.0
+DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 8.0
 DEFAULT_TOOL_HOME_SPEED_LIMIT = 30
 DEFAULT_TOOL_HOME_TIMEOUT_SECONDS = 8.0
 DEFAULT_TOOL_HOME_NO_PROGRESS_SECONDS = 0.4
@@ -121,6 +121,10 @@ class SysfsMotor(object):
 
     def stop(self):
         self._write("stop_action", "brake")
+        self._write("command", "stop")
+
+    def hold(self):
+        self._write("stop_action", "hold")
         self._write("command", "stop")
 
     def snapshot(self):
@@ -368,11 +372,29 @@ class MotorController(object):
         self.tool_homed = True
         return 0
 
-    def stop_all(self, reason, suppress_errors=False):
+    def acknowledge_tool_position(self):
+        """Trust the retained encoder position after a service restart."""
+
+        self._refresh_motion_flags()
+        if self.motion_active:
+            raise ProtocolError(
+                "all motors must be stopped before acknowledging camera-head position"
+            )
+        position = int(self.motors["tool"].snapshot()["position"])
+        self._normalize_position("tool position", position, self.tool_position_limit)
+        self.tool_target_position = position
+        self.tool_homed = True
+        self.last_stop_reason = "tool-position-acknowledged"
+        return position
+
+    def stop_all(self, reason, suppress_errors=False, hold_tool=False):
         errors = []
         for role in ("left", "right", "tool"):
             try:
-                self.motors[role].stop()
+                if role == "tool" and hold_tool:
+                    self.motors[role].hold()
+                else:
+                    self.motors[role].stop()
             except Exception as exc:
                 errors.append("{0}: {1}".format(role, exc))
 
@@ -409,8 +431,10 @@ class MotorController(object):
                 else self.tool_move_timeout_seconds
             )
         ):
+            homing = self.tool_homing
             self.stop_all(
-                "tool-home-timeout" if self.tool_homing else "tool-move-timeout"
+                "tool-home-timeout" if homing else "tool-move-timeout",
+                hold_tool=not homing,
             )
             return True
         self._refresh_motion_flags()
@@ -470,6 +494,11 @@ def handle_request(controller, request):
         return {"status": "ok", "applied": applied}
     if command == "tool_zero":
         return {"status": "ok", "position": controller.zero_tool()}
+    if command == "tool_acknowledge_position":
+        return {
+            "status": "ok",
+            "position": controller.acknowledge_tool_position(),
+        }
     if command == "status":
         response = controller.status()
         response["status"] = "ok"

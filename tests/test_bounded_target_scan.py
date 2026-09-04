@@ -49,7 +49,7 @@ class BoundedTargetScanTests(unittest.TestCase):
     def test_vertical_only_mode_is_available_for_locked_chassis_calibration(self):
         args = parse_args(["--vertical-only"])
         self.assertTrue(args.vertical_only)
-        self.assertEqual(5, args.tilt_step_degrees)
+        self.assertEqual(15, args.tilt_step_degrees)
         self.assertEqual(-30, args.face_search_position)
 
     def test_largest_person_box_drives_vertical_camera_guidance(self):

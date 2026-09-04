@@ -403,8 +403,8 @@ def run(args):
                         int(self.head_status.get("position", -999))
                         - target_position
                     )
-                    <= 5,
-                    4.0,
+                    <= 2,
+                    8.0,
                     "camera head did not settle during upward reacquisition",
                 )
                 self.wait_for_camera_after_head_move()
@@ -530,7 +530,7 @@ def parse_args(argv=None):
     parser.add_argument("--high-search-position", type=int, default=-15)
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--up-dwell-seconds", type=float, default=3.0)
-    parser.add_argument("--tilt-step-degrees", type=int, default=5)
+    parser.add_argument("--tilt-step-degrees", type=int, default=15)
     parser.add_argument("--face-search-position", type=int, default=-30)
     parser.add_argument(
         "--vertical-only",

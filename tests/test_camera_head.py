@@ -28,6 +28,10 @@ class FakeClient(object):
         self.commands.append(("home",))
         return {"applied": {"direction": 1, "speed": 25}}
 
+    def acknowledge_tool_position(self):
+        self.commands.append(("acknowledge_position",))
+        return {"position": self.position}
+
     def stop(self):
         self.commands.append(("stop",))
         return {"stopped": True}
@@ -90,6 +94,14 @@ class CameraHeadControllerTests(unittest.TestCase):
         head.execute("home")
 
         self.assertEqual([("home",)], client.commands)
+
+    def test_retained_position_can_be_acknowledged_after_reboot(self):
+        client = FakeClient(position=63)
+        head = CameraHeadController(client, calibrated=True)
+
+        head.execute("acknowledge_position")
+
+        self.assertEqual([("acknowledge_position",)], client.commands)
 
     def test_description_reports_named_position(self):
         client = FakeClient(position=-74)

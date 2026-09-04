@@ -159,6 +159,9 @@ class Ev3Client(object):
     def zero_tool(self):
         return self.request({"command": "tool_zero"})
 
+    def acknowledge_tool_position(self):
+        return self.request({"command": "tool_acknowledge_position"})
+
     def drive_for(
         self,
         left,
@@ -225,6 +228,7 @@ def parse_args(argv):
     subparsers.add_parser("status")
     subparsers.add_parser("stop")
     subparsers.add_parser("tool-zero")
+    subparsers.add_parser("tool-acknowledge-position")
     tool_home = subparsers.add_parser("tool-home")
     tool_home.add_argument("--speed", type=int, default=25)
 
@@ -253,6 +257,8 @@ def main(argv=None):
             print_json(client.stop())
         elif args.action == "tool-zero":
             print_json(client.zero_tool())
+        elif args.action == "tool-acknowledge-position":
+            print_json(client.acknowledge_tool_position())
         elif args.action == "tool-home":
             print_json(client.home_tool(args.speed))
         elif args.action == "tool-move":

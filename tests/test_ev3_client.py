@@ -47,6 +47,8 @@ class FakeSocket(object):
             response = {"status": "ok", "applied": request}
         elif request.get("command") == "tool_zero":
             response = {"status": "ok", "position": 0}
+        elif request.get("command") == "tool_acknowledge_position":
+            response = {"status": "ok", "position": 63}
         else:
             response = {"status": "ok", "stopped": True}
         self.pending += (json.dumps(response) + "\n").encode("utf-8")
@@ -140,12 +142,14 @@ class Ev3ClientTests(unittest.TestCase):
         client.move_tool(25, 40)
         client.home_tool()
         client.zero_tool()
+        client.acknowledge_tool_position()
 
         self.assertEqual(
             [
                 {"command": "tool_move", "position": 25, "speed": 40},
                 {"command": "tool_home", "speed": 25},
                 {"command": "tool_zero"},
+                {"command": "tool_acknowledge_position"},
             ],
             fake_socket.sent,
         )

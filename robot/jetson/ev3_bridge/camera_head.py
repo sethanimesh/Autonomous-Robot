@@ -103,6 +103,9 @@ class CameraHeadController(object):
     def home(self):
         return self.client.home_tool()
 
+    def acknowledge_position(self):
+        return self.client.acknowledge_tool_position()
+
     def execute(self, payload):
         if isinstance(payload, str):
             try:
@@ -123,6 +126,8 @@ class CameraHeadController(object):
             return self.zero()
         if action == "home":
             return self.home()
+        if action == "acknowledge_position":
+            return self.acknowledge_position()
         if action == "jog":
             if "degrees" not in request:
                 raise CameraHeadError("jog requires degrees")

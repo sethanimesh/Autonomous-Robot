@@ -21,9 +21,27 @@ def target_height(scan_report):
     return height if math.isfinite(height) and height >= 0.0 else None
 
 
-def target_is_at_standoff(scan_report, minimum_height=0.30):
+def body_height(scan_report):
+    observations = scan_report.get("body_guided_tilts", [])
+    if not observations:
+        return None
+    try:
+        height = float(observations[-1]["body"]["height_fraction"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    return height if math.isfinite(height) and height >= 0.0 else None
+
+
+def target_is_at_standoff(
+    scan_report, minimum_height=0.15, minimum_body_height=0.70
+):
     height = target_height(scan_report)
-    return height is not None and height >= minimum_height
+    if height is None:
+        return False
+    close_body = body_height(scan_report)
+    return height >= minimum_height or (
+        close_body is not None and close_body >= minimum_body_height
+    )
 
 
 def heading_after_relative_scan(current_heading, scan_report):
@@ -107,6 +125,8 @@ def run(args):
                 cable_heading = 0.0
         if args.try_up:
             command.extend(["--try-up", "--search-up"])
+        if args.camera_only:
+            command.append("--vertical-only")
         scan_origin_heading = cable_heading
         child = run_child(command, path, args.child_timeout_seconds)
         if child.get("outcome") == "target_found":
@@ -149,8 +169,15 @@ def run(args):
             if target_scan.get("outcome") == "target_found":
                 report["events"].append("target_found")
                 break
-            if target_scan.get("outcome") != "scan_complete_no_target":
+            valid_scan_outcomes = (
+                "scan_complete_no_target",
+                "vertical_scan_complete_no_target",
+            )
+            if target_scan.get("outcome") not in valid_scan_outcomes:
                 raise RuntimeError(target_scan.get("error", "search scan failed"))
+            if args.camera_only:
+                report["outcome"] = "target_not_found"
+                return report
             if search_index >= args.maximum_search_moves:
                 report["outcome"] = "target_not_found"
                 return report
@@ -164,6 +191,10 @@ def run(args):
                 report["outcome"] = "target_found_at_standoff"
                 report["target_observation"] = target_scan["target_observation"]
                 report["events"].append("safe_standoff_confirmed")
+                return report
+            if args.camera_only:
+                report["outcome"] = "target_found_not_at_standoff"
+                report["target_observation"] = target_scan["target_observation"]
                 return report
             if approach_index >= args.maximum_approach_steps:
                 raise RuntimeError("maximum approach steps reached")
@@ -187,6 +218,11 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument(
+        "--camera-only",
+        action="store_true",
+        help="forbid all chassis scans and movement",
+    )
+    parser.add_argument(
         "--scan-script", default="/home/animesh/echora/bounded_target_scan.py"
     )
     parser.add_argument(
@@ -196,7 +232,7 @@ def parse_args(argv=None):
     parser.add_argument("--initial-cable-heading-degrees", type=float, default=0.0)
     parser.add_argument("--maximum-search-moves", type=int, default=2)
     parser.add_argument("--maximum-approach-steps", type=int, default=8)
-    parser.add_argument("--found-height-fraction", type=float, default=0.30)
+    parser.add_argument("--found-height-fraction", type=float, default=0.15)
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--try-up", action="store_true", default=True)
     parser.add_argument("--child-timeout-seconds", type=float, default=180.0)
@@ -220,6 +256,7 @@ def main(argv=None):
         "target_found_at_standoff",
         "target_not_found",
         "target_lost",
+        "target_found_not_at_standoff",
     ) else 2
 
 

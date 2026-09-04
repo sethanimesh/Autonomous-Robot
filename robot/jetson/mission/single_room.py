@@ -42,7 +42,7 @@ class SingleRoomMission:
     def __init__(
         self,
         maximum_observation_age_seconds=0.75,
-        found_box_height_fraction=0.30,
+        found_box_height_fraction=0.15,
     ):
         if maximum_observation_age_seconds <= 0:
             raise ValueError("observation age limit must be positive")

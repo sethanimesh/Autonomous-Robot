@@ -32,6 +32,7 @@ class FakeMotor(object):
         self.position = 0
         self.speed = 0
         self.stop_count = 0
+        self.hold_count = 0
         self.target = None
 
     def set_speed(self, speed):
@@ -42,6 +43,10 @@ class FakeMotor(object):
     def stop(self):
         self.speed = 0
         self.stop_count += 1
+
+    def hold(self):
+        self.speed = 0
+        self.hold_count += 1
 
     def move_to(self, position, speed):
         if self.fail_on_speed:
@@ -199,12 +204,13 @@ class ProtocolTests(unittest.TestCase):
         controller.zero_tool()
         controller.move_tool(-20, 30)
 
-        clock.advance(3.99)
+        clock.advance(7.99)
         self.assertFalse(controller.enforce_watchdog())
         clock.advance(0.02)
         self.assertTrue(controller.enforce_watchdog())
 
         self.assertEqual(0, motors["tool"].speed)
+        self.assertEqual(1, motors["tool"].hold_count)
         self.assertEqual("tool-move-timeout", controller.last_stop_reason)
 
     def test_tool_must_be_homed_before_position_move(self):
@@ -240,6 +246,26 @@ class ProtocolTests(unittest.TestCase):
         controller.drive(30, 30)
         with self.assertRaises(ProtocolError):
             controller.zero_tool()
+
+    def test_tool_position_can_be_acknowledged_after_restart_without_rezeroing(self):
+        controller, motors = make_controller()
+        motors["tool"].position = 63
+
+        response = handle_request(
+            controller, {"command": "tool_acknowledge_position"}
+        )
+
+        self.assertEqual(63, response["position"])
+        self.assertEqual(63, motors["tool"].position)
+        self.assertTrue(controller.tool_homed)
+        self.assertEqual("tool-position-acknowledged", controller.last_stop_reason)
+
+    def test_tool_position_acknowledgement_requires_stopped_motors(self):
+        controller, _ = make_controller()
+        controller.drive(30, 30)
+
+        with self.assertRaises(ProtocolError):
+            controller.acknowledge_tool_position()
 
     def test_json_line_round_trip(self):
         request = decode_request(b'{"command":"ping"}')
