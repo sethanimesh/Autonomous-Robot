@@ -33,7 +33,7 @@ verified.
 | USB camera | USB `0c45:6366` on bus `1-2.3` (`Arducam_8mp`; `lsusb` labels it Microdia Webcam Vitade AF) |
 | Camera capture node | `/dev/video0` — `ID_V4L_CAPABILITIES=:capture:`, index 0 |
 | Camera metadata node | `/dev/video1` — empty V4L2 capabilities; **cannot be opened by OpenCV**, do not use |
-| Camera sysfs path | `/sys/bus/usb/devices/1-2.3`; `authorized` toggles a safe simulated unplug |
+| Camera sysfs path | `/sys/bus/usb/devices/1-2.4` with the USB extender fitted on 2026-09-04; `authorized` toggles a safe simulated unplug |
 | Camera formats (MJPG) | 640×480@30, 800×600@30, 1280×720@30, 1920×1080@30, 1600×1200@30, 2592×1944@15, 3264×2448@15 |
 | Camera formats (YUYV) | 320×240, 640×480, 800×600, 1280×720 — **all 10 fps only** |
 | OpenCV default format | YUYV, so it defaults to 10 fps; `MJPG` must be requested explicitly |
@@ -73,6 +73,9 @@ verified.
 | Positive motor direction | Unknown for both tracks |
 | Positive encoder response | Confirmed on A, B, and C during short +100°/s pulses |
 | Wheel/track geometry | Effective drive radius 0.0144504 m; effective track width 0.182557 m; calibrated on the floor and deployed |
+| Chassis envelope | 20 cm maximum width × 25 cm maximum length; owner measured on 2026-09-04 |
+| Camera lens height | 15 cm above the floor with the robot on the ground; owner measured on 2026-09-04 |
+| External cable | One very long cable remains attached during operation. Autonomous scans must use a bounded out-and-back sweep and return to the starting heading; repeated same-direction rotations are forbidden. |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 | Camera-head direction | **Encoder counts increase as the lens tilts DOWN.** Confirmed on 2026-09-03 by watching the lens while jogging: positive is down, negative is up. The earlier "top = 0" reading was wrong and had inverted both the browser controls and the named positions. |
@@ -172,6 +175,15 @@ One boot recorded 24 connect attempts against 19 disconnects. Moving the camera
 to **port `1-2.1`** resolved it completely: clean enumeration, no `-71` errors,
 and 9/9 stable samples over 45 seconds. The fault is the port, not the camera
 and not the cable.
+
+On 2026-09-04 a USB extender moved the live camera to downstream path
+`1-2.4`. The physical reconnect produced one expected disconnect and recovered
+automatically after 18 seconds. After recovery, the calibrated 640×480 MJPG
+stream held 18.24–18.25 fps in the current lighting, published fresh frames,
+and reported zero consecutive read failures or duplicates. A separate HTTP
+check received 20/20 snapshots with 20 unique JPEGs and no request failures;
+no further USB or UVC kernel errors appeared during the check. The enrollment
+preview was restarted and is active on port 8080.
 
 All four USB-A ports on the Orin Nano sit behind an internal Realtek 4-port hub
 (`0bda:5489` on USB 2.0, `0bda:0489` on USB 3.0), so there is no USB-A path

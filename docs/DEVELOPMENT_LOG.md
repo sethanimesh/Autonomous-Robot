@@ -1445,3 +1445,42 @@ complete.
   `look_forward` then settled at +1 and reproduced the upright room frame.
   Motor A reported `holding`, B/C remained stopped at encoder zero, and no
   timeout or driver reset occurred.
+
+## 2026-09-04 — Phase 5 footprint and USB-extender check
+
+- **Measured geometry:** The owner measured a 20 cm maximum chassis width,
+  25 cm maximum chassis length, and 15 cm camera-lens height with the robot on
+  the floor. Local route planning will inflate obstacles around this footprint.
+- **Cable constraint:** One very long external cable remains attached. A search
+  scan may sweep through room sectors, but it must reverse and unwind back to
+  its starting heading. Repeated same-direction 360-degree turns are excluded.
+- **Reconnect observed:** Fitting the USB extender caused one real UVC
+  disconnect at 06:16:15. The existing camera service released the missing
+  device and reopened it on downstream path `1-2.4` at 06:16:34, completing
+  exposure warm-up two seconds later without manual intervention.
+- **Extender acceptance:** The recovered calibrated 640×480 MJPG stream held
+  18.24–18.25 fps in the current indoor lighting, with zero consecutive read
+  failures and zero duplicate frames. Twenty HTTP snapshots produced twenty
+  distinct JPEGs with no request failure. No new USB/UVC kernel errors appeared
+  after recovery.
+- **Preview:** `echora-enrollment-console.service` had been inactive and was
+  restarted successfully; the live preview and snapshot endpoint are available
+  on port 8080.
+- **Camera-head reference warning:** The EV3 currently reports the tool encoder
+  at zero but `tool_homed=false`, so the named position label is not a trusted
+  physical angle after the reconnect/reboot. Route perception can be developed
+  passively, but autonomous named head movement must first restore a repeatable
+  visual or mechanical reference.
+- **Planner implementation:** Added a deterministic local route selector using
+  the measured footprint, 5 cm side margins, 5–10 cm movement primitives, seven
+  candidate headings, confidence/known-area rejection, and a cable-safe scan
+  sequence that always unwinds to zero. No motor command is emitted by this
+  component.
+- **First depth benchmark:** YOLO26n-depth downloaded into a non-repository Mac
+  cache and ran through PyTorch MPS on the current 640×480 camera snapshot. Its
+  first compile/warm-up took 7080.9 ms; the next three inferences took 30.7,
+  16.2, and 14.0 ms (20.3 ms mean). It produced a full-resolution depth map.
+  Metric accuracy is not accepted yet because this view has no measured ground
+  truth and the camera head is not homed.
+- **Tests:** The planner tests bring the suite to 393 passing tests with four
+  dependency-based skips; whitespace validation passes.

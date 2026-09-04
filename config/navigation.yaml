@@ -1,0 +1,17 @@
+camera_only_navigation:
+  ros__parameters:
+    robot_width_m: 0.20
+    robot_length_m: 0.25
+    camera_lens_height_m: 0.15
+    safety_margin_m: 0.05
+    minimum_step_m: 0.05
+    maximum_step_m: 0.10
+    candidate_headings_degrees: [-45, -30, -15, 0, 15, 30, 45]
+    minimum_route_confidence: 0.70
+    minimum_known_fraction: 0.85
+    target_standoff_m: 0.90
+    scan_step_degrees: 30
+    scan_sweep_limit_degrees: 180
+    external_cable_attached: true
+    unknown_is_blocked: true
+

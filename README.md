@@ -105,6 +105,13 @@ forward and downward views between them. Uncertain or stale vision means stop.
 The camera-head motion and chassis motion are coordinated so the recognition
 pipeline never assumes the camera is forward while it is checking the floor.
 
+The first local-navigation slice now uses the measured 20 cm × 25 cm chassis
+and requires perception to prove a 30 cm wide corridor before selecting one
+5–10 cm motion primitive. Route confidence and known-image coverage fail
+closed. Because a long external cable remains attached, the scan pattern
+sweeps only to +180°, unwinds, sweeps to -180°, and unwinds to its starting
+heading instead of accumulating full rotations.
+
 The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,
 and `/camera/status` from the USB camera at a measured **27.3 fps** (MJPG
