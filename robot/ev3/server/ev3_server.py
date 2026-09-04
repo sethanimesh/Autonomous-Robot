@@ -22,7 +22,7 @@ DEFAULT_PORT = 9999
 DEFAULT_ALLOWED_CLIENT = "192.168.1.48"
 DEFAULT_WATCHDOG_SECONDS = 0.5
 DEFAULT_DRIVE_SPEED_LIMIT = 250
-DEFAULT_TOOL_SPEED_LIMIT = 1000
+DEFAULT_TOOL_SPEED_LIMIT = 300
 DEFAULT_TOOL_POSITION_LIMIT = 720
 DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 4.0
 DEFAULT_TOOL_HOME_SPEED_LIMIT = 30
@@ -51,7 +51,15 @@ class SysfsMotor(object):
 
     def __init__(self, port, sysfs_root="/sys/class/tacho-motor"):
         self.port = port
+        self.sysfs_root = sysfs_root
         self.path = self._find_motor(sysfs_root, port)
+
+    def _ensure_path(self):
+        # ev3dev may remove and recreate a motor with a new motorN name after a
+        # driver reset. Resolve the output port again instead of requiring the
+        # whole service to be restarted with the stale sysfs path.
+        if not os.path.isdir(self.path):
+            self.path = self._find_motor(self.sysfs_root, self.port)
 
     @staticmethod
     def _find_motor(sysfs_root, port):
@@ -74,6 +82,7 @@ class SysfsMotor(object):
         raise HardwareError("required motor not found on {0}".format(port))
 
     def _write(self, attribute, value):
+        self._ensure_path()
         path = os.path.join(self.path, attribute)
         try:
             with open(path, "w") as attribute_file:
@@ -84,6 +93,7 @@ class SysfsMotor(object):
             )
 
     def _read(self, attribute):
+        self._ensure_path()
         path = os.path.join(self.path, attribute)
         try:
             with open(path, "r") as attribute_file:

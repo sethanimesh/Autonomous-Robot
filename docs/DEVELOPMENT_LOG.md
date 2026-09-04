@@ -1425,3 +1425,23 @@ complete.
 - **Cloud option:** A cloud vision model may label occasional settled snapshots
   during calibration. Motor motion and image-change checks stay local; missing,
   slow, or uncertain cloud output must stop the sequence.
+- **High-load driver reset:** Repeated 1000-count/s attempts caused ev3dev to
+  re-enumerate output A from `motor0` to `motor3`. The motor remained present,
+  but the running server had cached the removed `motor0` path and status became
+  stale. `SysfsMotor` now re-resolves the output address when its path vanishes;
+  the deployed head limit was reduced back to 300 counts/s. No further movement
+  was issued after this fault.
+- **Reconnection success:** The owner reconnected output A. The next snapshot
+  was upright, unobstructed, and level. It was zeroed as forward; a +15 request
+  settled at +17 with the route/floor visible, and a -15 request returned to +2
+  with the original forward composition. Output A stayed in regulated `holding`,
+  no timeout occurred, and both track motors remained stopped.
+- **Calibration accepted:** Named positions are forward 0 and down +17. The
+  Jetson software range is intentionally only -5..+25 and speed is back to 300;
+  the broad exploratory -180..+180 range and 1000-count/s setting are retired.
+  Cloud classification is unnecessary for these two repeatable positions.
+- **Named-position acceptance:** With the calibrated config deployed,
+  `look_down` settled at +19 and produced the expected floor/route frame;
+  `look_forward` then settled at +1 and reproduced the upright room frame.
+  Motor A reported `holding`, B/C remained stopped at encoder zero, and no
+  timeout or driver reset occurred.

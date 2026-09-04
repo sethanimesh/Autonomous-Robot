@@ -17,9 +17,8 @@ shutdown stop behavior through `SIGINT`.
 | Right track | C |
 
 Speeds are EV3 tacho-motor speed setpoints in degrees per second. Development
-limits default to ±250 for each track and ±1000 for the tool motor. The tool
-limit is about 64% of the observed 1560-count/s motor maximum and is used only
-for short bounded camera-head moves, while being
+limits default to ±250 for each track and ±300 for the tool motor. The tool
+limit is below 20% of the observed 1560-count/s motor maximum, while being
 high enough to lift the current camera assembly. These limits remain below the
 attached motors' reported maximum of 1050.
 

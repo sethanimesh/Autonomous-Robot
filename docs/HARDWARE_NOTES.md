@@ -76,8 +76,9 @@ verified.
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
 | Camera-head direction | **Encoder counts increase as the lens tilts DOWN.** Confirmed on 2026-09-03 by watching the lens while jogging: positive is down, negative is up. The earlier "top = 0" reading was wrong and had inverted both the browser controls and the named positions. |
-| Camera-head calibration | Not yet complete. A 2026-09-04 settled-frame sweep found a forward room view and a useful route/floor view about 16 encoder counts farther down. The coordinate is re-zeroed during calibration and is not persistent across motor resets. |
+| Camera-head calibration | Calibrated 2026-09-04 after reconnecting output A. Forward is 0, route/down is +17, and the exposed operational range is -5..+25 at 300 counts/s. A round trip reached 0 -> +17 -> +2 with matching settled views and regulated hold. |
 | Camera-head load | At 150 and 300 counts/s, upward targets timed out and the camera back-drove the gearing. One 1000-count/s upward step reached -14 for a -15 target and held, but a later step failed at a higher-load linkage point and fell back. Add physical support/counterbalance before autonomous use. |
+| Motor-A driver reset | Repeated high-load 1000-count/s attempts caused ev3dev to re-enumerate output A from `motor0` to `motor3`; the motor remained detected. The EV3 server now re-resolves a missing sysfs motor path by output address. The deployed camera-head limit was returned to 300 counts/s. |
 
 ### Phase 4 connectivity note (2026-09-03)
 

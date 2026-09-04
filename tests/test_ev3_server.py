@@ -1,9 +1,13 @@
 import json
+import os
+import shutil
+import tempfile
 import unittest
 
 from robot.ev3.server.ev3_server import HardwareError
 from robot.ev3.server.ev3_server import MotorController
 from robot.ev3.server.ev3_server import ProtocolError
+from robot.ev3.server.ev3_server import SysfsMotor
 from robot.ev3.server.ev3_server import decode_request
 from robot.ev3.server.ev3_server import encode_response
 from robot.ev3.server.ev3_server import handle_request
@@ -67,6 +71,28 @@ def make_controller(clock=None, failing_role=None):
     return controller, motors
 
 
+class SysfsMotorTests(unittest.TestCase):
+    def test_re_resolves_port_after_driver_reenumeration(self):
+        root = tempfile.mkdtemp()
+        try:
+            first = os.path.join(root, "motor0")
+            os.mkdir(first)
+            with open(os.path.join(first, "address"), "w") as handle:
+                handle.write("ev3-ports:outA")
+            motor = SysfsMotor("outA", root)
+
+            shutil.rmtree(first)
+            replacement = os.path.join(root, "motor3")
+            os.mkdir(replacement)
+            with open(os.path.join(replacement, "address"), "w") as handle:
+                handle.write("ev3-ports:outA")
+
+            self.assertEqual("ev3-ports:outA", motor._read("address"))
+            self.assertEqual(replacement, motor.path)
+        finally:
+            shutil.rmtree(root)
+
+
 class MotorControllerTests(unittest.TestCase):
     def test_startup_stops_every_motor(self):
         controller, motors = make_controller()
@@ -80,10 +106,10 @@ class MotorControllerTests(unittest.TestCase):
 
         applied = controller.drive(999, -999, 2000)
 
-        self.assertEqual({"left": 250, "right": -250, "tool": 1000}, applied)
+        self.assertEqual({"left": 250, "right": -250, "tool": 300}, applied)
         self.assertEqual(250, motors["left"].speed)
         self.assertEqual(-250, motors["right"].speed)
-        self.assertEqual(1000, motors["tool"].speed)
+        self.assertEqual(300, motors["tool"].speed)
         self.assertTrue(controller.motion_active)
 
     def test_zero_drive_stops_all_motors(self):

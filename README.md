@@ -90,8 +90,10 @@ convention in one place as `CAMERA_UP_SIGN`/`CAMERA_DOWN_SIGN`.
 Encoder 0 is not intrinsically a physical angle. On 2026-09-04, settled camera
 frames established a sequence from ceiling through the wall/ceiling edge to a
 forward room view; a further +16° showed the nearby route/floor. The loaded
-upward direction later failed at one linkage point even at 1000 counts/s, so
-calibration remains disabled until both named views can be repeated.
+upward direction later failed at one linkage point even at 1000 counts/s. After
+output A was physically reconnected, a safe 300-count/s round trip reached
+forward 0°, route/down +17°, and forward +2° with matching images. Named
+positions are enabled inside a deliberately narrow -5°..+25° range.
 
 The console also exposes `/snapshot.jpg`, a no-store copy of the latest frame
 for one-shot visual classification. Runtime motion will use local image-change
