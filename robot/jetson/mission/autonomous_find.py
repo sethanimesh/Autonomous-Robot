@@ -106,7 +106,7 @@ def run(args):
                 )
                 cable_heading = 0.0
         if args.try_up:
-            command.append("--try-up")
+            command.extend(["--try-up", "--search-up"])
         scan_origin_heading = cable_heading
         child = run_child(command, path, args.child_timeout_seconds)
         if child.get("outcome") == "target_found":

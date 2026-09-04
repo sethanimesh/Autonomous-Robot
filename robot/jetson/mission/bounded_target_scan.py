@@ -350,17 +350,20 @@ def run(args):
                 and time.monotonic() - self.body_at <= 1.0
             )
 
-        def seek_target_upward(self):
-            """Stop the chassis and inspect upward only after seeing a person."""
+        def seek_target_upward(self, requested_limit=None):
+            """Stop the chassis and inspect progressively higher camera views."""
             self.stop()
             while True:
                 if target_is_confirmed(self.target):
                     return True
                 position = int(self.head_status.get("position", -999))
                 minimum = int(self.head_status.get("minimum_position", -999))
-                if position <= minimum + 2:
+                limit = minimum
+                if requested_limit is not None:
+                    limit = max(minimum, int(requested_limit))
+                if position <= limit + 2:
                     return self.wait_for_target(args.up_dwell_seconds)
-                step = max(-15, minimum - position)
+                step = max(-15, limit - position)
                 previous = self.head_at or 0.0
                 message = String()
                 message.data = json.dumps(
@@ -429,6 +432,17 @@ def run(args):
                 if node.seek_target_upward():
                     return target_seen_at(heading)
                 node.look_forward()
+            elif args.search_up:
+                report.setdefault("high_view_checks", []).append(heading)
+                if node.seek_target_upward(args.high_search_position):
+                    return target_seen_at(heading)
+                if node.body_is_visible():
+                    report.setdefault("body_guided_tilts", []).append(
+                        {"heading_degrees": heading, "body": dict(node.body)}
+                    )
+                    if node.seek_target_upward():
+                        return target_seen_at(heading)
+                node.look_forward()
             return False
 
         if observe_heading(0):
@@ -471,6 +485,12 @@ def parse_args(argv=None):
         action="store_true",
         help="tilt upward in steps when a person body is seen without a face",
     )
+    parser.add_argument(
+        "--search-up",
+        action="store_true",
+        help="check one higher view before rotating when the low view sees nobody",
+    )
+    parser.add_argument("--high-search-position", type=int, default=-15)
     parser.add_argument("--dwell-seconds", type=float, default=1.0)
     parser.add_argument("--up-dwell-seconds", type=float, default=3.0)
     parser.add_argument("--turn-speed", type=float, default=0.30)
