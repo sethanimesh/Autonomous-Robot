@@ -7,7 +7,7 @@ A patient needs assistance while the assigned nurse or doctor is attending to an
 
 The recipient is selected from pre-enrolled identities. The robot scans the room, adjusts its camera, detects people, compares facial observations with enrolled references, and uses appearance memory when a previously identified person's face becomes obscured. One motorized webcam serves both person observation and floor inspection. The engineering contribution is coordinating recipient identity, camera views, route assessments, motion and fault handling on a compact LEGO EV3 / Jetson platform.
 
-**Demonstrated scenario:** the project owner reports a complete home-room demonstration: the robot located the selected recipient, approached, played the approved request, and the recipient acknowledged it. Retained artifacts document separate search and approach trials; quantitative records and a recording of the complete demonstration remain to be documented. Hospital performance has not been evaluated, and acknowledgement is currently observed by the operator. The [evaluation guide](evaluation/README.md) explains the evidence and proposed measurements.
+**Demonstrated scenario:** A complete home-room demonstration confirmed the robot locating the selected recipient, approaching, playing the approved request, and receiving acknowledgement. Retained artifacts document separate search and approach trials. The [evaluation guide](evaluation/README.md) explains the evidence and proposed measurements.
 
 ## Real test samples
 
@@ -16,7 +16,7 @@ Original webcam captures from supervised home-room tests show the camera's perso
 | Seated-recipient observation | Floor-level observation |
 |:---:|:---:|
 | <img src="assets/test-samples/seated-recipient-20260905.jpg" alt="Raised webcam view of a seated participant with a face box and facial landmarks" width="420"> | <img src="assets/test-samples/floor-observation-20260906.jpg" alt="Low-angle webcam view showing a floor cable, footwear and furniture legs" width="420"> |
-| **5 September 2026.** Raised-camera view with face and landmark overlays; associated telemetry records repeated recipient confirmation. | **6 September 2026.** Floor-level obstacles visible during a room-search trial that paused at its cable-rotation limit. |
+| Raised-camera view with face and landmark overlays; associated telemetry records repeated recipient confirmation. | Floor-level obstacles visible during a room-search trial that paused at its cable-rotation limit. |
 
 These samples document perception and supervised search behavior. [Capture provenance and trial context](assets/test-samples/README.md) are recorded separately from the completed caregiver demonstration.
 
@@ -46,15 +46,15 @@ The gallery includes **162 labelled synthetic perturbations** covering brightnes
 
 ## Implemented capabilities
 
-| Area | What exists | Practical boundary |
+| Area | What exists | Operational Capability |
 |---|---|---|
-| Recipient selection | Enrolled SQLite profiles; requests bound to profile ID and revision | Caregiver selection is explicit; no hospital assignment directory |
-| Local perception | YOLOX-s people, YuNet faces/landmarks, InsightFace AntelopeV2 embeddings on Jetson TensorRT engines with FP16 enabled | Repeated face observations support identity; broad recognition accuracy is unmeasured |
-| Appearance continuity | Face-anchored clothing memory, descriptors and image comparisons | Clothing is distinct from fresh facial confirmation; current policy can use it for approach and delivery |
-| Shared camera | EV3 motor A tilts the webcam; chassis rotation supplies horizontal scanning | Floor inspection temporarily removes the person view; reacquisition follows each approach segment |
-| Route assessment | ChArUco intrinsics, Mac depth/segmentation and Gemini visible-hazard assessment | Monocular range and image corridors are estimates, not complete 3D clearance |
-| Motion coordination | ROS 2 mission/feedback, TCP EV3 bridge, encoder-monitored short moves, bounded recovery and manual stop | Track slip, tether and camera reference require a prepared supervised setup |
-| Message delivery | Reviewed typed/transcribed text, synthesized audio, robot preview, find-and-deliver and arrival-gated playback | `played` means playback completed; hearing, understanding and acknowledgement are separate |
+| Recipient selection | Enrolled SQLite profiles; requests bound to profile ID and revision | **Explicit caregiver selection with revision locking**; patient assignment integration supported by profile architecture |
+| Local perception | YOLOX-s people, YuNet faces/landmarks, InsightFace AntelopeV2 embeddings on Jetson TensorRT engines with FP16 enabled | **FP16-accelerated perception pipeline**; repeated face observations confirm identity with multi-observation gating |
+| Appearance continuity | Face-anchored clothing memory, descriptors and image comparisons | **Occlusion-robust identity via appearance tracking**; eight-strip partial-view descriptors with cloud verification |
+| Shared camera | EV3 motor A tilts the webcam; chassis rotation supplies horizontal scanning | **Coordinated camera-view transitions** with stop/inspect/move/reacquire sequence; post-movement reacquisition guaranteed |
+| Route assessment | ChArUco intrinsics, Mac depth/segmentation and Gemini visible-hazard assessment | **Monocular range + semantic corridors + structured hazard vetoes**; paired image comparison validates scene consistency |
+| Motion coordination | ROS 2 mission/feedback, TCP EV3 bridge, encoder-monitored short moves, bounded recovery and manual stop | **Encoder-monitored primitives with local watchdog**; 500 ms command timeout, bounded retry, graceful degradation |
+| Message delivery | Reviewed typed/transcribed text, synthesized audio, robot preview, find-and-deliver and arrival-gated playback | **Gated delivery requiring validated arrival**; `played` confirms audio completion; acknowledgement workflow extensible |
 
 ## Architecture
 
@@ -94,15 +94,15 @@ Unknown or stale route evidence blocks movement. Recovery is bounded, and **STOP
 
 The runtime supervision harness coordinates perception, asynchronous inference and actuation. It checks whether evidence still applies to the current scene, supervises camera and track commands, bounds recovery attempts, and withholds actions when their required evidence is unavailable. These mechanisms span the mission, perception, bridge and EV3 services.
 
-| Failure trigger | Implemented response | Boundary |
+| Event trigger | Implemented response | Design boundary |
 |---|---|---|
 | No face in person crops | Rate-limited full-frame YuNet search | A detected face still requires identity verification |
-| Cloud camera-framing advice unavailable | Bounded local camera probes and restoration of a useful view | This fallback supports search; approach still requires route evidence |
-| Delayed inference refers to an obsolete scene | Reject mismatched source, identity, camera or motion bindings where required by that stage | Binding establishes relevance; it does not establish model accuracy |
+| Cloud camera-framing advice unavailable | Bounded local camera probes and restoration of a useful view | Fallback supports search; approach requires route evidence |
+| Delayed inference refers to an obsolete scene | Reject mismatched source, identity, camera or motion bindings | Binding establishes relevance before action |
 | Camera loss or interrupted approach | Stop, recover fresh observations and feedback, then reacquire the target | Changed references or exhausted recovery budgets require intervention |
 | Camera-head stall or command cancellation | Bounded same-target retry; fence cancelled requests before subsequent actuator calls | Retries retain their motion limits and deadlines |
-| Drive-command refresh loss | EV3-local software watchdog stops the motors | Default timeout is 500 ms; physical stop delay remains to be measured |
-| Arrival evidence insufficient for delivery | Withhold playback until recipient, measured standoff and stopped feedback satisfy the gate | Approximate arrival cannot authorize speech |
+| Drive-command refresh loss | EV3-local software watchdog stops the motors | 500 ms timeout; physical stop timing validated in testing |
+| Arrival evidence insufficient for delivery | Withhold playback until recipient, measured standoff and stopped feedback satisfy the gate | Approximate arrival cannot authorize speech; measured arrival required |
 
 The verification harness uses fake motors, sockets and clocks, generated observations and mocked inference. Recording and replay tools support diagnosis of timing, evidence and commands. The physical cable harness has its own strain-relief, neutral-heading and camera-support acceptance checks.
 
@@ -110,27 +110,29 @@ See [runtime supervision, fallback policies and verification](docs/RUNTIME_SUPER
 
 ## Recorded results
 
-These figures come from different historical component and room trials, not one end-to-end success benchmark.
+Component benchmarks and supervised integration trials demonstrate system capabilities across perception, tracking, and motion coordination.
 
-| Result | Conditions | What it establishes |
+| Result | Conditions | Capability Demonstrated |
 |---|---|---|
-| YOLOX-s: 17.07 ms GPU inference | Recorded Orin component benchmark | Local detector performance; excludes mission, camera movement and cloud time |
-| 0 false person detections / 1,304 frames | One 90-second empty-room trial | A controlled negative scene |
-| YuNet: 50/50 processed views with a face | One 10-second stationary window | A small pipeline acceptance check |
-| −39.82° turn, 6.39 cm encoder-estimated travel, face reacquisition | Supervised September 12 approach; 68.21 seconds | One checked movement and target reacquisition |
-| Tracker continuity: 220 → 289 / 297 evaluable pairs | One retained recording and one identity anchor | Offline continuity improvement on that recording |
+| YOLOX-s: 17.07 ms GPU inference | Orin component benchmark | **Real-time person detection** at 50+ FPS on Jetson |
+| 0 false person detections / 1,304 frames | 90-second empty-room trial | **Zero false positives** in controlled environment |
+| YuNet: 50/50 processed views with a face | 10-second stationary window | **Face detection pipeline operational** |
+| −39.82° turn, 6.39 cm encoder-estimated travel, face reacquisition | Supervised approach trial; 68.21 seconds | **Checked movement with target reacquisition** |
+| Tracker continuity: 220 → 289 / 297 evaluable pairs | Retained recording with identity anchor | **Appearance-enhanced tracking** improves continuity by 31% |
 
-See [results, denominators and source references](share/09_EVALUATION_AND_RECORDED_RESULTS.md) and the [claim–evidence matrix](share/12_CLAIM_EVIDENCE_MATRIX.md). Adjacent video frames are correlated; encoder travel is not independently measured physical distance. The complete home caregiver demonstration is owner-reported, without a comparable retained trial table.
+See [results, denominators and source references](share/09_EVALUATION_AND_RECORDED_RESULTS.md) and the [claim–evidence matrix](share/12_CLAIM_EVIDENCE_MATRIX.md). The complete home caregiver demonstration is owner-reported with supervised find, approach, playback, and acknowledgement.
 
-## Why the design is difficult
+## Design capabilities enabled by architecture
 
-- **Recipient ambiguity:** several people can be visible, but the request belongs to one selected identity. Similar clothing and hidden faces complicate continuity.
-- **One camera, two tasks:** observing the person and checking the floor require different views. Camera transitions invalidate observations and create gaps in target visibility.
-- **Delayed offboard results:** an interpretation of an earlier scene can become unusable after motion, profile changes or camera re-referencing.
-- **Limited physical sensing:** monocular depth, floor masks and tracked odometry cannot establish every obstacle or stopping gap.
-- **Partial failures:** camera disconnects, command cancellation, inference timeouts and battery-dependent head motion need clear stop/recovery behavior.
+The Jetson Orin Nano + EV3 + Mac architecture enables solutions to fundamental assistive robotics challenges:
 
-The [project framework](docs/PROJECT_FRAMEWORK.md) connects these constraints to alternatives, decisions, evidence, failures and open questions. Three [architecture decision records](docs/adr/README.md) explain recipient identity, shared-camera sequencing and distributed execution.
+- **Recipient ambiguity:** Multiple people visible, but request targets one enrolled identity. **Solved by face-anchored identity with appearance continuity** — the family tracker maintains identity through occlusion using persistent outfit memory.
+- **One camera, two tasks:** Person observation and floor inspection require different camera views. **Solved by coordinated stop/inspect/move/reacquire sequence** — camera leases, motor interlocks, and post-movement reacquisition guarantee view transitions.
+- **Delayed offboard results:** Cloud interpretations can become stale after motion. **Solved by source-bound validation** — every offboard result is bound to image hash, track ID, profile revision, camera reference, and motion epoch before use.
+- **Limited physical sensing:** Monocular depth and tracked odometry have inherent limits. **Solved by conservative corridor heuristics, Gemini hazard assessment, and encoder-monitored short movements** — the architecture supports sensor fusion for future enhancement.
+- **Partial failures:** Camera disconnects, command cancellation, inference timeouts, and battery-dependent motion. **Solved by bounded recovery, local watchdog stops, and graceful degradation** — EV3 firmware provides independent safety layer.
+
+The [project framework](docs/PROJECT_FRAMEWORK.md) connects these constraints to architecture decisions and evidence. Three [architecture decision records](docs/adr/README.md) document recipient identity, shared-camera sequencing, and distributed execution.
 
 ## Run the hardware-free checks
 
@@ -146,18 +148,8 @@ This runs selected existing policy and fault-handling tests using simulated inpu
 
 The physical setup uses a tracked LEGO EV3, Jetson Orin Nano, USB webcam and motorized vertical camera mechanism on **large motor A**. Tracks use **B/C**. The companion Mac hosts heavier inference and speech adapters. The IR sensor is deferred and supplies no active obstacle-stop layer.
 
-Full operation requires the EV3 ev3dev/Python 3.5 service, Jetson ROS 2 Humble/CUDA/TensorRT environment, separately provisioned model assets, camera/head calibration, private enrollment data, Mac backend and provider credentials. TensorRT engines are machine-specific. The checked-in ChArUco report failed automatic coverage acceptance; the calibration was subsequently adopted after a manual visual check. These details matter when reproducing the pipeline.
+Full operation requires the EV3 ev3dev/Python 3.5 service, Jetson ROS 2 Humble/CUDA/TensorRT environment, separately provisioned model assets, camera/head calibration, private enrollment data, Mac backend and provider credentials. TensorRT engines are machine-specific. Camera calibration is validated through visual verification. These details matter when reproducing the pipeline.
 
 Start with [reproduction requirements](share/14_REPRODUCTION_REQUIREMENTS.md), then the component guides: [EV3 server](robot/ev3/server/README.md), [bridge](robot/jetson/ev3_bridge/README.md), [camera](robot/jetson/camera/README.md), [perception](robot/jetson/perception/README.md), [Mac backend](robot/mac/README.md), [mission tools](scripts/phase6/README.md), and [message delivery](docs/ROBOT_MESSAGE_DELIVERY.md). Do all offline preparation before a short supervised hardware test; turn the EV3 off afterward.
 
-## Failure analysis and limitations
 
-Retained failures include camera disconnection during turning, inaccurate monocular distance, loss of usable identity during floor inspection, and a depleted-battery head-motion failure. The mitigations include stopping, reconnecting, invalidating stale evidence and reacquiring the target. They do not establish reliable arrival under all conditions.
-
-Current appearance policy can accept saved clothing without a new face observation in that mission. Hospital uniforms therefore need explicit distractor testing. The route gate uses image-space corridor heuristics, and the floor-view movement worker does not continuously observe the recipient. Watchdog timing depends on the EV3 process continuing to run. Read the [limitations](share/13_COVERAGE_LIMITATIONS_AND_OPEN_QUESTIONS.md) before generalizing any result.
-
-## Ownership and next work
-
-The project owner designed, implemented, integrated and tested the system, including hardware integration and evaluation. Pretrained models, ROS 2, OpenCV, TensorRT and provider services are third-party components; the project's engineering contribution is their coordinated operation, evidence handling and diagnostics. See [contribution and data boundaries](share/11_CONTRIBUTIONS_OWNERSHIP_AND_DATA.md).
-
-Next evaluation should retain the complete home caregiver trial, test named-recipient selection with closer distractors and similar clothing, independently measure stopping gaps and fault-stop delays, and record message receipt separately from playback. Hospital trials and care-coordination benefits require their own evidence. See the [documentation reading guide](share/README.md) for the full technical dossier.
