@@ -32,3 +32,6 @@ share/10_DECISIONS_AND_FAILURE_TO_FIX_CASES.md
 
 # Reference docs copies - not needed in public repo
 share/reference_docs/
+
+# The communication app is maintained separately from the robot repository.
+communication/
