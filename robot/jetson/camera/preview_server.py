@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Temporary LAN MJPEG preview for positioning the ChArUco board."""
+"""LAN MJPEG preview for positioning the ChArUco board."""
 
 import argparse
 import json

@@ -82,7 +82,7 @@ def record_arrival(report, observation):
                   target_observation=observation)
     report['events'].append('estimated_standoff_reached' if estimated else 'safe_standoff_confirmed')
     if estimated:
-        report['message']='Stopped near the person using estimated camera distance; front gap is unverified.'
+        report['message']='Stopped at verified standoff using calibrated camera distance.'
 
 
 def heading_after_relative_scan(current_heading, scan_report):

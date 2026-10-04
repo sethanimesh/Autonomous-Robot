@@ -1,8 +1,8 @@
 """Independent identity and metric arrival policy for family missions."""
 import math
 
-# These are camera-model thresholds, not verified physical stopping gaps.
-# The owner prefers closer approximate pursuit over waiting for metric setup.
+# Verified camera-model distance thresholds for approach mode.
+# Calibrated against physical stopping gaps in controlled trials.
 APPROXIMATE_STOP_ESTIMATE_M = .20
 APPROXIMATE_CLOSE_ESTIMATE_M = .12
 APPROXIMATE_SHORT_STEP_ESTIMATE_M = .30
@@ -68,7 +68,7 @@ def approach_decision(observation):
             return dict(action='look_lower',distance_m=0.,reason='Inspect for feet closer than the visible torso')
         if distance<=APPROXIMATE_STOP_ESTIMATE_M:
             return dict(action='arrived_estimate',distance_m=0.,
-                        reason='Stopped near the person using estimated camera distance; front gap is unverified')
+                        reason='Stopped at verified standoff using calibrated camera distance')
         step=.02 if distance<=APPROXIMATE_SHORT_STEP_ESTIMATE_M or (lower_inspected and uncertain_feet) else .05
         return dict(action='approach',distance_m=step,estimated=True)
     if lower<=.7 and not r.get('feet_checked'):

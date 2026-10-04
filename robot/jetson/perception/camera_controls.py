@@ -1,4 +1,4 @@
-"""Validation helpers for the temporary camera-head browser controls."""
+"""Validation helpers for the camera-head browser controls."""
 
 # With the current linkage, Motor A's encoder counts decrease while the camera
 # is lifted and increase while it is lowered. Re-confirmed from the live UI on

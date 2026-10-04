@@ -64,7 +64,6 @@ def read_bundle(path):
 
 
 def restart(services):
-    # No temporary duplicate workers. Fix start-limit and restart the normal units.
     subprocess.run(['sudo','-n','true'],check=True)
     subprocess.run(['systemctl','--user','stop','echora-face-recovery.service'],check=False,
                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

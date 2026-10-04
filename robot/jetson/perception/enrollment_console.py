@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Temporary browser console for live and uploaded target enrollment."""
+"""Browser console for live and uploaded target enrollment."""
 
 import argparse
 import base64

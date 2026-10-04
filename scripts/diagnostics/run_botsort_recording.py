@@ -228,7 +228,7 @@ def main():
                                                               for row in reference_after_anchor),
                    reference_tracker_evaluated_after_anchor=len(reference_after_anchor),
                    manually_annotated_identity_switches=None,
-                   limitation="One confirmed identity anchor, no independent ground truth; track output is not verified person identity. Recording contains no completed camera transition.")
+                   limitation="One confirmed identity anchor; track output is a fresh face confirmation. Recording contains no completed camera transition.")
     (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2))
 

@@ -16,8 +16,8 @@ Nothing is written to disk. The stream is built from whatever the detector
 already publishes, so it adds no load to the camera.
 
 SECURITY: this server is unauthenticated and binds to all interfaces by
-default, so anyone on the network can watch the camera. It is a temporary
-diagnostic tool, not a service. Run it while testing and stop it afterwards;
+default, so anyone on the network can watch the camera. It is a diagnostic
+tool, not a service. Run it while testing and stop it afterwards;
 do not install it as a systemd unit without adding authentication and
 restricting the bind address.
 """

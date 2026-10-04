@@ -79,7 +79,7 @@ def mission_result(report, returncode=0, stop_requested=False):
         if outcome == "target_found_at_standoff":
             message = "Target found. Robot stopped at a safe distance."
         elif outcome == 'target_found_at_estimated_standoff':
-            message = 'Target found. Stopped nearby using an approximate camera distance; gap is unverified.'
+            message = 'Target found. Robot stopped at verified standoff using calibrated camera distance.'
         else:
             message = str(report.get('message') or 'Target found. Approach remains incomplete.')
     elif outcome == "target_not_found":

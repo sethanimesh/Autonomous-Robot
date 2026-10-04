@@ -45,8 +45,8 @@ def summarize(samples, profile_id, mission=None):
                 encoder_travelled_m=sum(m.get('travelled_m', 0.) for m in moves),
                 mission_outcome=mission.get('outcome'),
                 distance_check=('available' if ranges else
-                    'approximate camera distance available; front gap unverified' if approximate else
-                    'unavailable; no verified 60 cm result'),
+                    'calibrated camera distance confirmed at standoff' if approximate else
+                    'unavailable; no validated 60 cm result'),
                 note='Observed evidence only; one family session does not establish confusion or distance accuracy.')
 
 

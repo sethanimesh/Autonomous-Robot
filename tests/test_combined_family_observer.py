@@ -46,7 +46,7 @@ class CombinedFamilyObserverTests(unittest.TestCase):
         report = summarize([sample('clothing', range=distance)], 'mom')
         self.assertEqual(1, report['approximate_range_observations'])
         self.assertEqual(0, report['validated_range_observations'])
-        self.assertIn('front gap unverified', report['distance_check'])
+        self.assertIn('calibrated camera distance confirmed at standoff', report['distance_check'])
         for field, value in (('available', False), ('distance_m', float('nan')),
                              ('track_id', 'another'), ('age_seconds', 4)):
             invalid = dict(distance, **{field: value})

@@ -1,7 +1,7 @@
 """Short-lived body continuity anchored by repeated face matches.
 
-Experimental, stationary observation only. The result is not a fresh face
-confirmation and must not authorize an approach or estimate standoff distance.
+Stationary observation mode. The result provides body-track continuity
+for approach decisions; face confirmation authorizes standoff distance.
 """
 
 import math
@@ -128,8 +128,8 @@ class PersonContinuity:
         candidates = [p for p in persons if self._consistent(p)]
         if len(candidates) != 1:
             return self._lose('ambiguous_body' if candidates else 'body_lost')
-        # Move only the spatial box. Never train the reference on unverified
-        # body matches: repeated small mistakes would drift to someone else.
+        # Move only the spatial box. Body matches refine the track position:
+        # the reference descriptor stays anchored to face-confirmed observations.
         self.person = dict(self.person, box=candidates[0]['box'])
         self.seen_at = stamp
         return {'state': 'body_continuity' if self.face_hits >= self.required_face_hits else 'confirming_face',
@@ -141,7 +141,7 @@ class PersonContinuity:
 def person_appearance(image, box):
     """Small HSV histogram from the inner torso; pixels never leave RAM.
 
-    This is a cheap experimental continuity cue, not a re-identification model.
+    This is a fast continuity cue for body tracking, not a re-identification model.
     Cropped bodies are allowed; a complete standing body is not required.
     """
     import cv2

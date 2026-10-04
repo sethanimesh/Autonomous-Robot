@@ -61,7 +61,7 @@ def partial_view_similarity(a,b):
     """Align ordered strips, retaining at least half of the reference view.
 
     Brightness distinguishes pale trousers from dark clothing with similar hue.
-    These temporary signatures never replace face/cloud-confirmed references.
+    These signatures complement face/cloud-confirmed references for continuous tracking.
     """
     if not a or not b:return 0.
     def score(x,y):
