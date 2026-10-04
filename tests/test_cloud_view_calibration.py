@@ -1,3 +1,5 @@
+"""Cloud-view binding with generated payloads and synthetic advisor responses."""
+
 import copy
 import hashlib
 import json
@@ -23,8 +25,8 @@ class CloudCalibrationTests(unittest.TestCase):
         self.payloads = [bytes([i]) * 100 for i in (1, 2, 3)]
         self.positions = [34, 12, -9]
         self.digests = [hashlib.sha256(p).hexdigest() for p in self.payloads]
-        root = Path(__file__).resolve().parents[1]
-        self.result = json.loads((root / 'docs/calibration/vlm_evaluation_20260905/groq_sequence.json').read_text())
+        fixture = Path(__file__).resolve().parent / 'fixtures' / 'cloud_view_calibration.json'
+        self.result = json.loads(fixture.read_text())
         self.result['frame_sha256'] = self.digests
         self.advisor = Mock()
         self.advisor.interpret.side_effect = lambda *a, **k: copy.deepcopy(self.result)

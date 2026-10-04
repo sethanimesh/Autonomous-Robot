@@ -4,9 +4,22 @@ THIS IS FOR PERSONAL NON-COMMERCIAL USE, WE CAN USE ANYTHING
 
 ## Project Goal
 
-Build an autonomous indoor LEGO EV3 robot that uses a Jetson Orin Nano and USB camera to map a house, navigate safely, detect people, identify a target person, and search for them room by room.
+Build Echora as **On-Call Hospital Assistance with Recipient Directed Care
+Coordination**: an identity-aware LEGO EV3 / Jetson robot that locates the
+pre-enrolled caregiver selected in an assistance request, inspects the route,
+approaches in short checked segments, and presents an approved message.
 
-The Jetson should act as the main compute and autonomy layer. The EV3 should remain the low-level motion and sensor controller.
+The current scope is a prepared single room. The project owner has completed a
+home simulation covering recipient search, approach, playback, and human
+acknowledgement. Describe this as a simulated caregiver scenario, keeping it
+separate from hospital deployment or measured clinical benefit. Retained
+component and partial-mission results must keep their original conditions.
+
+The Jetson retains mission and movement authority. The EV3 remains the low-level
+motor and encoder controller. The companion Mac handles heavier depth,
+segmentation, speech adapters, and cloud requests; remote services return
+interpretations rather than motor commands. Mapping, Nav2, and multi-room search
+are deferred extensions.
 
 This document is intentionally lightweight. Treat it as guidance rather than a rigid specification.
 
@@ -22,17 +35,17 @@ USB Camera ───────▶│  Perception                  │
                    │  - Person detection          │
                    │  - Face identification       │
                    │                              │
-                   │  Localization / Mapping      │
-                   │  - Visual SLAM initially     │
-                   │  - Depth/LiDAR later if used │
+                   │  Visual evidence / state     │
+                   │  - Camera-view coordination  │
+                   │  - Encoder odometry          │
                    │                              │
                    │  Navigation                  │
-                   │  - Global planning           │
-                   │  - Local obstacle avoidance  │
+                   │  - Route assessment          │
+                   │  - Short checked movements   │
                    │                              │
                    │  Mission Logic               │
-                   │  - Search rooms              │
-                   │  - Find target person        │
+                   │  - Find selected caregiver   │
+                   │  - Supervise request delivery│
                    │                              │
                    │  ROS 2                       │
                    └──────────────┬───────────────┘
@@ -44,13 +57,17 @@ USB Camera ───────▶│  Perception                  │
                    │                              │
                    │  Motor control               │
                    │  Wheel encoder feedback      │
-                   │  IR sensor                   │
-                   │  Medium motor                │
+                   │  Camera tilt: large motor A  │
+                   │  IR sensor: deferred         │
                    │  Emergency local stop        │
                    └──────────────┬───────────────┘
                                   │
                        Tracks / LEGO hardware
 ```
+
+The companion Mac provides asynchronous visual and speech services to the
+Jetson. Result acceptance must check source-image, profile, camera-reference,
+and motion-state bindings before an interpretation influences a mission action.
 
 ---
 
@@ -58,18 +75,18 @@ USB Camera ───────▶│  Perception                  │
 
 ### Jetson
 
-Prefer ROS 2 as the main integration framework.
-
-Likely components:
+Use ROS 2 as the main integration framework. The current stack includes:
 
 - ROS 2
-- Nav2 for navigation
 - OpenCV for camera handling
-- PyTorch / TensorRT for perception
-- YOLO or another lightweight detector for person detection
-- InsightFace or similar embeddings for target-person recognition
-- ORB-SLAM3, RTAB-Map, or another visual SLAM system for initial mapping experiments
+- TensorRT engines with FP16 enabled for Jetson perception
+- YOLOX-s for person detection, YuNet for faces/landmarks, and InsightFace
+  AntelopeV2 embeddings for enrolled-recipient recognition
+- SQLite for identity profiles and appearance memory
+- Mac-backed Depth Anything V2, SegFormer-B0, and Gemini visible-hazard analysis
 - ros2_control concepts where useful, without forcing ROS onto the EV3 itself
+
+Nav2, ORB-SLAM3/RTAB-Map, depth cameras, and LiDAR remain possible later additions.
 
 ROS 2 should mostly be used as the message bus connecting perception, localization, navigation, robot state, and mission logic.
 
@@ -164,8 +181,8 @@ Handles:
 
 - left track motor
 - right track motor
-- medium motor
-- IR sensor
+- large camera-head motor A
+- IR sensor if restored later
 - encoder readings
 
 Do not mix AI or navigation logic into this layer.
@@ -248,7 +265,7 @@ Target-person recognition should be probabilistic, with multiple observations pr
 
 Start modularly so the mapping system can be changed later.
 
-### Initial option
+### Deferred mapping experiments
 
 Experiment with monocular visual SLAM using the USB camera.
 
@@ -274,7 +291,8 @@ A later depth camera or 2D LiDAR should be easy to add without rewriting the mis
 
 ## Navigation
 
-Nav2 is a good candidate for the navigation layer.
+Nav2 is a candidate for a later mapped navigation layer. The current mission
+uses stopped visual inspection and short encoder-monitored movement segments.
 
 Conceptually:
 
@@ -317,7 +335,9 @@ EV3 IR proximity check
 motors
 ```
 
-The IR sensor should be treated as a local safety/proximity signal rather than the primary mapping sensor.
+The IR sensor is currently deferred and does not provide an active obstacle
+stop. If restored, treat it as a local safety/proximity signal rather than the
+primary mapping sensor.
 
 If the EV3 detects something dangerously close, stopping locally is preferable to waiting for the Jetson.
 
@@ -332,11 +352,11 @@ Example state flow:
 ```text
 IDLE
  ↓
-LOCALIZE
+SELECT_RECIPIENT
+ ↓
+PREPARE_CAMERA
  ↓
 SEARCH
- ↓
-NAVIGATE_TO_SEARCH_AREA
  ↓
 SCAN
  ↓
@@ -346,7 +366,11 @@ IDENTIFY
  ├── not target → continue search
  └── target
        ↓
-    APPROACH
+    CHECK_ROUTE
+       ↓
+    APPROACH_SEGMENT
+       ↓
+    REACQUIRE_TARGET
        ↓
      FOUND
 ```
@@ -357,13 +381,13 @@ Do not introduce an LLM or autonomous-agent framework for basic movement decisio
 
 Later, an LLM can sit above the deterministic robotics stack for commands such as:
 
-> Find Mom and tell her dinner is ready.
+> Find the selected nurse and deliver the approved assistance request.
 
 The LLM should translate intent into robot missions, not directly control motors.
 
 ---
 
-## Search Strategy
+## Deferred Multi-Room Search Strategy
 
 Avoid random wandering once mapping works.
 
@@ -403,7 +427,10 @@ Automatic semantic room understanding can come later.
 The existing motor-A mechanism moves the camera vertically. The attached motor
 was physically identified as an EV3 large motor, not a medium motor.
 
-For the first version, the webcam can remain mostly fixed and the tracked robot can rotate its entire chassis to scan horizontally.
+The current mechanism supplies referenced person, face, and floor views. The
+tracked chassis rotates to scan horizontally within the tether limits. Stop
+before changing camera views, reject observations from an incompatible view or
+motion state, and reacquire the recipient after each approach segment.
 
 Later, the mechanism can be redesigned into a pan or pan/tilt head.
 
@@ -557,7 +584,7 @@ vision as blocked and stop. Mapping and Nav2 are deliberately deferred.
 
 ---
 
-### Phase 6 — Find a person in one room
+### Phase 6 — Find the selected recipient in one room
 
 Create the single-room mission:
 
@@ -585,9 +612,15 @@ choose another visible route instead of continuing blindly.
 Add:
 
 - voice commands and speech recognition
-- intent translation such as `FindPerson(target=mom)`
+- intent translation such as `FindPerson(target=selected_caregiver)`
 - spoken mission status and result
 - deterministic mission execution beneath the intelligence layer
+
+Reviewed typed/transcribed messages and supervised find-and-deliver playback are
+already implemented. Keep voice-command starts and software acknowledgement
+separate from this existing feature. A `played` result records playback
+completion; the home demonstration's human acknowledgement is an operator
+observation.
 
 The LLM or intent layer must not command motors directly.
 
@@ -615,7 +648,7 @@ be active or required by the single-room mission.
 
 ---
 
-### Phase 10 — Whole-home autonomous navigation (deferred)
+### Phase 10 — Mapped indoor navigation (deferred)
 
 Introduce Nav2 only after localization is reasonably stable. Test selected map
 destinations, obstacle recovery, doorways, and return paths.

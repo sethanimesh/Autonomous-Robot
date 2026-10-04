@@ -1,16 +1,20 @@
-# Echora Robo — Markdown explanation pack
+# Echora — On-Call Hospital Assistance with Recipient Directed Care Coordination
 
-This folder accompanies the repository-grounded technical dossier. It contains **Markdown only**: a complete report, focused explanations, an evidence index, and original project notes. It does not contain a runnable software copy or private robot data.
+A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the room and does not have a phone in hand. Echora explores a person-directed response: find the pre-enrolled caregiver named in the request, inspect the route, approach through short checked segments, and present an approved message when the delivery gates permit it.
+
+The compact prototype coordinates identity, one motorized webcam, distributed visual inference, and locally supervised movement. The recorded engineering trials were conducted in household/room settings. The project owner reports a complete home demonstration covering finding, approach, playback, and human acknowledgement. Clinical evaluation remains future work.
+
+This folder contains the technical dossier, focused explanations, evidence index, and historical snapshot. The 2026-10-04 framing revision preserves the original measurements and adds current-source delivery findings. Repository references resolve outside `share`; private robot data and model weights are not bundled in this documentation folder.
 
 ## Start here
 
-For one document to share, use [FULL_TECHNICAL_DOSSIER.md](FULL_TECHNICAL_DOSSIER.md). It contains the complete investigation, including architecture, mechanisms, parameters, claims, evidence, results, contributions, and limits.
+For one document to share, use [FULL_TECHNICAL_DOSSIER.md](FULL_TECHNICAL_DOSSIER.md). It contains the complete investigation, including architecture, mechanisms, parameters, evidence, results, contributions, and limits.
 
-For a new reader, read the scope and architecture guides first, then the subsystem guides. Read the evaluation and claim matrix before turning any implementation detail into a capability claim.
+For a new reader, read the scope and architecture guides first, then the subsystem guides. The evaluation guide and capability matrix distinguish implemented features, measured results, and remaining validation work.
 
 | Guide | What it explains |
 | --- | --- |
-| [Project scope and technical goal](01_PROJECT_SCOPE_AND_GOAL.md) | Actual technical goal; implemented endpoint; physical demonstrations; the gap to assistance delivery and acknowledgement. |
+| [Project scope and technical goal](01_PROJECT_SCOPE_AND_GOAL.md) | Technical goal, physical demonstrations, current message-delivery status, and acknowledgement workflow. |
 | [Architecture, entry points, and mission contract](02_ARCHITECTURE_AND_MISSION.md) | Jetson/EV3/Mac/cloud roles, ASCII diagram, ROS/HTTP/TCP paths, entry points, recipient selection, outcomes, budgets, and prototypes. |
 | [Hardware, camera control, and calibration](03_HARDWARE_CAMERA_AND_CALIBRATION.md) | Motors, encoder geometry, camera pose/reference handling, ChArUco calibration, useful-view calibration, and hardware contradictions. |
 | [Person search, face recognition, and enrollment](04_SEARCH_FACE_RECOGNITION_AND_ENROLLMENT.md) | Search and viewpoint rules; YOLOX/YuNet/InsightFace mechanisms; enrollment; face association and confirmation limits. |
@@ -18,37 +22,40 @@ For a new reader, read the scope and architecture guides first, then the subsyst
 | [Depth, floor assessment, hazards, and approach](06_DEPTH_NAVIGATION_AND_APPROACH.md) | Metric versus approximate range, SegFormer corridors, Gemini hazard vetoes, stopping policy, and encoder-monitored movement. |
 | [Distributed execution, freshness, stops, and recovery](07_DISTRIBUTED_EXECUTION_AND_SAFETY.md) | Freshness, clocks, queues, result binding, local watchdogs, cancellation, manual override, and fault-handling limits. |
 | [Models, inference backends, and performance limits](08_MODELS_AND_PERFORMANCE.md) | Model variants/backends/precision, resource placement, measured stage timing versus mission responsiveness. |
-| [Evaluation, physical trials, replay, and proposed tests](09_EVALUATION_AND_RECORDED_RESULTS.md) | Existing tests, recorded executions, physical runs, denominators, negative results, baseline replay, and proposed future measurements. |
-| [Contribution candidates, ownership, and data handling](11_CONTRIBUTIONS_OWNERSHIP_AND_DATA.md) | Supported engineering contributions, pretrained components, ownership limits, recording and biometric data lifecycles. |
-| [Claim–evidence matrix](12_CLAIM_EVIDENCE_MATRIX.md) | Claim-by-claim implementation and verification status with exact source references. |
-| [Coverage, contradictions, limitations, and open questions](13_COVERAGE_LIMITATIONS_AND_OPEN_QUESTIONS.md) | Inspection scope, stale documentation, contradictions, missing evidence, and two questions requiring human testimony. |
+| [Evaluation, physical trials, replay, and proposed tests](09_EVALUATION_AND_RECORDED_RESULTS.md) | Historical measured results, reported home demonstration, trial conditions, replay, and proposed measurements. |
+| [Hospital scenario and approved request delivery](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) | Named caregiver motivation, implemented delivery flow, playback gates, and receipt/acknowledgement boundaries. |
+| [Engineering contributions, attribution, and data handling](11_CONTRIBUTIONS_OWNERSHIP_AND_DATA.md) | Project-specific engineering, contribution attribution, pretrained components, recording and biometric data lifecycles. |
+| [Capability–evidence matrix](12_CLAIM_EVIDENCE_MATRIX.md) | Implementation and verification status for each capability, with source references. |
+| [Coverage, contradictions, limitations, and open questions](13_COVERAGE_LIMITATIONS_AND_OPEN_QUESTIONS.md) | Review scope, historical documentation differences, technical limitations, and further evaluation records. |
 | [Reproduction requirements](14_REPRODUCTION_REQUIREMENTS.md) | What hardware, code, dependencies, model assets, private setup, and calibration would still be needed to duplicate the system. |
 | [Evidence and source index](15_EVIDENCE_AND_SOURCE_INDEX.md) | Original file paths and cited line numbers; what is and is not included. |
 | [Source snapshot](SOURCE_SNAPSHOT.md) | Branch/commit, working-tree qualification, copy provenance and hashes. |
 
 ## Essential conclusions to retain
 
-- The implemented robotics endpoint is selected-person search and bounded approach. Full, reliable physical arrival is not demonstrated by the inspected evidence.
-- The communication app is separate. Robot delivery of a confirmed assistance message and caregiver acknowledgement are not connected in the inspected path.
+- Retained physical reports demonstrate selected-person search and bounded approach. Arrival accuracy still requires further measurement.
+- The current robot console integrates approved messages, Mac ASR/TTS, supervised search, and gated Jetson playback. `played` means the audio process completed; software acknowledgement is not implemented.
 - Clothing is labelled separately from a fresh face confirmation, but current family mode can authorize approach using clothing/tracking identity.
-- Distance estimates are explicitly approximate and have substantial recorded discrepancies. The floor-corridor check is an image heuristic, not proven three-dimensional clearance.
+- Distance estimates are approximate, with substantial recorded discrepancies. Floor-corridor checks are image heuristics and do not establish complete three-dimensional clearance.
 - Software tests, hardware trials, encoder estimates, operator measurements, and model outputs are different kinds of evidence.
-- The inspected working tree includes newer uncommitted files; the last commit does not reproduce it. Some latest installed changes were still awaiting service activation.
+- The retained deployment snapshot records uncommitted changes and installed updates awaiting activation. It describes the historical test version, not current live-service status.
 
-## Original reference documents
+## Repository reading guides
 
-The `reference_docs/` tree contains copies of 24 original Markdown documents, retaining their repository-relative layout. These preserve project history and the author's existing explanations. Particularly useful:
+The [project framework](../docs/PROJECT_FRAMEWORK.md), [architecture decisions](../docs/adr/README.md), and [evaluation guide](../evaluation/README.md) connect the project problem, design choices, and reproducible checks. For the complete technical narrative, use the dossier; for an implementation and results assessment, read the matrix and evaluation guide together.
 
-- [Project overview](reference_docs/README.md) and [project guidance](reference_docs/AGENTS.md).
-- [Hardware notes](reference_docs/docs/HARDWARE_NOTES.md) and [cable/camera support](reference_docs/docs/CABLE_AND_CAMERA_SUPPORT.md).
-- [Camera setup](reference_docs/docs/CAMERA_VISUAL_SETUP.md) and [calibration acceptance note](reference_docs/docs/calibration/README.md).
-- [Family clothing memory](reference_docs/docs/FAMILY_CLOTHING_MEMORY.md), [search scenarios](reference_docs/docs/PHASE6_PERSON_SEARCH_SCENARIOS.md), and [Gemini navigation](reference_docs/docs/GEMINI_NAVIGATION.md).
-- [Phase 6 build notes](reference_docs/scripts/phase6/README.md).
-- [Perception details](reference_docs/robot/jetson/perception/README.md), [EV3 service](reference_docs/robot/ev3/server/README.md), [bridge](reference_docs/robot/jetson/ev3_bridge/README.md), and [Mac services](reference_docs/robot/mac/README.md).
-- [Assistive communication plan](reference_docs/docs/ASSISTIVE_COMMUNICATION_PLAN.md) and [communication app status](reference_docs/communication/README.md).
+Original project notes remain in their repository locations:
 
-Original notes contain historical and superseded statements. They should not override the dossier's current-source findings without checking dates and execution paths. The explanations and source index are portable; original-reference links to omitted non-Markdown assets may not resolve in this folder.
+- [Project overview](../README.md) and [project guidance](../AGENTS.md).
+- [Hardware notes](../docs/HARDWARE_NOTES.md) and [cable/camera support](../docs/CABLE_AND_CAMERA_SUPPORT.md).
+- [Camera setup](../docs/CAMERA_VISUAL_SETUP.md) and [calibration acceptance note](../docs/calibration/README.md).
+- [Clothing memory](../docs/FAMILY_CLOTHING_MEMORY.md), [search scenarios](../docs/PHASE6_PERSON_SEARCH_SCENARIOS.md), and [Gemini navigation](../docs/GEMINI_NAVIGATION.md).
+- [Phase 6 build notes](../scripts/phase6/README.md).
+- [Perception details](../robot/jetson/perception/README.md), [EV3 service](../robot/ev3/server/README.md), [bridge](../robot/jetson/ev3_bridge/README.md), and [Mac services](../robot/mac/README.md).
+- [Robot message delivery](../docs/ROBOT_MESSAGE_DELIVERY.md) and [assistive communication plan](../docs/ASSISTIVE_COMMUNICATION_PLAN.md). The adjacent `communication/` app is local-only and is not part of the public robot source.
+
+The old exported `reference_docs/` copies are absent from this repository; links now point to existing repository files. Historical notes may contain superseded settings. Source line citations and numerical results retain their original provenance; documentation edits do not revalidate a live deployment.
 
 ## What to send
 
-Send this entire `share` folder when the recipient needs the complete explanation and historical context. If they need only one document, send the full dossier. Source code, model weights, private enrollment/outfit records, raw logs and physical recordings are not required to read these explanations and are not included. Independently reproducing the software or experimental results requires the additional material described in the reproduction guide.
+Share the repository documentation when readers need working source links. If they need one standalone narrative, send the full dossier and retain its source-path citations. Copying only `share` omits linked repository references. Independent reproduction requires the additional hardware, runtime, model assets, and enrollment described in the [reproduction guide](14_REPRODUCTION_REQUIREMENTS.md).

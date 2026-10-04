@@ -1,10 +1,12 @@
 # Evaluation, physical trials, replay, and proposed tests
 
-These findings explain the inspected working tree, not a freshly verified live robot. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) for the complete argument and the [snapshot](SOURCE_SNAPSHOT.md) for provenance. Source paths refer to the original repository; code and raw data are not bundled here.
+These guides retain the original source investigation and historical results, with a 2026-10-04 revision for the hospital assistance scenario and the current message-delivery code. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions; no live robot was tested for this revision. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder; cited source line numbers belong to the original investigation unless a current-source review is identified.
 
 **F. Evaluation inventory**
 
-The evaluation material is useful but heterogeneous. It contains component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and one retained real recording. They should not be combined into one success percentage.
+**Home scenario demonstration.** On 2026-10-04, the project owner reported a complete home simulation: the robot found the selected recipient, approached, played the request, and the person acknowledged it. This complements the retained partial-trial artifacts. Trial count, timing, independently measured stopping distance, and a recording are not documented. Acknowledgement was observed by a person; the software does not record recipient acknowledgement.
+
+The retained results concern the household/room prototype, not hospital participants or emergency response. Current delivery source review adds implementation evidence only. The evaluation material is useful but heterogeneous. It contains component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and one retained real recording. They should not be combined into one success percentage.
 
 | Measurement / trial | Conditions and denominator | Result | Evidentiary strength |
 |---|---|---|---|
@@ -26,7 +28,7 @@ The evaluation material is useful but heterogeneous. It contains component bench
 | Real route analysis | Selected stopped scene | One example: local 122.9 ms, Gemini 2.595 s | One request, not latency distribution or hazard accuracy. |
 | Recorded tracker comparison | Same 297 evaluable frame/detection pairs; one identity anchor | Baseline 220 retained; final change 289; eight pre-anchor frames | Real recording, offline continuity comparison; no independent recognition truth. |
 
-Sources for component figures: [person timing/detection trials, lines 706–782](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 706), [recognition acceptance, lines 1103–1153](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 1103), cold/warm service limitations — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
+Sources for component figures: person timing/detection trials, lines 706–782 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 706), recognition acceptance, lines 1103–1153 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 1103), cold/warm service limitations — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
 
 The tracker comparison is the clearest retained baseline experiment:
 
@@ -37,7 +39,7 @@ The tracker comparison is the clearest retained baseline experiment:
 - All eight remaining frames preceded the single identity anchor.
 - No camera transition occurred; all recorded head positions remained zero.
 - No new cloud calls occurred during comparison.
-- Latest deployment metadata says **`live_restarted: false`** and activation pending.
+- Retained deployment metadata in the September 12 artifact set records **`live_restarted: false`**; activation was pending in that snapshot.
 
 See recording summary — `artifacts/recorded-mom-live-20260912-01/summary.json:1` and deployment state — `artifacts/recorded-mom-live-20260912-01/appearance-margin-deployment.json:1`.
 
@@ -62,6 +64,7 @@ These are historical software results against their respective versions. They ar
 3. **Shared-camera transitions:** recorded person→floor→person cycles, target movement during the blind interval, and post-segment reacquisition.
 4. **Current-version stopping:** independently measured stop delay and travel after command loss, disconnect, delayed commands, process termination, head faults, and low battery.
 5. **End-to-end missions:** fixed scenario definitions and denominator; success only when the intended endpoint is actually reached; record interventions, duration, partial completion, and reason for stopping.
-6. **Delivery and acknowledgement:** evaluate only after a real message-to-recipient-to-playback-to-response path exists.
+6. **Delivery and acknowledgement:** test the implemented approved-message → selected-profile → supervised mission → gated playback path with measured arrival and an explicit trial denominator. Record human-observed receipt and acknowledgement separately from playback completion; an automated acknowledgement workflow is future work.
+7. **Hospital scenario:** begin with staged, supervised caregiver-role trials and deliberately similar clothing, competing people, occupied recipients, and absent targets. These are proposed tests; the household results do not measure patient outcomes or response-time benefit.
 
 [Back to reading guide](README.md)

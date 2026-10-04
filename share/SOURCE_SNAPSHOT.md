@@ -1,4 +1,6 @@
-# Source snapshot and packaging provenance
+# Source snapshot and documentation revision provenance
+
+## Original packaging record
 
 - Documentation packaged at: 2026-09-26T19:49:52+00:00.
 - Inspected branch: `main`.
@@ -10,9 +12,19 @@
 - The source repository's original files were left unchanged.
 - No credentials, databases, face images, raw embeddings, model weights, videos, or camera recordings are bundled. Original Markdown notes retain historical machine paths, device addresses, model names, and family labels; this is documentation rather than an anonymized dataset.
 
+## Current framing and source review (2026-10-04)
+
+The project is now presented as **On-Call Hospital Assistance with Recipient Directed Care Coordination**. This documentation revision preserves the original snapshot, commit history, reported measurements, and packaging hashes below. It updates the intended application, repository navigation, and current supervised robot-delivery findings; it does not retroactively alter the original investigation or establish a new physical result.
+
+Current source review includes `docs/ROBOT_MESSAGE_DELIVERY.md`, the console delivery integration, `speech_delivery.py`, `robot/mac/voice_delivery.py`, and the bridge camera-command worker. The current console has a reviewed-message → selected-profile → supervised mission → gated Jetson playback path, superseding the original finding that no connected delivery path was present. Recipient acknowledgement is not implemented; playback completion is not proof of hearing or understanding.
+
+On 2026-10-04, the project owner confirmed responsibility for project-specific design, implementation, integration, physical testing, and evaluation, and reported a complete home demonstration covering finding, approach, playback, and human acknowledgement. These details supplement the historical artifact-backed results. Trial count, timing, independently measured stopping distance, and a recording of the complete demonstration are not documented. The software does not record recipient acknowledgement. Third-party pretrained models and frameworks are attributed separately.
+
+The old `share/reference_docs/` export is absent here. Current links point to existing repository documentation and source; the ignored adjacent `communication/` app and local raw artifacts are cited as unavailable public evidence. Source line numbers can shift when files change. The current project revision passed 138 offline checks through [the reproduction harness](../scripts/diagnostics/reproduce_checks.py) under Python 3.14.7 on macOS using the standard library with `-S` (0.175 seconds). This validation is separate from the original no-test investigation. No live hardware, camera, model inference, network service, or remote runtime was exercised; see the [evaluation guide](../evaluation/README.md) for check coverage.
+
 ## Recent committed history
 
-This history ends before much of the newer uncommitted functionality. Commit authorship does not establish sole personal ownership.
+The original investigation counted 43 reachable commits under one author name. The selected history below ends before much of the newer uncommitted functionality; contribution attribution is described in the engineering contributions guide.
 
 ```text
 1e8fbb6 2026-09-04 sethanimesh add automatic camera head calibration
@@ -32,9 +44,9 @@ f5d0c4a 2026-09-04 sethanimesh execute first closed-loop camera detour
 bf822c9 2026-09-04 sethanimesh start camera-only local route planning
 ```
 
-## Exact copies of original Markdown references
+## Historical reference-copy manifest
 
-These reference documents are copied byte-for-byte. They can contain historical settings or stale claims; use the dossier's chronology and contradictions section to interpret them. Links inside original documents may point to omitted source files, images, logs, or remote-device paths.
+The original packaging record described these references as byte-for-byte copies. The manifest retains those historical bytes and hashes; it is not a checksum list for the currently edited repository files. The old export is not bundled here. Historical notes may contain superseded settings or links to local images, logs, and remote-device paths.
 
 | Original repository path | Bytes | SHA-256 of copied content |
 | --- | ---: | --- |

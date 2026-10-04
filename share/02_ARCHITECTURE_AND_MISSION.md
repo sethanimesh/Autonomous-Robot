@@ -1,6 +1,6 @@
 # Architecture, entry points, and mission contract
 
-These findings explain the inspected working tree, not a freshly verified live robot. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) for the complete argument and the [snapshot](SOURCE_SNAPSHOT.md) for provenance. Source paths refer to the original repository; code and raw data are not bundled here.
+These guides retain the original source investigation and historical results, with a 2026-10-04 revision for the hospital assistance scenario and the current message-delivery code. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions; no live robot was tested for this revision. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder; cited source line numbers belong to the original investigation unless a current-source review is identified.
 
 **B. Architecture and mission trace**
 
@@ -48,9 +48,12 @@ Jetson ── HTTP over reverse SSH tunnel ──► Mac route service
                                                         ▼
                                                       Cloud
 
-Separate communication app:
-reviewed message → local/device or generated speech
-                  [no connected robot-delivery/acknowledgement path found]
+Current supervised message delivery:
+reviewed text / edited transcript → Mac ASR/TTS → approved audio
+  → Jetson Find & deliver → final identity/range/stopped-feedback gate
+  → Jetson speaker playback [recipient acknowledgement not implemented]
+
+Adjacent communication app: separate stationary communication workflow
 ```
 
 The service files launch loose Python files from the deployed Jetson runtime directory, rather than demonstrating a conventional packaged ROS workspace. The browser launches the top-level mission process; that process starts calibration, scan, and movement workers. Relevant launch evidence includes console service — `robot/jetson/perception/echora-enrollment-console.service:6`, target observer service — `robot/jetson/mission/echora-target-observer.service:6`, bridge service — `robot/jetson/ev3_bridge/echora-bridge.service:6`, and Mac route-service launch configuration — `robot/mac/com.echora.route-perception.plist:7`.
@@ -86,13 +89,15 @@ A normal browser-started mission follows this path:
 
 The code anchors are console preflight, lines 1551–1598 — `robot/jetson/perception/enrollment_console.py:1551`, mission process ownership, lines 209–349 — `robot/jetson/perception/mission_control.py:209`, and top-level mission, lines 194–469 — `robot/jetson/mission/autonomous_find.py:194`.
 
+**Current-source delivery entry.** `POST /api/mission/deliver` adds profile/message approval, mandatory speaker preview, the ordinary supervised mission, and post-mission playback checks. Search-only `POST /api/mission/start` does not speak. See [delivery guide](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) and [current contract](../docs/ROBOT_MESSAGE_DELIVERY.md).
+
 An important execution distinction: the CLI wrapper’s `run_live()` explicitly passes `--skip-camera-calibration`, whereas the ordinary browser command does not. “Every entry point automatically calibrates before searching” would therefore be too broad. See CLI launch construction, lines 189–211 — `scripts/phase6/phase6.py:189`.
 
 **C1. Mission contract, recipient selection, and termination**
 
-The recipient is configurable through enrolled family profiles. It is not inherently “the nearest person,” and it is no longer a single permanently hard-coded identity. Profile selection is stored locally, and new browser requests carry a profile revision to avoid starting against a selection that changed after the page was rendered.
+The hospital scenario names a pre-enrolled caregiver as the intended recipient. The prototype selects that recipient through enrolled profiles; source names such as `family` and historical labels describe the household implementation and trials. Profile selection is stored locally, and browser requests carry a profile revision to avoid starting against a selection that changed after the page was rendered. Target identity, rather than nearest-person proximity, determines the requested endpoint.
 
-I found no patient assignment table, caregiver rota, hospital directory, or mapping from an assistance message to a caregiver profile. Those would be additional application logic.
+The current delivery request is bound to the selected profile and approved message revisions. There is no patient assignment table, caregiver rota, or hospital directory; selection of the responsible caregiver remains an operator decision.
 
 Implemented prerequisites include enrollment, a usable live camera, EV3/head feedback, stopped starting conditions, camera-reference preparation, route-service availability when movement is needed, and operator confirmation of cable-neutral setup. “One prepared room” is primarily an operating restriction: there is no mapped room boundary or geofence enforcing it.
 
@@ -128,7 +133,7 @@ idle → scanning → route_check → approach_step → verify_target
 any abort → stopped
 ```
 
-However, the scoped caller search found this class imported by its tests, not by the active `autonomous_find.py` mission. Its `ANNOUNCE_FOUND` action is an enum value, not evidence of a connected speaker or assistance-message delivery mechanism. The active controller is procedural orchestration with report states such as `running`, `recovering`, `paused`, and the terminal outcomes above. See conceptual state machine, lines 12–147 — `robot/jetson/mission/single_room.py:12`.
+However, the scoped caller search found this class imported by its tests, not by the active `autonomous_find.py` mission. Its `ANNOUNCE_FOUND` action is an enum value; actual message playback is implemented through the current console/speech path. The active controller is procedural orchestration with report states such as `running`, `recovering`, `paused`, and the terminal outcomes above. See conceptual state machine, lines 12–147 — `robot/jetson/mission/single_room.py:12`.
 
 Other material requiring separation:
 
@@ -136,7 +141,7 @@ Other material requiring separation:
 - `PersonContinuity` remains useful in scanning but has stricter, different identity semantics from the newer family tracker.
 - Some ground-plane/depth-obstacle helpers are exercised by tests but are not the active route-clearance mechanism.
 - `config/navigation.yaml` describes values that are not loaded by the inspected active route/mission paths.
-- The communication app and archived speech projects are adjacent workstreams, not proof that the robot delivers requests.
+- Current console/speech modules implement the supervised delivery path. The adjacent communication app and archived speech projects are separate workstreams; the evaluation guide records the home demonstration and acknowledgement workflow.
 - Recording is now implemented despite the root README still saying recording has not been added.
 
 Thus “the repository contains it” is insufficient evidence of active integration.

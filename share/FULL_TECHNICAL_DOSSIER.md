@@ -1,22 +1,26 @@
-# Echora Robo — full technical dossier
+# Echora — On-Call Hospital Assistance with Recipient Directed Care Coordination
 
-This is the complete repository-grounded report prepared in the conversation, exported as a portable Markdown document. Its substantive findings are unchanged. Local links to included Markdown references are portable; references to code, configuration, JSON results, logs, and external model metadata are written as repository paths with source line numbers because this package contains Markdown only.
+This dossier retains the original repository-grounded technical investigation and measurements. The 2026-10-04 documentation revision applies the hospital assistance scenario and records the current supervised message-delivery code. It is a source review, not a new live evaluation. Repository links work from this folder; some raw evidence and the adjacent communication app remain local-only. Historical source line citations may have shifted since the original investigation.
 
-The investigation was read-only. Creating this documentation folder is a separate, authorized packaging step. See [README](README.md), [source snapshot](SOURCE_SNAPSHOT.md), and [reproduction requirements](14_REPRODUCTION_REQUIREMENTS.md).
+See [reading guide](README.md), [source snapshot](SOURCE_SNAPSHOT.md), [reproduction requirements](14_REPRODUCTION_REQUIREMENTS.md), and [current delivery contract](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md).
 
 ---
 
-**The repository supports a selected-person search and bounded-approach prototype. It does not yet support the stronger claim of completed recipient-directed hospital care coordination.** The most substantive engineering work is the coordination of identity evidence, a shared movable camera, delayed remote inference, and short feedback-monitored movements.
+**Echora is presented as On-Call Hospital Assistance with Recipient Directed Care Coordination. Its implementation combines selected-person search, bounded approach, and supervised approved-message delivery.** The principal systems work coordinates identity evidence, a shared movable camera, delayed remote inference, and short feedback-monitored movements.
 
-Recorded runs demonstrate finding an enrolled person, selecting a route, moving short distances, reacquiring the person, and stopping. They also document incomplete approaches, inaccurate distance estimates, camera and communication issues, and recovery limits. I found no integrated robot-message delivery or caregiver-acknowledgement path.
+Recorded runs demonstrate finding an enrolled person, selecting a route, moving short distances, reacquiring the person, and stopping. They also document incomplete approaches, inaccurate distance estimates, camera and communication issues, and recovery limits. The current delivery code adds gated robot playback; the retained trials do not establish a complete physical request-to-recipient delivery, and there is no caregiver-acknowledgement mechanism.
 
-**Investigation snapshot.** I inspected branch `main`, HEAD `1e8fbb63b7bb09c54e2c065aa39fd336e6843a63`, dated September 4, 2026. The working tree contains 54 modified tracked files and substantial untracked material, including newer family recognition, appearance memory, range estimation, recording tools, and communication code. Consequently, that commit alone cannot reproduce the system described below.
+**Original investigation snapshot.** I inspected branch `main`, HEAD `1e8fbb63b7bb09c54e2c065aa39fd336e6843a63`, dated September 4, 2026. The working tree contains 54 modified tracked files and substantial untracked material, including newer family recognition, appearance memory, range estimation, recording tools, and communication code. Consequently, that commit alone cannot reproduce the system described below.
 
-This investigation was read-only. I did not run tests, import project modules, contact devices or services, activate cameras or motors, install dependencies, or modify files. Historical execution results are identified as such.
+The original investigation was read-only: it did not run tests, import project modules, contact devices or services, activate cameras or motors, install dependencies, or modify source files. The current revision includes documentation/source review and 138 passing offline checks through the [reproduction harness](../scripts/diagnostics/reproduce_checks.py). No live hardware, model inference, or network service was exercised. Historical execution results remain identified as such.
 
 ---
 
 **A. Technical goal and demonstrated scope**
+
+**Hospital assistance scenario.** A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the same room and does not have a phone in hand. A general callout may attract another person; a notification still depends on someone checking a device. The proposed role of Echora is to locate the pre-enrolled caregiver named in the request and bring that request to their attention.
+
+The robotics contribution is identity-aware, recipient-directed search and approach: choose whom to find, obtain useful person views, retain qualified identity evidence, inspect the route with the same motorized webcam, and supervise short movements. The scenario supplies the motivation; the recorded prototype evidence comes from supervised household/room trials.
 
 In plain language, the supported goal is:
 
@@ -26,27 +30,31 @@ A technically precise formulation is:
 
 > Coordinate profile-bound face and appearance evidence, camera-view transitions, pose-bound distributed visual assessments, and encoder-monitored motion primitives on a tether-constrained EV3/Jetson robot, with explicit invalidation and bounded recovery when identity, scene, or actuator evidence becomes stale or inconsistent.
 
-This formulation preserves the central engineering problem while avoiding capabilities the evidence does not establish.
+This formulation defines the system-level coordination problem and the scope of the prototype.
 
 | Scope level | What the evidence supports |
 |---|---|
-| Intended application | Assistive communication followed by delivery to a chosen caregiver. |
+| Intended application | On-call hospital assistance: locate the named, pre-enrolled nurse or doctor and present an approved assistance request. |
 | Implemented robotics | Configurable enrolled-recipient selection; face and clothing-supported identity; bounded camera/chassis search; route assessment; short approach segments; cancellation and recovery. |
 | Recorded physical capability | Selected-person search, route-checked movement, reacquisition, and stopped feedback in supervised indoor trials. |
 | Arrival | Implemented stopping policies, including an explicitly approximate outcome. Reliable physical standoff is unverified. |
-| Assistance-message delivery | A separate app prepares and speaks reviewed messages locally. No connected robot-delivery path was found. |
-| Acknowledgement | No integrated caregiver receipt/acknowledgement mechanism was found. |
+| Assistance-message delivery | Current console code integrates reviewed text or an edited speech transcript, Mac synthesis, supervised search, and gated Jetson speaker playback. Complete home delivery is reported by the project owner; retained artifacts document partial trials. |
+| Acknowledgement | Human acknowledgement is reported in the home simulation. No software receipt/acknowledgement mechanism is implemented. |
 | Hospital deployment or clinical benefit | Not established in the inspected code, reports, or development history. |
 
-The distinction between robotics and communication is explicit in the project itself. The communication app describes itself as a stationary slice with no robot commands or caregiver delivery connected. Its confirmation endpoint binds reviewed text to a revision and permits audio generation; it does not dispatch a robot mission. The delivery plan describes `DeliverMessage`, recipient playback, and acknowledgement as later work. See [communication scope, lines 1–6 and 141–156](<reference_docs/communication/README.md>) (source line 1), message confirmation and audio generation, lines 599–703 — `communication/backend/app.py:599`, and [planned robot delivery, lines 239–245](<reference_docs/docs/ASSISTIVE_COMMUNICATION_PLAN.md>) (source line 239).
+**Current-source delivery update (2026-10-04).** The original investigation described the adjacent communication app as a stationary slice. The current robot console now implements **Find & deliver**: approve the exact message for a selected profile/revision, preview audio on the robot, run the supervised search, and permit playback only when the final report and fresh feedback satisfy the delivery gate. Estimated arrival is insufficient. The gate requires a validated measured range interval, unique selected identity, matching track, and stopped tracks/head. It permits identity sourced from face **or clothing**, rather than demanding a fresh facial confirmation at playback.
 
-The furthest useful demonstrations are complementary:
+`played` denotes completion of the playback process. Arrival accuracy and recipient receipt are evaluated separately; the software does not record acknowledgement. See [robot message-delivery contract](../docs/ROBOT_MESSAGE_DELIVERY.md), [delivery gates](../robot/jetson/perception/speech_delivery.py), and [console integration](../robot/jetson/perception/enrollment_console.py).
+
+**Home scenario demonstration.** On 2026-10-04, the project owner reported a complete home simulation: the robot found the selected recipient, approached, played the request, and the person acknowledged it. This complements the retained partial-trial artifacts. Trial count, timing, independently measured stopping distance, and a recording are not documented. Acknowledgement was observed by a person; the software does not record recipient acknowledgement.
+
+The retained physical demonstrations are complementary:
 
 - An older integrated run completed **three approach/reacquisition cycles**, with encoder-estimated movements of approximately **4.04, 4.48, and 4.73 cm**, then encountered a route check limit. It lasted **91.14 seconds** and did not establish arrival.
 - A September 12 run found the target, chose a left route, turned **−39.82°**, checked the new forward view, drove an encoder-estimated **6.39 cm**, reacquired the target by face, and stopped. Its outcome was `step_complete_target_reacquired`, after **68.21 seconds**.
 - A later clothing-supported run requested **5 cm**, recorded **6.77 cm** of encoder-estimated movement, reacquired the person, then lost usable identity during lower-view inspection. It ended `target_found_not_at_standoff` after **88.62 seconds**.
 
-These are physical integration results, not a complete arrival benchmark. Sources: three-cycle mission report — `docs/perception/integrated_live_20260905/multistep-route-retry-live-20260905/mission.json`, September 12 one-step summary — `artifacts/mom-approach-near-floor-retry-20260912/summary.json`, and [later approach result and limitations, lines 2618–2622](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2618).
+These are physical integration results, not a complete arrival benchmark. Sources: three-cycle mission report — `docs/perception/integrated_live_20260905/multistep-route-retry-live-20260905/mission.json`, September 12 one-step summary — `artifacts/mom-approach-near-floor-retry-20260912/summary.json`, and later approach result and limitations, lines 2618–2622 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2618).
 
 ---
 
@@ -96,9 +104,12 @@ Jetson ── HTTP over reverse SSH tunnel ──► Mac route service
                                                         ▼
                                                       Cloud
 
-Separate communication app:
-reviewed message → local/device or generated speech
-                  [no connected robot-delivery/acknowledgement path found]
+Current supervised message delivery:
+reviewed text / edited transcript → Mac ASR/TTS → approved audio
+  → Jetson Find & deliver → final identity/range/stopped-feedback gate
+  → Jetson speaker playback [recipient acknowledgement not implemented]
+
+Adjacent communication app: separate stationary communication workflow
 ```
 
 The service files launch loose Python files from the deployed Jetson runtime directory, rather than demonstrating a conventional packaged ROS workspace. The browser launches the top-level mission process; that process starts calibration, scan, and movement workers. Relevant launch evidence includes console service — `robot/jetson/perception/echora-enrollment-console.service:6`, target observer service — `robot/jetson/mission/echora-target-observer.service:6`, bridge service — `robot/jetson/ev3_bridge/echora-bridge.service:6`, and Mac route-service launch configuration — `robot/mac/com.echora.route-perception.plist:7`.
@@ -134,6 +145,8 @@ A normal browser-started mission follows this path:
 
 The code anchors are console preflight, lines 1551–1598 — `robot/jetson/perception/enrollment_console.py:1551`, mission process ownership, lines 209–349 — `robot/jetson/perception/mission_control.py:209`, and top-level mission, lines 194–469 — `robot/jetson/mission/autonomous_find.py:194`.
 
+**Current-source delivery entry.** `POST /api/mission/deliver` adds profile/message approval, mandatory speaker preview, the ordinary supervised mission, and post-mission playback checks. Search-only `POST /api/mission/start` does not speak. See [delivery guide](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) and [current contract](../docs/ROBOT_MESSAGE_DELIVERY.md).
+
 An important execution distinction: the CLI wrapper’s `run_live()` explicitly passes `--skip-camera-calibration`, whereas the ordinary browser command does not. “Every entry point automatically calibrates before searching” would therefore be too broad. See CLI launch construction, lines 189–211 — `scripts/phase6/phase6.py:189`.
 
 ---
@@ -142,9 +155,9 @@ An important execution distinction: the CLI wrapper’s `run_live()` explicitly 
 
 **C1. Mission contract, recipient selection, and termination**
 
-The recipient is configurable through enrolled family profiles. It is not inherently “the nearest person,” and it is no longer a single permanently hard-coded identity. Profile selection is stored locally, and new browser requests carry a profile revision to avoid starting against a selection that changed after the page was rendered.
+The hospital scenario names a pre-enrolled caregiver as the intended recipient. The prototype selects that recipient through enrolled profiles; source names such as `family` and historical labels describe the household implementation and trials. Profile selection is stored locally, and browser requests carry a profile revision to avoid starting against a selection that changed after the page was rendered. Target identity, rather than nearest-person proximity, determines the requested endpoint.
 
-I found no patient assignment table, caregiver rota, hospital directory, or mapping from an assistance message to a caregiver profile. Those would be additional application logic.
+The current delivery request is bound to the selected profile and approved message revisions. There is no patient assignment table, caregiver rota, or hospital directory; selection of the responsible caregiver remains an operator decision.
 
 Implemented prerequisites include enrollment, a usable live camera, EV3/head feedback, stopped starting conditions, camera-reference preparation, route-service availability when movement is needed, and operator confirmation of cable-neutral setup. “One prepared room” is primarily an operating restriction: there is no mapped room boundary or geofence enforcing it.
 
@@ -162,7 +175,7 @@ The main outcomes have different meanings:
 | `failure` | Unhandled or nonrecoverable mission outcome. |
 | UI `stopped` | Cancellation requested; this label alone is not independent measured stop confirmation. |
 
-The browser maps several distinct outcomes to a broad `found` state, but retains explanatory messages and the underlying outcome. Interview and write-up claims should use that underlying outcome. See result mapping, lines 22–107 — `robot/jetson/perception/mission_control.py:22`.
+The browser maps several distinct outcomes to a broad `found` state, but retains explanatory messages and the underlying outcome. Reports should retain the underlying outcome alongside the UI state. See result mapping, lines 22–107 — `robot/jetson/perception/mission_control.py:22`.
 
 Default top-level budgets are two search repositions, eight approach steps, three recovery attempts, one candidate retry, two target-reacquisition retries, and a 0.5-second retry delay. Child deadlines are 900 seconds for a scan, 180 seconds for an approach worker, and 600 seconds for camera preparation. These are bounds on individual operations and nested retries, not a short global mission deadline. See mission defaults, lines 473–536 — `robot/jetson/mission/autonomous_find.py:473`.
 
@@ -180,7 +193,7 @@ idle → scanning → route_check → approach_step → verify_target
 any abort → stopped
 ```
 
-However, the scoped caller search found this class imported by its tests, not by the active `autonomous_find.py` mission. Its `ANNOUNCE_FOUND` action is an enum value, not evidence of a connected speaker or assistance-message delivery mechanism. The active controller is procedural orchestration with report states such as `running`, `recovering`, `paused`, and the terminal outcomes above. See conceptual state machine, lines 12–147 — `robot/jetson/mission/single_room.py:12`.
+However, the scoped caller search found this class imported by its tests, not by the active `autonomous_find.py` mission. Its `ANNOUNCE_FOUND` action is an enum value; actual message playback is implemented through the current console/speech path. The active controller is procedural orchestration with report states such as `running`, `recovering`, `paused`, and the terminal outcomes above. See conceptual state machine, lines 12–147 — `robot/jetson/mission/single_room.py:12`.
 
 Other material requiring separation:
 
@@ -188,7 +201,7 @@ Other material requiring separation:
 - `PersonContinuity` remains useful in scanning but has stricter, different identity semantics from the newer family tracker.
 - Some ground-plane/depth-obstacle helpers are exercised by tests but are not the active route-clearance mechanism.
 - `config/navigation.yaml` describes values that are not loaded by the inspected active route/mission paths.
-- The communication app and archived speech projects are adjacent workstreams, not proof that the robot delivers requests.
+- Current console/speech modules implement the supervised delivery path. The adjacent communication app and archived speech projects are separate workstreams; the evaluation section records the home demonstration and acknowledgement workflow.
 - Recording is now implemented despite the root README still saying recording has not been added.
 
 Thus “the repository contains it” is insufficient evidence of active integration.
@@ -204,7 +217,7 @@ The architecture is supported by concrete motor and sensor code:
 - The current EV3 service uses direct Linux sysfs and the Python standard library, not `ev3dev2`.
 - No working IR reading or local IR obstacle-stop path was found. Hardware notes explicitly defer the absent/nonworking sensor.
 
-See motor implementation, lines 44–159 — `robot/ev3/server/ev3_server.py:44` and [hardware inventory and sensor limitation, lines 56–87](<reference_docs/docs/HARDWARE_NOTES.md>) (source line 56).
+See motor implementation, lines 44–159 — `robot/ev3/server/ev3_server.py:44` and [hardware inventory and sensor limitation, lines 56–87](<../docs/HARDWARE_NOTES.md>) (source line 56).
 
 The recorded chassis envelope is **20 × 25 cm**. Effective odometry geometry is:
 
@@ -214,7 +227,7 @@ The recorded chassis envelope is **20 × 25 cm**. Effective odometry geometry is
 - Bridge motor-speed cap: **240 counts/s**
 - Feedback/update rate: **10 Hz**
 
-These are effective tracked-chassis parameters derived from floor tests, not necessarily physical sprocket dimensions. Track slip remains unmodelled. See robot configuration, lines 5–15 — `config/robot.yaml:5` and [calibration measurements, lines 1200–1251](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 1200).
+These are effective tracked-chassis parameters derived from floor tests, not necessarily physical sprocket dimensions. Track slip remains unmodelled. See robot configuration, lines 5–15 — `config/robot.yaml:5` and calibration measurements, lines 1200–1251 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 1200).
 
 The repository contains contradictory motor inventory descriptions: the supplied AGENTS guidance says A was physically identified as large; hardware notes call A medium; earlier server notes identify all three as large. The generic sysfs control path tolerates this disagreement, but it cannot establish the physical motor type.
 
@@ -239,7 +252,7 @@ The camera has two separate forms of calibration:
 
 ChArUco uses a 5×7 board, 25 mm squares, 18 mm markers, and `DICT_5X5_100`. The accepted YAML is 640×480 with approximately `fx=416.371`, `fy=413.608`, `cx=338.723`, `cy=235.303`. Capture publishes raw images and matching `CameraInfo`; it does not rectify all camera pixels. Ranging explicitly undistorts rays; person/face and segmentation paths consume raw imagery.
 
-A consequential exception must remain visible: the retained calibration report says **`accepted: false`**. Its 30-view fit had RMS **0.5958 px**, maximum per-view error **1.3512 px**, and a 609×450 valid ROI, but did not meet vertical-edge coverage and close-view-count requirements. Documentation records **manual promotion after live visual and timestamp checks**. It did not pass every automatic gate. See capture report — `docs/calibration/camera_calibration_capture_report_20260903.json:1` and [acceptance explanation, lines 5–22](<reference_docs/docs/calibration/README.md>) (source line 5).
+A consequential exception must remain visible: the retained calibration report says **`accepted: false`**. Its 30-view fit had RMS **0.5958 px**, maximum per-view error **1.3512 px**, and a 609×450 valid ROI, but did not meet vertical-edge coverage and close-view-count requirements. Documentation records **manual promotion after live visual and timestamp checks**. It did not pass every automatic gate. See capture report — `docs/calibration/camera_calibration_capture_report_20260903.json:1` and [acceptance explanation, lines 5–22](<../docs/calibration/README.md>) (source line 5).
 
 Current useful-view discovery is bounded: approximately ±60 encoder counts from the starting reference, 10-count exploration steps, at most 20 observations, bounded provider cooldown, and endpoint return checks. It can acknowledge the current encoder position without mechanical homing. Its result establishes usable operating views, not measured optical tilt or proven mechanical clearance. See discovery policy, lines 63–205 — `robot/jetson/mission/camera_visual_setup.py:63`.
 
@@ -398,7 +411,7 @@ The negative evidence is substantial:
 - Later same-pose observations with measured lens height produced **0.321 m** and **0.244 m**, while inferred pitch changed from **20.75° to 25.35°**.
 - Floor-plane inlier rates remained about **99.9%**.
 
-Therefore good plane fit and repeated model consistency demonstrably did not establish correct physical geometry. See operator-distance check — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` and [same-position discrepancy and diagnostic alternatives, lines 2581–2593](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2581).
+Therefore good plane fit and repeated model consistency demonstrably did not establish correct physical geometry. See operator-distance check — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` and same-position discrepancy and diagnostic alternatives, lines 2581–2593 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2581).
 
 Floor corridors use **SegFormer-B0 fine-tuned on ADE20K**, running on Mac MPS. Logits are resized back to the input image; pixels with maximum class probability below **0.65** are unknown. Three fixed trapezoids correspond to left, center, and right, nominally −30°, 0°, +30°. Their upper boundary is trimmed to a detected floor horizon.
 
@@ -462,6 +475,8 @@ If a drive is interrupted after starting, the parent requires target reacquisiti
 
 **C10. Distributed execution, freshness, and fault handling**
 
+**Current-source command coordination (2026-10-04).** `HeadCommandWorker` serializes camera operations away from the ROS feedback callback; its client fence checks cancellation under the same lock as TCP writes. A replaced/cancelled operation cannot issue a subsequent movement after that check. Busy-head feedback skips blocking controller updates while telemetry continues. Mac depth/segmentation/cloud adapters supply interpretations, while Jetson mission code selects actions. The EV3 retains its local drive-refresh watchdog. These mechanisms support locally supervised execution under delayed results; current-version physical stop timing remains unmeasured in this revision. See [command worker](../robot/jetson/ev3_bridge/ros_node.py) and [EV3 watchdog](../robot/ev3/server/ev3_server.py).
+
 Freshness exists at several layers, with different meanings:
 
 | Layer | Implemented check | Practical limitation |
@@ -511,7 +526,7 @@ Model-stage speed does not equal mission responsiveness. A ~17 ms person detecto
 
 I found token usage and call timings in selected cloud artifacts, but not a complete, reproducible cost-per-mission calculation. Nor did I find a controlled whole-stack latency distribution or end-to-end memory/compute profile for the final current configuration.
 
-**C12. Data handling, evaluation infrastructure, and ownership boundaries**
+**C12. Data handling, evaluation infrastructure, and attribution**
 
 Enrollment defaults to numerical templates; optional aligned face crops are separate. Clothing memory retains cropped images and descriptors, and selected crops are sent to Gemini. New recording tools can retain visible people in full camera frames. Therefore the older statement “full camera frames are never stored” is not a project-wide current guarantee.
 
@@ -519,38 +534,40 @@ The recorder is subscriber-only and bounded by duration, frame rate, and storage
 
 The first retained real recording contains 408 frames and 6,882 events. Its mission stopped when the camera head did not move; the operator reported a depleted battery. Since the head never moved, that recording cannot validate cross-view continuity, even though it supports a useful stationary tracker regression.
 
-Git history contains 43 reachable commits under one author name, but much of the newest work is uncommitted. Development notes explicitly mention agent/subagent implementation assistance. Git authorship therefore does not establish sole personal implementation. The defensible division is:
+Engineering attribution distinguishes the project-specific system from its external components:
 
 - **Third-party:** pretrained detectors, embedding model, semantic segmentation, depth model, cloud models, ROS/OpenCV/PyTorch/TensorRT.
 - **Repository-specific engineering:** decoders and adapters, synchronization, enrollment workflow, profile/appearance lifecycle, camera and motor coordination, bounded mission logic, result binding, recovery, diagnostics, and evaluation tooling.
-- **Personal ownership:** needs your account of who designed, implemented, integrated, tested, and interpreted each substantial part.
+- **Project owner:** responsibility for project-specific design, implementation, integration, physical testing, and evaluation, as reported on 2026-10-04. Development notes document coding-agent assistance.
 
 ---
 
-**D. Claim–evidence matrix**
+**D. Capability–evidence matrix**
 
 “Recorded” below means a saved report or documented execution result, not a test run during this investigation.
 
-| Claim | Implementation status | Verification status | Exact evidence | Limitation / missing proof |
+| Capability | Implementation status | Verification status | Exact evidence | Limitation / missing proof |
 |---|---|---|---|---|
-| Searches for a specified enrolled recipient | Implemented and reachable from browser | Recorded selected-person searches | console request binding — `robot/jetson/perception/enrollment_console.py:1551`; mission scan binding — `robot/jetson/mission/autonomous_find.py:240` | No patient-to-caregiver assignment mechanism. |
+| Searches for a specified enrolled recipient | Implemented and reachable from browser | Recorded selected-person searches | console request binding — `robot/jetson/perception/enrollment_console.py:1551`; mission scan binding — `robot/jetson/mission/autonomous_find.py:240` | Caregiver selection is manual; no patient-to-caregiver assignment mechanism. |
 | YOLOX-s → YuNet → InsightFace | Implemented and service-configured | Historical stationary component trials | configuration — `config/perception.yaml:20` | Full-frame YuNet fallback means person boxes are not an absolute prerequisite. |
-| TensorRT FP16 on Jetson | Implemented for three perception stages | Recorded engine inspection and timings | [build/precision evidence](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 1064) | Mixed precision; Mac/cloud stages use other backends. |
+| TensorRT FP16 on Jetson | Implemented for three perception stages | Recorded engine inspection and timings | build/precision evidence — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 1064) | Mixed precision; Mac/cloud stages use other backends. |
 | Repeated face observations confirm identity | Implemented | Unit tests and small physical trials | family matcher — `robot/jetson/perception/family_faces.py:12` | Nonconsecutive replay not fully prevented upstream; no broad confusion benchmark. |
 | SQLite profiles and appearance memory | Implemented and integrated | Migration/integration/outfit-learning reports | schema — `robot/jetson/perception/family_store.py:13` | No outfit TTL; old clothes survive re-enrollment. |
 | Clothing is not fresh face confirmation | Correct field distinction | Tests explicitly exercise it | enrichment — `robot/jetson/perception/family_observer.py:174` | Clothing can nevertheless authorize approach and arrival. |
-| Clothing-only continuity is reliable | Mechanism implemented | One later live clothing-supported movement; narrow replay evidence | [live result](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2618) | Lower-view identity loss ended that run; household accuracy unmeasured. |
+| Clothing-based identity continuity | Mechanism implemented | One later live clothing-supported movement; narrow replay evidence | live result — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2618) | Lower-view identity loss ended that run; household accuracy unmeasured. |
 | One camera coordinates people/floor views | Implemented across several layers | Head tests and integrated short movements | detour sequence — `robot/jetson/navigation/closed_loop_detour.py:373` | Person not rechecked inside the floor-view movement worker. |
-| ChArUco calibration passed | Calibration implemented and applied selectively | Numerical fit plus manual visual acceptance | capture report — `docs/calibration/camera_calibration_capture_report_20260903.json:1` | Automatic acceptance was false; manual exception recorded. |
-| DA V2 supplies usable physical stopping distance | Implemented estimates | Negative physical comparisons retained | distance discrepancy — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` | Metric accuracy unresolved; camera/front origins differ. |
-| SegFormer proves a footprint-wide corridor | Heuristic corridor gate implemented | Synthetic tests and selected scenes | corridor construction — `robot/jetson/navigation/image_corridors.py:27` | No calibrated footprint projection; water class included. |
+| ChArUco camera calibration | Calibration implemented and applied selectively | Numerical fit plus manual visual acceptance | capture report — `docs/calibration/camera_calibration_capture_report_20260903.json:1` | Automatic acceptance was false; manual exception recorded. |
+| DA V2 physical range estimation | Implemented estimates | Negative physical comparisons retained | distance discrepancy — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` | Metric accuracy unresolved; camera/front origins differ. |
+| SegFormer candidate floor corridors | Heuristic corridor gate implemented | Synthetic tests and selected scenes | corridor construction — `robot/jetson/navigation/image_corridors.py:27` | No calibrated footprint projection; water class included. |
 | Gemini assesses hazards but does not drive motors | Implemented | API/schema checks and route trials | deterministic fusion — `robot/jetson/navigation/navigation_reasoning.py:106` | Hazard accuracy and dynamic-scene coverage unmeasured. |
 | Delayed distributed results are rejected | Many explicit bindings implemented | Tests and selected integration checks | route response validation — `robot/jetson/navigation/closed_loop_detour.py:314` | Not universal end-to-end expiry; clock assumptions remain. |
 | EV3 independently stops on command loss | Implemented | Earlier physical watchdog/disconnect tests | watchdog — `robot/ev3/server/ev3_server.py:623` | Same-thread execution; historical tests do not validate every current path. |
-| IR adds a local obstacle-stop layer | Not found in current path | Explicitly deferred | [hardware notes](<reference_docs/docs/HARDWARE_NOTES.md>) (source line 71) | Desired architecture only. |
-| Full autonomous arrival works | Policies implemented | No conclusive complete arrival found | [latest approach limitation](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2620) | Partial successes and heuristic stop labels are insufficient. |
-| Assistance request is delivered and acknowledged | Planned | No integrated demonstration found | [communication scope](<reference_docs/communication/README.md>) (source line 1) | Local playback is not caregiver receipt. |
-| Hospital use or clinical benefit demonstrated | Not established | None found in inspected evidence | [project delivery plan](<reference_docs/docs/ASSISTIVE_COMMUNICATION_PLAN.md>) (source line 239) | Household trials cannot establish clinical performance. |
+| IR adds a local obstacle-stop layer | Not found in current path | Explicitly deferred | [hardware notes](<../docs/HARDWARE_NOTES.md>) (source line 71) | Desired architecture only. |
+| Full autonomous arrival | Policies implemented | Retained trials are partial; project owner reports complete home demonstration | latest approach limitation — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2620) | Partial successes and heuristic stop labels are insufficient. |
+| Approved request has a supervised robot delivery path | Implemented in current console and speech modules | Current-source review; no retained full physical delivery trial | [delivery contract](../docs/ROBOT_MESSAGE_DELIVERY.md); [gate](../robot/jetson/perception/speech_delivery.py), `delivery_gate` | Validated measured arrival required; gate permits face or clothing identity. `played` reports playback completion only. |
+| Recipient receipt and acknowledgement | Software acknowledgement not implemented | Human acknowledgement reported in the home demonstration; recording not documented | [delivery contract](../docs/ROBOT_MESSAGE_DELIVERY.md); [scenario account](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) | `played` alone cannot establish hearing, understanding, or response. |
+| Complete home simulation of caregiver scenario | Reported by project owner | Reported on 2026-10-04: finding, approach, playback, human acknowledgement | [scenario evidence boundary](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) | Trial count, timing, stopping-distance measurement, and recording remain undocumented; hospital evaluation is pending. |
+| Hospital deployment and clinical benefit | Not established | None found in inspected evidence | [project delivery plan](<../docs/ASSISTIVE_COMMUNICATION_PLAN.md>) (source line 239) | Household trials cannot establish clinical performance. |
 
 ---
 
@@ -569,9 +586,9 @@ These cases support an engineering narrative because they connect an observed ch
 | Gemini blocked regions outside the locally assessed near-floor corridor | Cloud/local polygon mismatch | Share exact horizon-trimmed polygons; later route and one-step run passed | Footprint and 3-D clearance remain heuristic. |
 | Identity retries exhausted before lower inspection | Shared retry budget conflated different missing evidence | Separate identity, range-refresh, and lower-view budgets | Later lower-view identity loss still ended approach. |
 | A good floor fit produced wrong range | Scene-dependent model geometry/scale | Added diagnostics, sparse replay, alternative anchoring experiment | No production accuracy correction accepted. |
-| Known appearance lost to an unidentified competing track | Multiplication by 0.7 shrank an appearance-only margin below 0.08 | Normalize comparison-wide appearance scores when no candidate has spatial evidence | One recording improved; newest service activation was still pending. |
+| Known appearance lost to an unidentified competing track | Multiplication by 0.7 shrank an appearance-only margin below 0.08 | Normalize comparison-wide appearance scores when no candidate has spatial evidence | One recording improved; activation was pending in the retained deployment snapshot. |
 
-Sources: [calibration challenge, lines 918–950](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 918), [face synchronization and preprocessing, lines 985–1021](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 985), [stop-acknowledgement behavior, lines 2160 onward](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2160), [camera midpoint challenge, lines 2321–2338](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2321), and [recent route/range/tracking iterations, lines 2538–2657](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2538).
+Sources: calibration challenge, lines 918–950 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 918), face synchronization and preprocessing, lines 985–1021 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 985), stop-acknowledgement behavior, lines 2160 onward — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2160), camera midpoint challenge, lines 2321–2338 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2321), and recent route/range/tracking iterations, lines 2538–2657 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2538).
 
 Documented alternatives should also remain bounded:
 
@@ -587,7 +604,7 @@ The code supports plausible engineering explanations for these choices, but only
 
 **F. Evaluation inventory**
 
-The evaluation material is useful but heterogeneous. It contains component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and one retained real recording. They should not be combined into one success percentage.
+The retained results concern the household/room prototype, not hospital participants or emergency response. Current delivery source review adds implementation evidence only. The evaluation material is useful but heterogeneous. It contains component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and one retained real recording. They should not be combined into one success percentage.
 
 | Measurement / trial | Conditions and denominator | Result | Evidentiary strength |
 |---|---|---|---|
@@ -609,7 +626,7 @@ The evaluation material is useful but heterogeneous. It contains component bench
 | Real route analysis | Selected stopped scene | One example: local 122.9 ms, Gemini 2.595 s | One request, not latency distribution or hazard accuracy. |
 | Recorded tracker comparison | Same 297 evaluable frame/detection pairs; one identity anchor | Baseline 220 retained; final change 289; eight pre-anchor frames | Real recording, offline continuity comparison; no independent recognition truth. |
 
-Sources for component figures: [person timing/detection trials, lines 706–782](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 706), [recognition acceptance, lines 1103–1153](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 1103), cold/warm service limitations — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
+Sources for component figures: person timing/detection trials, lines 706–782 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 706), recognition acceptance, lines 1103–1153 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 1103), cold/warm service limitations — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
 
 The tracker comparison is the clearest retained baseline experiment:
 
@@ -620,7 +637,7 @@ The tracker comparison is the clearest retained baseline experiment:
 - All eight remaining frames preceded the single identity anchor.
 - No camera transition occurred; all recorded head positions remained zero.
 - No new cloud calls occurred during comparison.
-- Latest deployment metadata says **`live_restarted: false`** and activation pending.
+- Retained deployment metadata in the September 12 artifact set records **`live_restarted: false`**; activation was pending in that snapshot.
 
 See recording summary — `artifacts/recorded-mom-live-20260912-01/summary.json:1` and deployment state — `artifacts/recorded-mom-live-20260912-01/appearance-margin-deployment.json:1`.
 
@@ -645,13 +662,14 @@ These are historical software results against their respective versions. They ar
 3. **Shared-camera transitions:** recorded person→floor→person cycles, target movement during the blind interval, and post-segment reacquisition.
 4. **Current-version stopping:** independently measured stop delay and travel after command loss, disconnect, delayed commands, process termination, head faults, and low battery.
 5. **End-to-end missions:** fixed scenario definitions and denominator; success only when the intended endpoint is actually reached; record interventions, duration, partial completion, and reason for stopping.
-6. **Delivery and acknowledgement:** evaluate only after a real message-to-recipient-to-playback-to-response path exists.
+6. **Delivery and acknowledgement:** test the implemented approved-message → selected-profile → supervised mission → gated playback path with measured arrival and an explicit trial denominator. Record human-observed receipt and acknowledgement separately from playback completion; an automated acknowledgement workflow is future work.
+7. **Hospital scenario:** begin with staged, supervised caregiver-role trials and deliberately similar clothing, competing people, occupied recipients, and absent targets. These are proposed tests; the household results do not measure patient outcomes or response-time benefit.
 
 ---
 
-**G. Contribution candidates**
+**G. Engineering contributions**
 
-The strongest supported contribution is **coordinating evidence and control across changing camera roles and delayed computation**. It consists of several concrete mechanisms:
+The hospital scenario makes the coordination problem concrete: reach the selected caregiver, obtain usable identity evidence, inspect the route, and decide whether movement or playback is justified. The principal engineering contribution is **coordinating evidence and control across changing camera roles and delayed computation**. It consists of several concrete mechanisms:
 
 1. **Separating identity from current spatial evidence.** Face anchors and durable outfit ownership can survive longer than image coordinates and range. Motion invalidates the latter without automatically erasing all identity history. This directly addresses reacquisition after camera movement.
 
@@ -659,13 +677,13 @@ The strongest supported contribution is **coordinating evidence and control acro
 
 3. **A bounded shared-camera control procedure.** Camera leases, motor interlocks, cancellation-aware command ownership, useful-view restoration, floor inspection, short movement, and reacquisition create an executable solution to having one sensor serve incompatible viewing roles.
 
-4. **Challenge-informed low-level integration.** Stop acknowledgements versus telemetry, head backdrive/settling, queued-command timing, source-message arrival order, and physical encoder references required custom handling beyond connecting model APIs.
+4. **Motor and feedback integration.** Stop acknowledgements versus telemetry, head backdrive/settling, queued-command timing, source-message arrival order, and physical encoder references required custom handling beyond connecting model APIs.
 
-5. **Replayable diagnosis with honest measurement boundaries.** The latest recording tools and baseline comparison make a concrete issue reproducible, while keeping encoder travel, model estimates, generated tests, and physical truth distinct.
+5. **Recording and replay diagnostics.** The latest recording tools and baseline comparison make a concrete issue reproducible, while keeping encoder travel, model estimates, generated tests, and physical truth distinct.
 
-These are substantive systems-engineering contributions. They do not require claiming a novel detector, a new recognition algorithm, research novelty, or clinical validation.
+These contributions concern systems engineering: the integration and coordination of existing perception models, state validation, actuation, and diagnostic tools.
 
-The strongest interview narrative is therefore about managing **which evidence remains usable after time, motion, viewpoint changes, and asynchronous work**, and about what the robot does when that evidence is insufficient.
+The central design question is **which evidence remains usable after time, motion, viewpoint changes, and asynchronous work**, and how the robot responds when observations are insufficient.
 
 ---
 
@@ -683,7 +701,7 @@ The inventory included 100 Python files under `robot`, 19 Python scripts, and 90
 
 Two local cached model configurations were read to verify SegFormer labels/preprocessing and the DA V2 model type. Model inference and weight execution were not performed. Remote Jetson/EV3 runtime files, current services, private enrollment databases, and external physical recordings were not independently inspected as live state.
 
-The important contradictions and chronology issues are:
+The original investigation recorded the following contradictions and chronology issues. Some surrounding README wording has since been revised; these describe the inspected historical versions:
 
 - README’s three-of-five recognition versus current two-of-five configuration.
 - Documentation describing clothing as observation-only versus current enabled clothing approach.
@@ -694,12 +712,14 @@ The important contradictions and chronology issues are:
 - “Footprint-wide corridor” language versus fixed image trapezoids.
 - Calibration YAML in use despite the retained report’s automatic rejection.
 - Historical Gemini model names versus current `gemini-3.5-flash-lite`.
-- Latest installed tracker file versus service activation still pending.
+- Installed tracker updates versus activation pending in the retained deployment snapshot.
 - Early “enrollment never commands motors” statements versus the later combined console containing manual drive, mission, and stop controls.
 
 Unresolved technical evidence includes current deployed revision/configuration, physical motor identity, camera extrinsics, independent optical tilt, stopping-distance accuracy, low-battery behavior, broad identity/confusion performance, dynamic obstacles during the person-view gap, and complete current-version fault-stop timing.
 
-The inspected reports concern supervised household/room trials and a small set of enrolled people. I found no hospital trial protocol, clinical population evaluation, measured care-coordination benefit, completed assistance delivery, or caregiver acknowledgement. That is a statement about the inspected evidence, not a claim that no additional work exists elsewhere.
+Evaluation to date concerns supervised household/room trials with a small set of enrolled people. The current implementation includes supervised robot playback; the reported complete home demonstration includes human acknowledgement. Hospital participants, patient outcomes, and care-coordination benefit have not been evaluated. The evaluation section distinguishes the reported home demonstration from retained measurements.
 
-1. **Which parts did you personally design, implement, integrate, and physically test, and which were produced with collaborators or coding-agent assistance—particularly the shared-camera policy, appearance tracking, and engineering diagnosis?**
-2. **Outside this repository, do you have any documented trial that completed the full chain from an assistance request to the intended recipient receiving and acknowledging it, or independently verified final approach distance; if so, what setting, participants, measurements, and artifacts support it?**
+Further evaluation records should capture:
+
+1. A recording, trial count, duration, independently measured stopping distance, and human-observed receipt and acknowledgement for complete delivery trials.
+2. The deployed revision, configuration, calibration, participant conditions, and room setup used for each trial.

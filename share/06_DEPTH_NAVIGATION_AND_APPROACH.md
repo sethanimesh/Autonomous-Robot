@@ -1,6 +1,6 @@
 # Depth, floor assessment, hazards, and approach
 
-These findings explain the inspected working tree, not a freshly verified live robot. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) for the complete argument and the [snapshot](SOURCE_SNAPSHOT.md) for provenance. Source paths refer to the original repository; code and raw data are not bundled here.
+These guides retain the original source investigation and historical results, with a 2026-10-04 revision for the hospital assistance scenario and the current message-delivery code. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions; no live robot was tested for this revision. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder; cited source line numbers belong to the original investigation unless a current-source review is identified.
 
 **C8. Depth, floor corridors, and hazard assessment**
 
@@ -22,7 +22,7 @@ The negative evidence is substantial:
 - Later same-pose observations with measured lens height produced **0.321 m** and **0.244 m**, while inferred pitch changed from **20.75° to 25.35°**.
 - Floor-plane inlier rates remained about **99.9%**.
 
-Therefore good plane fit and repeated model consistency demonstrably did not establish correct physical geometry. See operator-distance check — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` and [same-position discrepancy and diagnostic alternatives, lines 2581–2593](<reference_docs/docs/DEVELOPMENT_LOG.md>) (source line 2581).
+Therefore good plane fit and repeated model consistency demonstrably did not establish correct physical geometry. See operator-distance check — `artifacts/mom-combined-right-20260912/operator-distance-check.json:2` and same-position discrepancy and diagnostic alternatives, lines 2581–2593 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 2581).
 
 Floor corridors use **SegFormer-B0 fine-tuned on ADE20K**, running on Mac MPS. Logits are resized back to the input image; pixels with maximum class probability below **0.65** are unknown. Three fixed trapezoids correspond to left, center, and right, nominally −30°, 0°, +30°. Their upper boundary is trimmed to a detected floor horizon.
 

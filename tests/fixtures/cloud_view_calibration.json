@@ -1,0 +1,32 @@
+{
+  "provider": "groq",
+  "model": "synthetic-test-model",
+  "upward_sequence": true,
+  "advisory_only": true,
+  "observations": [
+    {
+      "frame_index": 1,
+      "view": "floor_room",
+      "floor_visible": "yes",
+      "ceiling_visible": "no",
+      "human_visible": "no",
+      "evidence": "Synthetic lower view contains floor and room context."
+    },
+    {
+      "frame_index": 2,
+      "view": "room",
+      "floor_visible": "no",
+      "ceiling_visible": "no",
+      "human_visible": "no",
+      "evidence": "Synthetic middle view contains room context."
+    },
+    {
+      "frame_index": 3,
+      "view": "ceiling",
+      "floor_visible": "no",
+      "ceiling_visible": "yes",
+      "human_visible": "no",
+      "evidence": "Synthetic upper view contains ceiling and no floor."
+    }
+  ]
+}
