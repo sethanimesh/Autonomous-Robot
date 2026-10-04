@@ -1,6 +1,6 @@
 # AGENTS.md
 
-THIS IS FOR PERSONAL NON-COMMERCIAL USE, WE CAN USE ANYTHING
+This is a personal, non-commercial research prototype. Respect the licenses and usage terms of all third-party code, models and datasets.
 
 ## Project Goal
 
