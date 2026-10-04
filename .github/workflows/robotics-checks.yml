@@ -19,3 +19,7 @@ jobs:
           python-version: '3.11'
       - name: Reproduce robotics contract checks
         run: python3 scripts/diagnostics/reproduce_checks.py
+      - name: Check visual policy scenarios against retained image hashes
+        run: python3 scripts/diagnostics/check_visual_scenarios.py
+      - name: Verify semantic floor label mapping
+        run: python3 -m unittest tests.test_floor_label_mapping

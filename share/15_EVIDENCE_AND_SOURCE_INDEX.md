@@ -72,12 +72,13 @@ This index preserves the source paths and start lines from the original dossier.
 | [Mac voice service](../robot/mac/voice_delivery.py) | Loopback ASR and reviewed-text synthesis using configured providers. |
 | [Bridge command worker](../robot/jetson/ev3_bridge/ros_node.py) | `HeadCommandWorker`, cancellation fence, serialization and telemetry processing during head movement. |
 | [Scenario guide](10_HOSPITAL_SCENARIO_AND_REQUEST_DELIVERY.md) | Project-owner account of complete home demonstration: finding, approach, playback, human acknowledgement; recording not documented. |
+| [Visual scenario evaluation](../evaluation/visual-scenarios/README.md) | Fresh local-model and Gemini outputs on 12 retained inputs, original image provenance, saved numerical arrays, 20 synthetic policy scenarios and floor-label correction. |
 
 ## Model metadata provenance
 
-SegFormer: `nvidia/segformer-b0-finetuned-ade-512-512`, cached snapshot `489d5cd81a0b59fab9b7ea758d3548ebe99677da`. Its label mapping identifies class 21 as water. Runtime floor IDs include 3, 21, 28. Only configuration metadata was read during the investigation; no model execution was performed.
+SegFormer: `nvidia/segformer-b0-finetuned-ade-512-512`, cached snapshot `489d5cd81a0b59fab9b7ea758d3548ebe99677da`. Its label mapping identifies class 21 as water. The original investigation read configuration metadata and identified the old floor IDs `(3,21,28)`. The 2026-10-04 source revision uses `(3,28)`, validates floor/rug names and passes five regression tests. Fresh offline CPU inference on 12 retained images is now published in the [visual scenario evaluation](../evaluation/visual-scenarios/README.md), with weight/configuration hashes in [local-results.json](../evaluation/visual-scenarios/local-results.json). Deployment of the corrected source was not performed.
 
-Depth Anything V2: `depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf`, cached snapshot `8078d68a9c75a972131914f6afd0c1723be0da7f`. Metadata indicates metric estimation, max depth 20, and float32 configuration. These properties do not establish accurate physical distance on the robot.
+Depth Anything V2: `depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf`, cached snapshot `8078d68a9c75a972131914f6afd0c1723be0da7f`. Metadata indicates metric estimation, max depth 20, and float32 configuration. The 2026-10-04 gallery publishes fresh CPU outputs without applied range calibration or independent distance references. Neither the model metadata nor those raw outputs establish accurate physical distance on the robot.
 
 ## Missing raw evidence
 

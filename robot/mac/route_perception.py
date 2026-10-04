@@ -26,6 +26,16 @@ DEFAULT_CAMERA_STATUS_URL = "http://192.168.1.48:8080/api/status"
 DEFAULT_MODEL = "nvidia/segformer-b0-finetuned-ade-512-512"
 
 
+def validate_floor_label_ids(id2label, floor_ids):
+    """Require named support surfaces; ADE20K water is not traversable floor."""
+    if not floor_ids or len(set(floor_ids)) != len(floor_ids):
+        raise ValueError("Floor label IDs must be nonempty and unique")
+    for label_id in floor_ids:
+        label = id2label.get(label_id, id2label.get(str(label_id)))
+        if label not in ("floor", "rug"):
+            raise ValueError("Configured floor label {0} maps to {1!r}, not floor/rug".format(label_id, label))
+
+
 def same_head_pose(first, second, tolerance=0):
     try:
         return (bool(first.get('reference_id')) and first['reference_id']==second.get('reference_id')
@@ -62,7 +72,7 @@ class RoutePerceptionEngine:
         self,
         model_name=DEFAULT_MODEL,
         device="mps",
-        floor_ids=(3, 21, 28),
+        floor_ids=(3, 28),
     ):
         self.model_name = model_name
         self.device = device
@@ -89,6 +99,7 @@ class RoutePerceptionEngine:
         self.model = SegformerForSemanticSegmentation.from_pretrained(
             self.model_name
         ).to(self.device)
+        validate_floor_label_ids(self.model.config.id2label, self.floor_ids)
         self.model.eval()
         self.torch = torch
         self.numpy = np

@@ -25,6 +25,19 @@ Verification on **2026-10-04**, macOS, Python **3.14.7**: **138 tests passed, 0 
 
 The repository has additional perception, range, camera, and speech tests outside this selection. In particular, [speech delivery tests](../tests/test_speech_delivery.py) use pytest, and [voice API tests](../tests/test_robot_voice_delivery_api.py) use FastAPI's test client. The canonical command does not run these plain pytest functions. Speech preparation, recipient/message revision binding, expiry, and stopped-state delivery gates have corresponding checks there; the selected suite makes no claim to cover audible delivery or human acknowledgement. Production clothing-descriptor extraction and model inference are also outside this suite.
 
+## Retained-image model evaluation
+
+The [visual scenario gallery](visual-scenarios/README.md) publishes fresh CPU outputs from YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 on 12 original home-room images, plus 12 actual Gemini requests spanning camera framing, route hazards, paired views and clothing descriptions. Model/configuration hashes, numerical arrays, parsed responses and visible disagreements are included. The selected images are qualitative diagnostic examples without independent model-accuracy or physical-clearance labels.
+
+Two additional commands reproduce 20 authored policy scenarios and 5 floor-label regression tests without models, cloud credentials or hardware:
+
+```sh
+python3 scripts/diagnostics/check_visual_scenarios.py
+python3 -m unittest tests.test_floor_label_mapping
+```
+
+Both passed on 2026-10-04 with Python 3.14.7. CI includes these alongside the selected regression suite. Scenario inputs are explicitly synthetic and are not pixel-derived measurements; image hashes establish which retained input each fixture accompanies. The gallery documents separate model and cloud reproduction commands.
+
 ## Historical component results
 
 These retained records predate the hospital presentation and use household participant labels. They provide component evidence in the recorded conditions. The raw artifacts listed below are retained locally; their paths identify the evidence without implying that those files are included in the public repository.

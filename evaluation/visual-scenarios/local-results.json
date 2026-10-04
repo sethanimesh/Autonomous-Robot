@@ -1,0 +1,1992 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-10-04T18:00:25.990382+00:00",
+  "evidence_kind": "actual_offline_inference_on_retained_real_images",
+  "host": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "python": "3.12.13"
+  },
+  "device": "cpu",
+  "precision": "float32",
+  "versions": {
+    "torch": "2.14.0",
+    "transformers": "5.16.1",
+    "numpy": "2.5.2",
+    "Pillow": "12.3.0",
+    "matplotlib": "3.11.1",
+    "opencv": "5.0.0"
+  },
+  "models": {
+    "segformer": {
+      "name": "nvidia/segformer-b0-finetuned-ade-512-512",
+      "revision": "489d5cd81a0b59fab9b7ea758d3548ebe99677da",
+      "weight_sha256": "6ae39addd01de6b1b8bde2cf677d43a5cd733424b8d186de3f95d1c51fee23f9",
+      "source": "https://huggingface.co/nvidia/segformer-b0-finetuned-ade-512-512",
+      "configuration_sha256": {
+        "config.json": "209caa9091e4632f7c8883c11170cd08ad29af68b23c09590aa4a5befb1a2a7f",
+        "preprocessor_config.json": "8039d1d210abaa7117ad78e58cdfd6141a2ec72c03dae891b3cd76737e422c6c"
+      }
+    },
+    "depth": {
+      "name": "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+      "revision": "8078d68a9c75a972131914f6afd0c1723be0da7f",
+      "weight_sha256": "e990eb82fbf11b05b7813261196a2b841bdcf5a05f64396724a8987fa90504a3",
+      "source": "https://huggingface.co/depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+      "configuration_sha256": {
+        "config.json": "0b1d9fc591693d16b864249a9cfcf5264c8c00be999c1643fa1c64dc105d55f8",
+        "preprocessor_config.json": "533b16a60445d7cab5086d39b45f92be45624b977972c62d5984d93e98366063"
+      }
+    },
+    "yolox": {
+      "name": "YOLOX-s",
+      "revision": "0.1.1rc0",
+      "weight_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "source": "https://github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0",
+      "execution_backend": "OpenCV DNN CPU; production preprocessing and decoding"
+    },
+    "yunet": {
+      "name": "YuNet",
+      "revision": "2023mar",
+      "weight_sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+      "source": "https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet",
+      "execution_backend": "OpenCV FaceDetectorYN CPU; full-frame diagnostic"
+    }
+  },
+  "source_sha256": {
+    "robot/mac/route_perception.py": "ebd31e0ab14e8189c0c9376187ac98d4db51b9b303fc8b13e7adfe499d3394ac",
+    "robot/mac/person_range.py": "fa83f2dcf5c0529b97ef2d64e45a1ec945319cd5e52f2ab11c7d5b66359d52c1",
+    "robot/jetson/navigation/image_corridors.py": "ed948bcc4c755bcb849515654feada8b7393cc831ea1a6605334f3a98d7664b1",
+    "robot/jetson/navigation/local_planner.py": "0f9ab9244ad4d56dba4a9cc197f3e54033eced58c200d30a4533db78ce9f8991",
+    "robot/jetson/perception/inference.py": "957c1851927ff7deb2d52fb2f362a6bf987253a1b26f76bf3e01b7643a7fb5ab",
+    "robot/jetson/perception/detections.py": "26083f4a908af32c9bf0ac103bef8c4077efc06cd596287264d97656f8758fde",
+    "scripts/diagnostics/build_visual_scenarios.py": "222edd3bc4596e55109651c206fedbc8113bf5180eb776f61997dbf569a43cbc"
+  },
+  "git_base": "3e09122a4ff9265824250d83b1ff78fc7eeaebe6",
+  "segmentation_floor_labels": {
+    "3": "floor",
+    "28": "rug"
+  },
+  "settings": {
+    "person_threshold": 0.45,
+    "person_nms_iou": 0.45,
+    "face_threshold": 0.6,
+    "face_nms_iou": 0.3,
+    "semantic_confidence": 0.65,
+    "frame_annotation": "retained source banners/overlays preserved"
+  },
+  "identity_verification_run": false,
+  "robot_motion_run": false,
+  "images": [
+    {
+      "id": "floor-hazards",
+      "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136826.3981729,
+        "frame_sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 366.7,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": 0.7682672233820459,
+        "scene": {
+          "floor_fraction": 0.2796940104166667,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.6582421875,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.8789973958333334,
+          "bottom_known_fraction": 0.8900520833333333,
+          "bottom_left_floor_fraction": 0.7135367762128325,
+          "bottom_left_known_fraction": 0.7467527386541472,
+          "bottom_right_floor_fraction": 0.9605919003115265,
+          "bottom_right_known_fraction": 0.9605919003115265
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.9931558935361217,
+            "known_fraction": 0.8980706846508452,
+            "sample_count": 5857
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 1.0,
+            "known_fraction": 0.9948787982246501,
+            "sample_count": 5858
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 1.0,
+            "known_fraction": 0.9850131752305665,
+            "sample_count": 6072
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.15,
+            "confidence": 0.9931558935361217,
+            "known_fraction": 0.8980706846508452
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 0.9948787982246501
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 0.9850131752305665
+          }
+        ],
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.7137196995561625,
+          "reason": "best proven short route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.594931640625
+        },
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.3133463541666667
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.053277994791666665
+        },
+        {
+          "id": 115,
+          "label": "bag",
+          "fraction": 0.015885416666666666
+        },
+        {
+          "id": 19,
+          "label": "chair",
+          "fraction": 0.010143229166666667
+        },
+        {
+          "id": 7,
+          "label": "bed ",
+          "fraction": 0.007353515625
+        },
+        {
+          "id": 65,
+          "label": "toilet",
+          "fraction": 0.0028059895833333335
+        },
+        {
+          "id": 112,
+          "label": "basket",
+          "fraction": 0.0020540364583333335
+        },
+        {
+          "id": 31,
+          "label": "seat",
+          "fraction": 0.00010416666666666667
+        },
+        {
+          "id": 116,
+          "label": "minibike",
+          "fraction": 7.8125e-05
+        },
+        {
+          "id": 125,
+          "label": "pot",
+          "fraction": 1.953125e-05
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.2796940104166667,
+        "person": 0.0,
+        "furniture": 0.002763671875,
+        "ceiling": 0.0,
+        "other_known": 0.37578450520833334,
+        "low_confidence": 0.3417578125
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 1.6127485036849976,
+          "50": 2.6835713386535645,
+          "95": 7.822128772735596
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 366.7,
+        "depth": 500.32,
+        "person": 81.63,
+        "face": 6.34
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/floor-hazards.npz",
+      "arrays_sha256": "4a5a947da70ffa959b39f860ddd7fb38870925a9c7f6a955e61dcfea392c4771",
+      "figure": "evaluation/visual-scenarios/figures/floor-hazards.png",
+      "figure_sha256": "676bc40e6f0d1f1a4bcd4c5e9abcdbdd963709fce6b1c3827a32ff79eff504cf"
+    },
+    {
+      "id": "seated-recipient",
+      "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136827.4365041,
+        "frame_sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 269.8,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.0,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.833564453125,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.0,
+          "bottom_known_fraction": 0.6744791666666666,
+          "bottom_left_floor_fraction": 0.0,
+          "bottom_left_known_fraction": 0.5396322378716745,
+          "bottom_right_floor_fraction": 0.0,
+          "bottom_right_known_fraction": 0.8286214953271028
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.824843673153938,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.7753653738055087,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.8434229427457418,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.824843673153938
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.7753653738055087
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.8434229427457418
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [
+        {
+          "box": [
+            354.1223602294922,
+            260.21517181396484,
+            639.0655670166016,
+            475.7352066040039
+          ],
+          "score": 0.7950454354286194
+        }
+      ],
+      "face_detections": [
+        {
+          "box_xywh": [
+            368.72113037109375,
+            294.01898193359375,
+            85.65828704833984,
+            108.4183120727539
+          ],
+          "landmarks": [
+            [
+              382.82684326171875,
+              330.95709228515625
+            ],
+            [
+              403.40478515625,
+              328.8271789550781
+            ],
+            [
+              385.25579833984375,
+              350.51751708984375
+            ],
+            [
+              392.5697937011719,
+              373.429443359375
+            ],
+            [
+              407.99298095703125,
+              372.002685546875
+            ]
+          ],
+          "score": 0.7961398363113403
+        }
+      ],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.48984700520833335
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.40435221354166667
+        },
+        {
+          "id": 12,
+          "label": "person",
+          "fraction": 0.09986328125
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.0029069010416666666
+        },
+        {
+          "id": 22,
+          "label": "painting",
+          "fraction": 0.0014778645833333334
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.0009505208333333334
+        },
+        {
+          "id": 100,
+          "label": "poster",
+          "fraction": 0.0006022135416666667
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.0,
+        "person": 0.081064453125,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.7525,
+        "low_confidence": 0.166435546875
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 1.4714022874832153,
+          "50": 2.2450668811798096,
+          "95": 3.0835936069488525
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 269.8,
+        "depth": 315.11,
+        "person": 73.23,
+        "face": 6.02
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/seated-recipient.npz",
+      "arrays_sha256": "b703b222f02737ee0876b491ed5bfafdd386252c06d692e7ff022da4a022ae8c",
+      "figure": "evaluation/visual-scenarios/figures/seated-recipient.png",
+      "figure_sha256": "a8dffc8e4406c05d6f2346139ab73dfe5c3d87e680b8fad7da0e8d4bbbf8a93b"
+    },
+    {
+      "id": "covered-lens",
+      "sha256": "d710a8e7975a3b3301717a2e61c4ea87ac0b5f75413b5dddfd7ee739252377d2",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136828.305961,
+        "frame_sha256": "d710a8e7975a3b3301717a2e61c4ea87ac0b5f75413b5dddfd7ee739252377d2",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 306.3,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.0,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.08200520833333333,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.0,
+          "bottom_known_fraction": 0.0,
+          "bottom_left_floor_fraction": 0.0,
+          "bottom_left_known_fraction": 0.0,
+          "bottom_right_floor_fraction": 0.0,
+          "bottom_right_known_fraction": 0.0
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.0,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.0,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.0,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.0
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.0
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.0
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 2,
+          "label": "sky",
+          "fraction": 0.8325130208333333
+        },
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.16650390625
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.0009830729166666666
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.0,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.08200520833333333,
+        "low_confidence": 0.9179947916666666
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.631703794002533,
+          "50": 0.8920631408691406,
+          "95": 1.3133846521377563
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 306.3,
+        "depth": 314.24,
+        "person": 66.9,
+        "face": 6.12
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/covered-lens.npz",
+      "arrays_sha256": "a2047a1f5eccd37a7619ef31435335548515516f6783dd94101fa17578961aea",
+      "figure": "evaluation/visual-scenarios/figures/covered-lens.png",
+      "figure_sha256": "7ac735948c3f39b20a7f316a9eb4a40d0e740c0943b0eac1f4c993ec96ae9a67"
+    },
+    {
+      "id": "overhead-view",
+      "sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136829.1412768,
+        "frame_sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 301.4,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.010481770833333333,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.2672526041666667,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.007799479166666666,
+          "bottom_known_fraction": 0.08865885416666666,
+          "bottom_left_floor_fraction": 0.0,
+          "bottom_left_known_fraction": 0.11827073552425665,
+          "bottom_right_floor_fraction": 0.0,
+          "bottom_right_known_fraction": 0.026012461059190032
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.10129997547216091,
+            "known_fraction": 0.2864469893908522,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.1733767744938329,
+            "known_fraction": 0.30192523889825745,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.04406580493537015,
+            "known_fraction": 0.11642383199945276,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.10129997547216091,
+            "known_fraction": 0.2864469893908522
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.1733767744938329,
+            "known_fraction": 0.30192523889825745
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.04406580493537015,
+            "known_fraction": 0.11642383199945276
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.6609244791666666
+        },
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.07844075520833334
+        },
+        {
+          "id": 10,
+          "label": "cabinet",
+          "fraction": 0.06646158854166667
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.049873046875
+        },
+        {
+          "id": 19,
+          "label": "chair",
+          "fraction": 0.04719075520833333
+        },
+        {
+          "id": 15,
+          "label": "table",
+          "fraction": 0.034892578125
+        },
+        {
+          "id": 38,
+          "label": "railing",
+          "fraction": 0.022083333333333333
+        },
+        {
+          "id": 69,
+          "label": "bench",
+          "fraction": 0.020458984375
+        },
+        {
+          "id": 31,
+          "label": "seat",
+          "fraction": 0.005862630208333333
+        },
+        {
+          "id": 33,
+          "label": "desk",
+          "fraction": 0.00470703125
+        },
+        {
+          "id": 96,
+          "label": "escalator",
+          "fraction": 0.004319661458333333
+        },
+        {
+          "id": 95,
+          "label": "bannister",
+          "fraction": 0.002275390625
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.0022721354166666667
+        },
+        {
+          "id": 12,
+          "label": "person",
+          "fraction": 0.00023763020833333335
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.010481770833333333,
+        "person": 0.0,
+        "furniture": 0.018040364583333333,
+        "ceiling": 0.0,
+        "other_known": 0.23873046875,
+        "low_confidence": 0.7327473958333334
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 2.2980289459228516,
+          "50": 3.714120864868164,
+          "95": 4.05953311920166
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 301.4,
+        "depth": 302.49,
+        "person": 70.46,
+        "face": 4.98
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/overhead-view.npz",
+      "arrays_sha256": "ec8ebad016551304e536647c8743a58731fa70a82d9f2d652658b1215242c74b",
+      "figure": "evaluation/visual-scenarios/figures/overhead-view.png",
+      "figure_sha256": "2d7bbf2e0a84e14e8de1c2c2b3dc3f66ce4b5153a7166117e0c62c40083fb526"
+    },
+    {
+      "id": "clear-floor",
+      "sha256": "d4087f366c5e85b0aea5e88f59c7c6fae626c93bc3be1dfc408b2c79f54934a5",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136829.95185,
+        "frame_sha256": "d4087f366c5e85b0aea5e88f59c7c6fae626c93bc3be1dfc408b2c79f54934a5",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 278.3,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": 0.21294363256784968,
+        "scene": {
+          "floor_fraction": 0.7716178385416667,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.887802734375,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 1.0,
+          "bottom_known_fraction": 1.0,
+          "bottom_left_floor_fraction": 1.0,
+          "bottom_left_known_fraction": 1.0,
+          "bottom_right_floor_fraction": 1.0,
+          "bottom_right_known_fraction": 1.0
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 1.0,
+            "known_fraction": 1.0,
+            "sample_count": 11689
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 1.0,
+            "known_fraction": 1.0,
+            "sample_count": 11690
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 1.0,
+            "known_fraction": 1.0,
+            "sample_count": 12052
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 1.0
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 1.0
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 1.0
+          }
+        ],
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.7150000000000001,
+          "reason": "best proven short route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.7812890625
+        },
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.13953125
+        },
+        {
+          "id": 7,
+          "label": "bed ",
+          "fraction": 0.045986328125
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.026201171875
+        },
+        {
+          "id": 15,
+          "label": "table",
+          "fraction": 0.0068977864583333335
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 9.440104166666666e-05
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.7716178385416667,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.11618489583333333,
+        "low_confidence": 0.112197265625
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.4922262132167816,
+          "50": 0.9517529010772705,
+          "95": 2.6969194412231445
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 278.3,
+        "depth": 307.06,
+        "person": 67.5,
+        "face": 5.14
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/clear-floor.npz",
+      "arrays_sha256": "a54622a03c245bcfd7e12653dd9ab7416b5c2161bf7860f8f4a18df4be3686c5",
+      "figure": "evaluation/visual-scenarios/figures/clear-floor.png",
+      "figure_sha256": "cda42891be0536225090d5e3338524864b48cd528d7e648c4ad8f48f432981fb"
+    },
+    {
+      "id": "chair-caster-edge",
+      "sha256": "3868387ab82abb6ff1a47289a1d466014088bf8e8516e7111001cb8ac0450b82",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136830.7751071,
+        "frame_sha256": "3868387ab82abb6ff1a47289a1d466014088bf8e8516e7111001cb8ac0450b82",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 286.5,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": 0.46764091858037576,
+        "scene": {
+          "floor_fraction": 0.526611328125,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.9339876302083333,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 1.0,
+          "bottom_known_fraction": 1.0,
+          "bottom_left_floor_fraction": 1.0,
+          "bottom_left_known_fraction": 1.0,
+          "bottom_right_floor_fraction": 1.0,
+          "bottom_right_known_fraction": 1.0
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.9999124189875634,
+            "known_fraction": 0.9768158097356489,
+            "sample_count": 11689
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 1.0,
+            "known_fraction": 1.0,
+            "sample_count": 11690
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 1.0,
+            "known_fraction": 1.0,
+            "sample_count": 12052
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.15,
+            "confidence": 0.9999124189875634,
+            "known_fraction": 0.9768158097356489
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 1.0
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 1.0
+          }
+        ],
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.7150000000000001,
+          "reason": "best proven short route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.533896484375
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.35053385416666666
+        },
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.111171875
+        },
+        {
+          "id": 137,
+          "label": "tray",
+          "fraction": 0.002216796875
+        },
+        {
+          "id": 15,
+          "label": "table",
+          "fraction": 0.0018977864583333334
+        },
+        {
+          "id": 81,
+          "label": "towel",
+          "fraction": 0.000283203125
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.526611328125,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.4073763020833333,
+        "low_confidence": 0.06601236979166666
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.9979844093322754,
+          "50": 2.2324469089508057,
+          "95": 2.813830614089966
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 286.5,
+        "depth": 255.62,
+        "person": 63.51,
+        "face": 5.14
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/chair-caster-edge.npz",
+      "arrays_sha256": "11f62a6787384ad3c2e1e58f91203c4aabe0c2d20eeead93e5815ab121b9cd2b",
+      "figure": "evaluation/visual-scenarios/figures/chair-caster-edge.png",
+      "figure_sha256": "78556e00d578520afb21492025eda72aa2bdf9aa07833f1df23cce590bfef1db"
+    },
+    {
+      "id": "slipper-obstruction",
+      "sha256": "2c4430877e33eb2c629b869f99f4dce6aa6da5d9d5f864a926492f53b5ce2d3b",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136831.557518,
+        "frame_sha256": "2c4430877e33eb2c629b869f99f4dce6aa6da5d9d5f864a926492f53b5ce2d3b",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 306.5,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": 0.453027139874739,
+        "scene": {
+          "floor_fraction": 0.41439127604166665,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.7972233072916667,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.9521744791666666,
+          "bottom_known_fraction": 0.9521744791666666,
+          "bottom_left_floor_fraction": 0.9911580594679186,
+          "bottom_left_known_fraction": 0.9911580594679186,
+          "bottom_right_floor_fraction": 0.9753894080996884,
+          "bottom_right_known_fraction": 0.9753894080996884
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.9633844073907165,
+            "known_fraction": 0.7593463940456839,
+            "sample_count": 11689
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.9787130321741957,
+            "known_fraction": 0.5264328485885372,
+            "sample_count": 11690
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 1.0,
+            "known_fraction": 0.8051775638898108,
+            "sample_count": 12052
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.15,
+            "confidence": 0.9633844073907165,
+            "known_fraction": 0.7593463940456839
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.15,
+            "confidence": 0.9787130321741957,
+            "known_fraction": 0.5264328485885372
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 0.8051775638898108
+          }
+        ],
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 30.0,
+          "distance_m": 0.05,
+          "score": 0.2162943909724527,
+          "reason": "best proven short route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.44793619791666667
+        },
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.2781477864583333
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.18849934895833334
+        },
+        {
+          "id": 19,
+          "label": "chair",
+          "fraction": 0.029977213541666665
+        },
+        {
+          "id": 115,
+          "label": "bag",
+          "fraction": 0.023401692708333335
+        },
+        {
+          "id": 30,
+          "label": "armchair",
+          "fraction": 0.013430989583333334
+        },
+        {
+          "id": 142,
+          "label": "plate",
+          "fraction": 0.005927734375
+        },
+        {
+          "id": 137,
+          "label": "tray",
+          "fraction": 0.0047819010416666665
+        },
+        {
+          "id": 112,
+          "label": "basket",
+          "fraction": 0.004580078125
+        },
+        {
+          "id": 10,
+          "label": "cabinet",
+          "fraction": 0.0015950520833333333
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.0013346354166666667
+        },
+        {
+          "id": 15,
+          "label": "table",
+          "fraction": 0.0002669270833333333
+        },
+        {
+          "id": 138,
+          "label": "ashcan",
+          "fraction": 0.00012044270833333334
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.41439127604166665,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.38283203125,
+        "low_confidence": 0.20277669270833334
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 1.3217965364456177,
+          "50": 2.661527156829834,
+          "95": 4.501018524169922
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 306.5,
+        "depth": 251.04,
+        "person": 66.41,
+        "face": 5.37
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/slipper-obstruction.npz",
+      "arrays_sha256": "391b3ef804f58eadb6e583a5d693e52c1e628ac05aa04fe763e0aa126cd64fd9",
+      "figure": "evaluation/visual-scenarios/figures/slipper-obstruction.png",
+      "figure_sha256": "549381b1ffed61061566ed4c450254b19d39d400ed768b8d3b1aaf5718313e0c"
+    },
+    {
+      "id": "partial-body",
+      "sha256": "22840bfc046b6e332b99953a3ead00c59d236c3cd9eae4ceed5596329aee9da8",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136832.3388522,
+        "frame_sha256": "22840bfc046b6e332b99953a3ead00c59d236c3cd9eae4ceed5596329aee9da8",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 303.1,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.11382486979166667,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.584990234375,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.4431640625,
+          "bottom_known_fraction": 0.6076822916666667,
+          "bottom_left_floor_fraction": 0.8934663536776213,
+          "bottom_left_known_fraction": 0.9255868544600939,
+          "bottom_right_floor_fraction": 0.345404984423676,
+          "bottom_right_known_fraction": 0.7736370716510903
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.47470111016225447,
+            "known_fraction": 0.6581887163633808,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.11155678114815744,
+            "known_fraction": 0.2802838673412029,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.17311513734658096,
+            "known_fraction": 0.5851973459196935,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.47470111016225447,
+            "known_fraction": 0.6581887163633808
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.11155678114815744,
+            "known_fraction": 0.2802838673412029
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.17311513734658096,
+            "known_fraction": 0.5851973459196935
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [
+        {
+          "box": [
+            0.0,
+            23.223281860351562,
+            633.0346984863281,
+            475.96253967285156
+          ],
+          "score": 0.6541652083396912
+        }
+      ],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 12,
+          "label": "person",
+          "fraction": 0.5159244791666666
+        },
+        {
+          "id": 31,
+          "label": "seat",
+          "fraction": 0.18692057291666667
+        },
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.13832682291666668
+        },
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.1100390625
+        },
+        {
+          "id": 115,
+          "label": "bag",
+          "fraction": 0.047939453125
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.00044596354166666667
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.00035481770833333334
+        },
+        {
+          "id": 15,
+          "label": "table",
+          "fraction": 4.8828125e-05
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.11382486979166667,
+        "person": 0.33818359375,
+        "furniture": 0.074482421875,
+        "ceiling": 0.0,
+        "other_known": 0.058499348958333336,
+        "low_confidence": 0.415009765625
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.8482555747032166,
+          "50": 1.0194096565246582,
+          "95": 1.909613847732544
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 303.1,
+        "depth": 288.93,
+        "person": 63.9,
+        "face": 5.11
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/partial-body.npz",
+      "arrays_sha256": "7647eadd1c420c514ab6bdaf8130e018b80937a725cce2a5e4b100dde2975966",
+      "figure": "evaluation/visual-scenarios/figures/partial-body.png",
+      "figure_sha256": "58083c9d0f80a33cdc22280a5759e0fe3353b3b45197d7aa1c6e4296fb714207"
+    },
+    {
+      "id": "seated-legs-and-chair",
+      "sha256": "f7e1d9948c2c191609f0f00409ab11b3ba9a22b6eb291ae05e24d7e94671021c",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136833.1685271,
+        "frame_sha256": "f7e1d9948c2c191609f0f00409ab11b3ba9a22b6eb291ae05e24d7e94671021c",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 310.7,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.08806640625,
+          "ceiling_fraction": 0.0030240885416666667,
+          "known_fraction": 0.25349283854166665,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.35032552083333335,
+          "bottom_known_fraction": 0.4758072916666667,
+          "bottom_left_floor_fraction": 0.37539123630672927,
+          "bottom_left_known_fraction": 0.6127934272300469,
+          "bottom_right_floor_fraction": 0.24731308411214953,
+          "bottom_right_known_fraction": 0.32807632398753894
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.37178776113884265,
+            "known_fraction": 0.38003231925806225,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.7942302031204004,
+            "known_fraction": 0.23868746486790332,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.4919881305637982,
+            "known_fraction": 0.23052192352418086,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.37178776113884265,
+            "known_fraction": 0.38003231925806225
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.7942302031204004,
+            "known_fraction": 0.23868746486790332
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.4919881305637982,
+            "known_fraction": 0.23052192352418086
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.3842903645833333
+        },
+        {
+          "id": 126,
+          "label": "animal",
+          "fraction": 0.19421549479166667
+        },
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.13180989583333333
+        },
+        {
+          "id": 12,
+          "label": "person",
+          "fraction": 0.11516276041666666
+        },
+        {
+          "id": 5,
+          "label": "ceiling",
+          "fraction": 0.09402669270833333
+        },
+        {
+          "id": 122,
+          "label": "tank",
+          "fraction": 0.062106119791666664
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.008863932291666666
+        },
+        {
+          "id": 132,
+          "label": "sculpture",
+          "fraction": 0.008606770833333333
+        },
+        {
+          "id": 42,
+          "label": "column",
+          "fraction": 0.0005078125
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.00041015625
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.08806640625,
+        "person": 0.000654296875,
+        "furniture": 0.0,
+        "ceiling": 0.0030240885416666667,
+        "other_known": 0.161748046875,
+        "low_confidence": 0.7465071614583333
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.9620991349220276,
+          "50": 1.1796916723251343,
+          "95": 1.487926721572876
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 310.7,
+        "depth": 313.91,
+        "person": 65.29,
+        "face": 5.1
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/seated-legs-and-chair.npz",
+      "arrays_sha256": "baeffd36f62253e0ec4541c27ffdb464a5f8b5c1a977f395607c5b70e1fb9826",
+      "figure": "evaluation/visual-scenarios/figures/seated-legs-and-chair.png",
+      "figure_sha256": "5af41f19ac475c2041aebe703b58dffd7e682bbf4a1c5a6b13fb99bdbd5f7412"
+    },
+    {
+      "id": "backlit-person",
+      "sha256": "e6876b037ed69c6f26c0b5fa2744e7add9109a76d1a19c77dff4a96a1535a018",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136834.0214982,
+        "frame_sha256": "e6876b037ed69c6f26c0b5fa2744e7add9109a76d1a19c77dff4a96a1535a018",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 301.6,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.0,
+          "ceiling_fraction": 0.17778645833333334,
+          "known_fraction": 0.4845703125,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.0,
+          "bottom_known_fraction": 0.2581380208333333,
+          "bottom_left_floor_fraction": 0.0,
+          "bottom_left_known_fraction": 0.33775430359937403,
+          "bottom_right_floor_fraction": 0.0,
+          "bottom_right_known_fraction": 0.052570093457943924
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.49581957422890466,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.4893901068015739,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.03351802448867912,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.49581957422890466
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.4893901068015739
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.03351802448867912
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [
+        {
+          "box": [
+            310.87244415283203,
+            240.50365447998047,
+            543.4287033081055,
+            475.68201446533203
+          ],
+          "score": 0.8058653473854065
+        }
+      ],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.5638639322916666
+        },
+        {
+          "id": 5,
+          "label": "ceiling",
+          "fraction": 0.25471354166666665
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.0954296875
+        },
+        {
+          "id": 31,
+          "label": "seat",
+          "fraction": 0.05200846354166667
+        },
+        {
+          "id": 12,
+          "label": "person",
+          "fraction": 0.027067057291666665
+        },
+        {
+          "id": 14,
+          "label": "door",
+          "fraction": 0.005862630208333333
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.0010546875
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.0,
+        "person": 0.0,
+        "furniture": 0.0042936197916666665,
+        "ceiling": 0.17778645833333334,
+        "other_known": 0.302490234375,
+        "low_confidence": 0.5154296875
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 0.9147056937217712,
+          "50": 4.365213394165039,
+          "95": 5.397852897644043
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 301.6,
+        "depth": 344.78,
+        "person": 66.68,
+        "face": 5.34
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/backlit-person.npz",
+      "arrays_sha256": "778dc2eabdda106629eeb3c58908e8df7c4960be67fd1a9a8b6598404ade0c33",
+      "figure": "evaluation/visual-scenarios/figures/backlit-person.png",
+      "figure_sha256": "7979fbac54a961aee8c9d0f8ece34e0a06baff5c43ec9920cd2c1ca924d07891"
+    },
+    {
+      "id": "camera-forward-overhead",
+      "sha256": "241998deda9c1ac56f5e00f17d3ed064684971c3b27fd2fac3124626101fda33",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136834.925764,
+        "frame_sha256": "241998deda9c1ac56f5e00f17d3ed064684971c3b27fd2fac3124626101fda33",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 329.6,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": null,
+        "scene": {
+          "floor_fraction": 0.0,
+          "ceiling_fraction": 0.06255208333333333,
+          "known_fraction": 0.6942057291666667,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.0,
+          "bottom_known_fraction": 0.8014322916666666,
+          "bottom_left_floor_fraction": 0.0,
+          "bottom_left_known_fraction": 0.9129499217527387,
+          "bottom_right_floor_fraction": 0.0,
+          "bottom_right_known_fraction": 0.6096183800623053
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.9307243729361343,
+            "sample_count": 14233
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.8754918493535694,
+            "sample_count": 14232
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 0.0,
+            "known_fraction": 0.750530132019974,
+            "sample_count": 14619
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.9307243729361343
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.8754918493535694
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.0,
+            "confidence": 0.0,
+            "known_fraction": 0.750530132019974
+          }
+        ],
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no proven footprint-wide route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.8606477864583333
+        },
+        {
+          "id": 5,
+          "label": "ceiling",
+          "fraction": 0.13022135416666666
+        },
+        {
+          "id": 43,
+          "label": "signboard",
+          "fraction": 0.004140625
+        },
+        {
+          "id": 27,
+          "label": "mirror",
+          "fraction": 0.003671875
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.0011263020833333333
+        },
+        {
+          "id": 82,
+          "label": "light",
+          "fraction": 0.00019205729166666666
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.0,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.06255208333333333,
+        "other_known": 0.6316536458333334,
+        "low_confidence": 0.3057942708333333
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 1.506286859512329,
+          "50": 2.1530239582061768,
+          "95": 2.8241710662841797
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 329.6,
+        "depth": 264.65,
+        "person": 66.54,
+        "face": 5.03
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/camera-forward-overhead.npz",
+      "arrays_sha256": "ad3071967d083c0a5e43d4a7822b1f6c8a357c5b7064c5bf81dd3216ded59686",
+      "figure": "evaluation/visual-scenarios/figures/camera-forward-overhead.png",
+      "figure_sha256": "7e81c9dd73dcee6e6acf9b341a9b18af62bf26dd529362f63737b5e42cf40415"
+    },
+    {
+      "id": "camera-lowered-floor",
+      "sha256": "53b55e0115a3e6125ef9755196a1fbc15254e9be03125b3af0b96cfbf3dcbc91",
+      "route": {
+        "ok": true,
+        "generated_at_unix": 1791136835.74547,
+        "frame_sha256": "53b55e0115a3e6125ef9755196a1fbc15254e9be03125b3af0b96cfbf3dcbc91",
+        "image": {
+          "width": 640,
+          "height": 480
+        },
+        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
+        "device": "cpu",
+        "inference_ms": 325.3,
+        "floor_label_ids": [
+          3,
+          28
+        ],
+        "floor_horizon_y": 0.7286012526096033,
+        "scene": {
+          "floor_fraction": 0.26237630208333335,
+          "ceiling_fraction": 0.0,
+          "known_fraction": 0.6381412760416667,
+          "minimum_pixel_confidence": 0.65,
+          "bottom_floor_fraction": 0.9578645833333334,
+          "bottom_known_fraction": 0.9615234375,
+          "bottom_left_floor_fraction": 0.87339593114241,
+          "bottom_left_known_fraction": 0.8843896713615024,
+          "bottom_right_floor_fraction": 1.0,
+          "bottom_right_known_fraction": 1.0
+        },
+        "evidence": [
+          {
+            "heading_degrees": -30,
+            "floor_fraction": 0.9967835809465462,
+            "known_fraction": 0.9473302379570516,
+            "sample_count": 6892
+          },
+          {
+            "heading_degrees": 0,
+            "floor_fraction": 1.0,
+            "known_fraction": 0.9952118398142774,
+            "sample_count": 6892
+          },
+          {
+            "heading_degrees": 30,
+            "floor_fraction": 1.0,
+            "known_fraction": 0.9763404731905362,
+            "sample_count": 7143
+          }
+        ],
+        "candidates": [
+          {
+            "heading_degrees": -30,
+            "clear_distance_m": 0.15,
+            "confidence": 0.9967835809465462,
+            "known_fraction": 0.9473302379570516
+          },
+          {
+            "heading_degrees": 0,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 0.9952118398142774
+          },
+          {
+            "heading_degrees": 30,
+            "clear_distance_m": 0.15,
+            "confidence": 1.0,
+            "known_fraction": 0.9763404731905362
+          }
+        ],
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.7138029599535693,
+          "reason": "best proven short route"
+        }
+      },
+      "person_detections": [],
+      "face_detections": [],
+      "semantic_classes": [
+        {
+          "id": 0,
+          "label": "wall",
+          "fraction": 0.5109602864583334
+        },
+        {
+          "id": 3,
+          "label": "floor",
+          "fraction": 0.27340494791666664
+        },
+        {
+          "id": 18,
+          "label": "curtain",
+          "fraction": 0.14272135416666668
+        },
+        {
+          "id": 35,
+          "label": "wardrobe",
+          "fraction": 0.04018229166666667
+        },
+        {
+          "id": 10,
+          "label": "cabinet",
+          "fraction": 0.022568359375
+        },
+        {
+          "id": 81,
+          "label": "towel",
+          "fraction": 0.007340494791666667
+        },
+        {
+          "id": 8,
+          "label": "windowpane",
+          "fraction": 0.002822265625
+        }
+      ],
+      "semantic_group_fraction": {
+        "floor": 0.26237630208333335,
+        "person": 0.0,
+        "furniture": 0.0,
+        "ceiling": 0.0,
+        "other_known": 0.37576497395833336,
+        "low_confidence": 0.36185872395833335
+      },
+      "depth": {
+        "calibration_applied": false,
+        "physically_validated": false,
+        "finite_fraction": 1.0,
+        "percentiles": {
+          "5": 1.0980091094970703,
+          "50": 2.166548252105713,
+          "95": 2.9569029808044434
+        },
+        "note": "Pretrained metric model output; no independently verified physical range"
+      },
+      "timing_ms": {
+        "segmentation": 325.3,
+        "depth": 293.87,
+        "person": 69.21,
+        "face": 5.6
+      },
+      "arrays": "evaluation/visual-scenarios/arrays/camera-lowered-floor.npz",
+      "arrays_sha256": "b57d665ea9fbc6753c5947c1204d858b25c86102813d5c660a249cb6b545049e",
+      "figure": "evaluation/visual-scenarios/figures/camera-lowered-floor.png",
+      "figure_sha256": "fa384bd7157a5de6bc012082f57ce874ce377c495b091ed8fae51c601e9366d5"
+    }
+  ],
+  "overview": "evaluation/visual-scenarios/figures/segmentation-overview.png",
+  "overview_sha256": "bff4cfa83591cebc849fdf7f9cf5bc778e343cf90fb21023a04b492e413266ad"
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "scope": "conditional single-image illustration; not motion authorization",
+  "previews": [
+    {
+      "id": "floor-hazards",
+      "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d",
+      "evidence_kind": "single_saved_frame_conditional_policy_preview",
+      "initial_and_fresh_local_source_are_same_image": true,
+      "fresh_scene_recheck": false,
+      "movement_authorized": false,
+      "vlm_response_task": "route-floor-hazards",
+      "result": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 30.0,
+          "distance_m": 0.05,
+          "score": 0.3812532938076417,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          30.0
+        ],
+        "exclusions": {
+          "left": "semantic hazard: thin_object",
+          "center": "semantic hazard: solid_object"
+        }
+      }
+    },
+    {
+      "id": "clear-floor",
+      "sha256": "d4087f366c5e85b0aea5e88f59c7c6fae626c93bc3be1dfc408b2c79f54934a5",
+      "evidence_kind": "single_saved_frame_conditional_policy_preview",
+      "initial_and_fresh_local_source_are_same_image": true,
+      "fresh_scene_recheck": false,
+      "movement_authorized": false,
+      "vlm_response_task": "route-clear-floor",
+      "result": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.8350000000000001,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          -30.0,
+          0.0,
+          30.0
+        ],
+        "exclusions": {}
+      }
+    },
+    {
+      "id": "chair-caster-edge",
+      "sha256": "3868387ab82abb6ff1a47289a1d466014088bf8e8516e7111001cb8ac0450b82",
+      "evidence_kind": "single_saved_frame_conditional_policy_preview",
+      "initial_and_fresh_local_source_are_same_image": true,
+      "fresh_scene_recheck": false,
+      "movement_authorized": false,
+      "vlm_response_task": "route-chair-caster-edge",
+      "result": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.8350000000000001,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          0.0,
+          30.0
+        ],
+        "exclusions": {
+          "left": "semantic hazard: solid_object"
+        }
+      }
+    },
+    {
+      "id": "slipper-obstruction",
+      "sha256": "2c4430877e33eb2c629b869f99f4dce6aa6da5d9d5f864a926492f53b5ce2d3b",
+      "evidence_kind": "single_saved_frame_conditional_policy_preview",
+      "initial_and_fresh_local_source_are_same_image": true,
+      "fresh_scene_recheck": false,
+      "movement_authorized": false,
+      "vlm_response_task": "route-slipper-obstruction",
+      "result": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 30.0,
+          "distance_m": 0.05,
+          "score": 0.33629439097245273,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          -30.0,
+          30.0
+        ],
+        "exclusions": {
+          "center": "local floor evidence is blocked or uncertain"
+        }
+      }
+    }
+  ]
+}

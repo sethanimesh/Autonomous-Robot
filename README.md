@@ -21,6 +21,16 @@ Original webcam captures from supervised home-room tests show the camera's perso
 
 These samples document perception and supervised search behavior. [Capture provenance and trial context](assets/test-samples/README.md) are recorded separately from the completed caregiver demonstration.
 
+## Visual scenario evaluation
+
+The [scenario gallery](evaluation/visual-scenarios/README.md) adds fresh YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 outputs on **12 retained camera images**, alongside **12 actual Gemini requests** covering framing, visible hazards, paired views and clothing descriptions. It includes dark captures, backlighting, partial people, clipped feet, cables, footwear and camera-view mismatches.
+
+![Actual Gemini hazard review beside the submitted corridor polygons](evaluation/visual-scenarios/figures/vlm-route-floor-hazards.png)
+
+*Saved-image route review: Gemini's cable and footwear classifications affect the conditional corridor policy. Exact submitted polygons and actual responses are visible. The preview has no fresh scene recheck and authorizes no movement.*
+
+The gallery publishes source/model hashes, numerical arrays and structured responses, including disagreements and weak predictions. A separate **20-case synthetic policy harness** checks route vetoes, framing recovery, approach limits and delivery gates; its authored inputs are labelled separately from actual model inference. This image evaluation adds no physical or hospital trial.
+
 ## Implemented capabilities
 
 | Area | What exists | Practical boundary |

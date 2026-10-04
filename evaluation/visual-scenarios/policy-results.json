@@ -1,0 +1,1937 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "synthetic_policy_inputs_on_retained_images",
+  "interpretation": "Conditional production-policy outcomes for authored fixtures; image bytes are verified but not interpreted.",
+  "model_inference_run": false,
+  "cloud_called": false,
+  "hardware_used": false,
+  "movement_executed": false,
+  "python_version": "3.14.7",
+  "scenario_count": 20,
+  "passed_count": 20,
+  "ok": true,
+  "scenarios": [
+    {
+      "id": "clear-corridor",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "Conditional positive control: all authored local and semantic checks permit one 5 cm primitive. This does not assert the associated real scene is clear.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0,
+          "distance_m": 0.05
+        },
+        "approved_headings": [
+          -30,
+          0,
+          30
+        ]
+      },
+      "actual": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": 0.0,
+          "distance_m": 0.05,
+          "score": 0.83,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          -30.0,
+          0.0,
+          30.0
+        ],
+        "exclusions": {}
+      },
+      "passed": true
+    },
+    {
+      "id": "center-cable-veto",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "A hypothetical thin-object classification vetoes the center corridor despite positive local floor evidence.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "thin_object",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": -30,
+          "distance_m": 0.05
+        },
+        "approved_headings": [
+          -30,
+          30
+        ]
+      },
+      "actual": {
+        "decision": {
+          "blocked": false,
+          "heading_degrees": -30.0,
+          "distance_m": 0.05,
+          "score": 0.32,
+          "reason": "fresh local floor checks with Gemini hazard vetoes and route preference"
+        },
+        "approved_headings": [
+          -30.0,
+          30.0
+        ],
+        "exclusions": {
+          "center": "semantic hazard: thin_object"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "all-hazards",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "No corridor survives authored solid-object classifications; no movement can be selected.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "solid_object",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "solid_object",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "solid_object",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": true,
+          "distance_m": 0
+        },
+        "approved_headings": []
+      },
+      "actual": {
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no route passes local and semantic checks"
+        },
+        "approved_headings": [],
+        "exclusions": {
+          "left": "semantic hazard: solid_object",
+          "center": "semantic hazard: solid_object",
+          "right": "semantic hazard: solid_object"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "unknown-local-floor",
+      "image": {
+        "id": "overhead-view",
+        "path": "assets/visual-scenarios/inputs/overhead-view.jpg",
+        "sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "VLM preference cannot compensate for insufficient known local floor pixels.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.6,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.6,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.6,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": true,
+          "distance_m": 0
+        },
+        "approved_headings": []
+      },
+      "actual": {
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no route passes local and semantic checks"
+        },
+        "approved_headings": [],
+        "exclusions": {
+          "left": "local floor evidence is blocked or uncertain",
+          "center": "local floor evidence is blocked or uncertain",
+          "right": "local floor evidence is blocked or uncertain"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "changed-fresh-floor",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "A fresh local recheck that loses floor support vetoes an initially supported route.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.5,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.5,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.5,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": true,
+          "distance_m": 0
+        },
+        "approved_headings": []
+      },
+      "actual": {
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no route passes local and semantic checks"
+        },
+        "approved_headings": [],
+        "exclusions": {
+          "left": "local floor evidence is blocked or uncertain",
+          "center": "local floor evidence is blocked or uncertain",
+          "right": "local floor evidence is blocked or uncertain"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "dark-view",
+      "image": {
+        "id": "covered-lens",
+        "path": "assets/visual-scenarios/inputs/covered-lens.jpg",
+        "sha256": "d710a8e7975a3b3301717a2e61c4ea87ac0b5f75413b5dddfd7ee739252377d2"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "A synthetic dark-quality classification vetoes all local candidates.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "dark",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": true,
+          "distance_m": 0
+        },
+        "approved_headings": []
+      },
+      "actual": {
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "no route passes local and semantic checks"
+        },
+        "approved_headings": [],
+        "exclusions": {
+          "left": "unusable camera view: dark",
+          "center": "unusable camera view: dark",
+          "right": "unusable camera view: dark"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "malformed-vlm",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Local floor/depth candidates and semantic hazard fusion",
+      "policy": "route_fusion",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:fuse_route_evidence",
+      "fixture_purpose": "An extra motor_speed field makes the strict advisory schema invalid.",
+      "synthetic_inputs": {
+        "initial_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "fresh_local": {
+          "ok": true,
+          "floor_horizon_y": 0.35,
+          "candidates": [
+            {
+              "heading_degrees": -30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 0,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            },
+            {
+              "heading_degrees": 30,
+              "clear_distance_m": 0.15,
+              "confidence": 0.99,
+              "known_fraction": 0.99
+            }
+          ],
+          "evidence": [
+            {
+              "heading_degrees": -30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 0,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            },
+            {
+              "heading_degrees": 30,
+              "floor_fraction": 0.99,
+              "known_fraction": 0.99,
+              "sample_count": 500
+            }
+          ]
+        },
+        "vlm_advice": {
+          "quality": "clear",
+          "near_turn_space": "visible_clear",
+          "preference": [
+            "center",
+            "left",
+            "right"
+          ],
+          "evidence": "Authored conditional fixture; this text is not a model response.",
+          "corridors": [
+            {
+              "id": "left",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "center",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            },
+            {
+              "id": "right",
+              "visibility": "visible",
+              "hazard": "none",
+              "evidence": "Synthetic corridor classification for deterministic policy checking."
+            }
+          ],
+          "motor_speed": 100
+        }
+      },
+      "expected": {
+        "decision": {
+          "blocked": true,
+          "distance_m": 0
+        },
+        "approved_headings": []
+      },
+      "actual": {
+        "decision": {
+          "blocked": true,
+          "heading_degrees": 0.0,
+          "distance_m": 0.0,
+          "score": null,
+          "reason": "invalid Gemini route interpretation"
+        },
+        "approved_headings": [],
+        "exclusions": {}
+      },
+      "passed": true
+    },
+    {
+      "id": "mismatched-source-binding",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Source-image binding for asynchronous route advice",
+      "policy": "route_binding",
+      "policy_source": "robot/jetson/navigation/closed_loop_detour.py:validate_route_reasoning",
+      "fixture_purpose": "Reject a deliberately corrupted fresh-frame hash; all image hashes otherwise come from checked retained files. The two retained captures are fixture references, not a reconstructed historical before/after scene.",
+      "synthetic_inputs": {
+        "source_image_id": "overhead-view",
+        "fresh_image_id": "floor-hazards",
+        "corrupt_fresh_binding": true,
+        "route_result": {
+          "decision": {
+            "blocked": false,
+            "heading_degrees": 0
+          },
+          "route_reasoning": {
+            "provider": "gemini",
+            "advisory_only": true,
+            "approved_headings": [
+              0
+            ],
+            "interpretation": {
+              "quality": "clear",
+              "near_turn_space": "visible_clear",
+              "preference": [
+                "center",
+                "left",
+                "right"
+              ],
+              "evidence": "Authored conditional fixture; this text is not a model response.",
+              "corridors": [
+                {
+                  "id": "left",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "center",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "right",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                }
+              ]
+            },
+            "scene_recheck": {
+              "stable": true
+            }
+          }
+        }
+      },
+      "expected": {
+        "accepted": false
+      },
+      "actual": {
+        "accepted": false,
+        "reason": "bound Gemini and local route checks are unavailable",
+        "checked_result": {
+          "decision": {
+            "blocked": false,
+            "heading_degrees": 0
+          },
+          "route_reasoning": {
+            "provider": "gemini",
+            "advisory_only": true,
+            "approved_headings": [
+              0
+            ],
+            "interpretation": {
+              "quality": "clear",
+              "near_turn_space": "visible_clear",
+              "preference": [
+                "center",
+                "left",
+                "right"
+              ],
+              "evidence": "Authored conditional fixture; this text is not a model response.",
+              "corridors": [
+                {
+                  "id": "left",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "center",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "right",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                }
+              ]
+            },
+            "scene_recheck": {
+              "stable": true
+            },
+            "source_frame_sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19",
+            "fresh_frame_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "frame_sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "unstable-scene-recheck",
+      "image": {
+        "id": "floor-hazards",
+        "path": "assets/test-samples/floor-observation-20260906.jpg",
+        "sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+      },
+      "feature": "Source-image binding for asynchronous route advice",
+      "policy": "route_binding",
+      "policy_source": "robot/jetson/navigation/closed_loop_detour.py:validate_route_reasoning",
+      "fixture_purpose": "Reject a synthetic unstable-scene flag even when all checked image hashes match their assigned bindings. The two retained captures are fixture references, not a reconstructed historical before/after scene.",
+      "synthetic_inputs": {
+        "source_image_id": "overhead-view",
+        "fresh_image_id": "floor-hazards",
+        "corrupt_fresh_binding": false,
+        "route_result": {
+          "decision": {
+            "blocked": false,
+            "heading_degrees": 0
+          },
+          "route_reasoning": {
+            "provider": "gemini",
+            "advisory_only": true,
+            "approved_headings": [
+              0
+            ],
+            "interpretation": {
+              "quality": "clear",
+              "near_turn_space": "visible_clear",
+              "preference": [
+                "center",
+                "left",
+                "right"
+              ],
+              "evidence": "Authored conditional fixture; this text is not a model response.",
+              "corridors": [
+                {
+                  "id": "left",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "center",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "right",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                }
+              ]
+            },
+            "scene_recheck": {
+              "stable": false
+            }
+          }
+        }
+      },
+      "expected": {
+        "accepted": false
+      },
+      "actual": {
+        "accepted": false,
+        "reason": "bound Gemini and local route checks are unavailable",
+        "checked_result": {
+          "decision": {
+            "blocked": false,
+            "heading_degrees": 0
+          },
+          "route_reasoning": {
+            "provider": "gemini",
+            "advisory_only": true,
+            "approved_headings": [
+              0
+            ],
+            "interpretation": {
+              "quality": "clear",
+              "near_turn_space": "visible_clear",
+              "preference": [
+                "center",
+                "left",
+                "right"
+              ],
+              "evidence": "Authored conditional fixture; this text is not a model response.",
+              "corridors": [
+                {
+                  "id": "left",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "center",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                },
+                {
+                  "id": "right",
+                  "visibility": "visible",
+                  "hazard": "none",
+                  "evidence": "Synthetic corridor classification for deterministic policy checking."
+                }
+              ]
+            },
+            "scene_recheck": {
+              "stable": false
+            },
+            "source_frame_sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19",
+            "fresh_frame_sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+          },
+          "frame_sha256": "f9bb20c25fe3cf74d0adaf17eb061ad6f98f2111fcbbbdf653cdcbd92a80076d"
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "vlm-unavailable-local-probe",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Bounded camera framing fallback",
+      "policy": "camera_framing",
+      "policy_source": "robot/jetson/mission/search_view_policy.py:combine_framing_plans",
+      "fixture_purpose": "Missing cloud advice leaves the authored local person-framing plan selectable; it grants no track movement or identity.",
+      "synthetic_inputs": {
+        "cloud_plan": null,
+        "local_plan": {
+          "scenario": "local_probe",
+          "positions": [
+            24
+          ],
+          "center_person": false
+        },
+        "position": 32,
+        "face_visible": false
+      },
+      "expected": {
+        "selected_source": "person_detector",
+        "positions": [
+          24
+        ]
+      },
+      "actual": {
+        "scenario": "local_probe",
+        "positions": [
+          24
+        ],
+        "center_person": false,
+        "framing_votes": [
+          {
+            "source": "person_detector",
+            "direction": "raise",
+            "weight": 1
+          }
+        ],
+        "framing_scores": {
+          "raise": 1
+        },
+        "selected_source": "person_detector",
+        "sources_agree": false
+      },
+      "passed": true
+    },
+    {
+      "id": "fresh-face-overrides-vlm",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Face-first camera framing",
+      "policy": "camera_framing",
+      "policy_source": "robot/jetson/mission/search_view_policy.py:combine_framing_plans",
+      "fixture_purpose": "A hypothetical fresh local face vote overrides conflicting cloud camera framing.",
+      "synthetic_inputs": {
+        "cloud_plan": {
+          "scenario": "cloud_lower",
+          "positions": [
+            40
+          ],
+          "center_person": false
+        },
+        "local_plan": {
+          "scenario": "face_hold",
+          "positions": [],
+          "center_person": true
+        },
+        "position": 32,
+        "face_visible": true
+      },
+      "expected": {
+        "selected_source": "face_detector",
+        "center_person": true,
+        "positions": []
+      },
+      "actual": {
+        "scenario": "face_hold",
+        "positions": [],
+        "center_person": true,
+        "framing_votes": [
+          {
+            "source": "gemini",
+            "direction": "lower",
+            "weight": 3
+          },
+          {
+            "source": "face_detector",
+            "direction": "center",
+            "weight": 4
+          }
+        ],
+        "framing_scores": {
+          "lower": 3,
+          "center": 4
+        },
+        "selected_source": "face_detector",
+        "sources_agree": false
+      },
+      "passed": true
+    },
+    {
+      "id": "upward-probe-budget",
+      "image": {
+        "id": "overhead-view",
+        "path": "assets/visual-scenarios/inputs/overhead-view.jpg",
+        "sha256": "fc096f49784cee92f80447f29d98abbb021cc1d430f7b9195c932c6f74aabf19"
+      },
+      "feature": "Camera investigation limit",
+      "policy": "camera_budget",
+      "policy_source": "robot/jetson/mission/search_view_policy.py:upward_budget_reached",
+      "fixture_purpose": "Three hypothetical eight-count upward probes without a face exhaust the 24-count policy budget.",
+      "synthetic_inputs": {
+        "origin": 32,
+        "current": 8,
+        "face_visible": false
+      },
+      "expected": {
+        "budget_reached": true
+      },
+      "actual": {
+        "budget_reached": true
+      },
+      "passed": true
+    },
+    {
+      "id": "restore-view-after-tilt",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Person-loss observation recovery",
+      "policy": "occlusion_recovery",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:occlusion_recovery",
+      "fixture_purpose": "Test a conditional observation-only recovery; the associated capture does not establish an actual occlusion event.",
+      "synthetic_inputs": {
+        "vlm_advice": {
+          "quality": "clear",
+          "cause": "camera_changed",
+          "inspect_side": "left",
+          "evidence": "Authored occlusion fixture; no inference was run."
+        },
+        "previous_position": 22,
+        "current_position": 14,
+        "memory_age": 5,
+        "same_reference": true,
+        "face_visible": false,
+        "attempts": 0
+      },
+      "expected": {
+        "action": "restore_previous_view",
+        "drive_allowed": false
+      },
+      "actual": {
+        "action": "restore_previous_view",
+        "reason": "person disappeared after a measured camera adjustment",
+        "drive_allowed": false,
+        "position": 22
+      },
+      "passed": true
+    },
+    {
+      "id": "expired-person-context",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Person-loss observation recovery",
+      "policy": "occlusion_recovery",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:occlusion_recovery",
+      "fixture_purpose": "Test a conditional observation-only recovery; the associated capture does not establish an actual occlusion event.",
+      "synthetic_inputs": {
+        "vlm_advice": {
+          "quality": "clear",
+          "cause": "behind_object",
+          "inspect_side": "left",
+          "evidence": "Authored occlusion fixture; no inference was run."
+        },
+        "previous_position": 22,
+        "current_position": 22,
+        "memory_age": 31,
+        "same_reference": true,
+        "face_visible": false,
+        "attempts": 0
+      },
+      "expected": {
+        "action": "rescan",
+        "drive_allowed": false
+      },
+      "actual": {
+        "action": "rescan",
+        "reason": "no reliable recent person context",
+        "drive_allowed": false
+      },
+      "passed": true
+    },
+    {
+      "id": "changed-head-reference",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Person-loss observation recovery",
+      "policy": "occlusion_recovery",
+      "policy_source": "robot/jetson/navigation/navigation_reasoning.py:occlusion_recovery",
+      "fixture_purpose": "Test a conditional observation-only recovery; the associated capture does not establish an actual occlusion event.",
+      "synthetic_inputs": {
+        "vlm_advice": {
+          "quality": "clear",
+          "cause": "behind_object",
+          "inspect_side": "left",
+          "evidence": "Authored occlusion fixture; no inference was run."
+        },
+        "previous_position": 22,
+        "current_position": 14,
+        "memory_age": 5,
+        "same_reference": false,
+        "face_visible": false,
+        "attempts": 0
+      },
+      "expected": {
+        "action": "rescan",
+        "drive_allowed": false
+      },
+      "actual": {
+        "action": "rescan",
+        "reason": "no reliable recent person context",
+        "drive_allowed": false
+      },
+      "passed": true
+    },
+    {
+      "id": "approximate-short-step",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Metric versus approximate recipient approach",
+      "policy": "person_approach",
+      "policy_source": "robot/jetson/mission/person_approach.py:approach_decision",
+      "fixture_purpose": "A hypothetical unvalidated floor-referenced estimate permits only a 5 cm policy recommendation; the harness executes no movement.",
+      "synthetic_inputs": {
+        "observation": {
+          "identity_confirmed": true,
+          "profile_id": "synthetic-recipient",
+          "target_revision": "synthetic-revision-1",
+          "track_id": "synthetic-track-1",
+          "age_seconds": 0.1,
+          "identity_source": "clothing",
+          "clothing_approach_enabled": true,
+          "approximate_approach_enabled": true,
+          "range": {
+            "distance_m": 1.5,
+            "lower_m": 1.35,
+            "upper_m": 1.65,
+            "available": true,
+            "validated": false,
+            "mode": "approximate",
+            "source": "metric_depth_floor_estimate",
+            "distance_reference": "camera_ground_projection",
+            "feet_checked": true,
+            "consistent_samples": 2,
+            "track_id": "synthetic-track-1",
+            "profile_id": "synthetic-recipient",
+            "age_seconds": 0.2
+          }
+        }
+      },
+      "expected": {
+        "action": "approach",
+        "distance_m": 0.05,
+        "estimated": true
+      },
+      "actual": {
+        "action": "approach",
+        "distance_m": 0.05,
+        "estimated": true
+      },
+      "passed": true
+    },
+    {
+      "id": "hidden-feet-require-view",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Metric versus approximate recipient approach",
+      "policy": "person_approach",
+      "policy_source": "robot/jetson/mission/person_approach.py:approach_decision",
+      "fixture_purpose": "Hidden feet at a hypothetical near distance require a lower view before approach.",
+      "synthetic_inputs": {
+        "observation": {
+          "identity_confirmed": true,
+          "profile_id": "synthetic-recipient",
+          "target_revision": "synthetic-revision-1",
+          "track_id": "synthetic-track-1",
+          "age_seconds": 0.1,
+          "identity_source": "clothing",
+          "clothing_approach_enabled": true,
+          "approximate_approach_enabled": true,
+          "range": {
+            "distance_m": 0.6,
+            "lower_m": 0.44999999999999996,
+            "upper_m": 0.75,
+            "available": true,
+            "validated": false,
+            "mode": "approximate",
+            "source": "metric_depth_floor_estimate",
+            "distance_reference": "camera_ground_projection",
+            "feet_checked": false,
+            "consistent_samples": 2,
+            "track_id": "synthetic-track-1",
+            "profile_id": "synthetic-recipient",
+            "age_seconds": 0.2
+          }
+        }
+      },
+      "expected": {
+        "action": "look_lower",
+        "distance_m": 0
+      },
+      "actual": {
+        "action": "look_lower",
+        "distance_m": 0.0,
+        "reason": "Inspect for feet closer than the visible torso"
+      },
+      "passed": true
+    },
+    {
+      "id": "range-wrong-track",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Metric versus approximate recipient approach",
+      "policy": "person_approach",
+      "policy_source": "robot/jetson/mission/person_approach.py:approach_decision",
+      "fixture_purpose": "A range estimate bound to another hypothetical person track cannot authorize approach.",
+      "synthetic_inputs": {
+        "observation": {
+          "identity_confirmed": true,
+          "profile_id": "synthetic-recipient",
+          "target_revision": "synthetic-revision-1",
+          "track_id": "synthetic-track-1",
+          "age_seconds": 0.1,
+          "identity_source": "clothing",
+          "clothing_approach_enabled": true,
+          "approximate_approach_enabled": true,
+          "range": {
+            "distance_m": 1.5,
+            "lower_m": 1.35,
+            "upper_m": 1.65,
+            "available": true,
+            "validated": false,
+            "mode": "approximate",
+            "source": "metric_depth_floor_estimate",
+            "distance_reference": "camera_ground_projection",
+            "feet_checked": true,
+            "consistent_samples": 2,
+            "track_id": "synthetic-other-track",
+            "profile_id": "synthetic-recipient",
+            "age_seconds": 0.2
+          }
+        }
+      },
+      "expected": {
+        "action": "inspect",
+        "distance_m": 0
+      },
+      "actual": {
+        "action": "inspect",
+        "distance_m": 0.0,
+        "reason": "Distance belongs to another person track"
+      },
+      "passed": true
+    },
+    {
+      "id": "validated-delivery-gate",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Recipient-bound assistance-message delivery gate",
+      "policy": "delivery_gate",
+      "policy_source": "robot/jetson/perception/speech_delivery.py:delivery_gate",
+      "fixture_purpose": "A positive control for the final gate: hypothetical current identity, validated 0.55-0.65 m interval, and stopped feedback permit delivery. This does not run approval, synthesis, playback, or acknowledgement.",
+      "synthetic_inputs": {
+        "report": {
+          "outcome": "target_found_at_standoff",
+          "target_observation": {
+            "identity_confirmed": true,
+            "profile_id": "synthetic-recipient",
+            "target_revision": "synthetic-revision-1",
+            "track_id": "synthetic-track-1",
+            "age_seconds": 0.1,
+            "identity_source": "clothing",
+            "clothing_approach_enabled": true,
+            "approximate_approach_enabled": true,
+            "range": {
+              "distance_m": 0.6,
+              "lower_m": 0.55,
+              "upper_m": 0.65,
+              "available": true,
+              "validated": true,
+              "mode": "validated",
+              "source": "metric_depth_floor_estimate",
+              "distance_reference": "camera_ground_projection",
+              "feet_checked": true,
+              "consistent_samples": 2,
+              "track_id": "synthetic-track-1",
+              "profile_id": "synthetic-recipient",
+              "age_seconds": 0.2
+            }
+          }
+        },
+        "profile_id": "synthetic-recipient",
+        "profile_revision": "synthetic-revision-1",
+        "observation": {
+          "identity_confirmed": true,
+          "profile_id": "synthetic-recipient",
+          "target_revision": "synthetic-revision-1",
+          "track_id": "synthetic-track-1",
+          "age_seconds": 0.1,
+          "identity_source": "clothing",
+          "clothing_approach_enabled": true,
+          "approximate_approach_enabled": true,
+          "range": {
+            "distance_m": 0.6,
+            "lower_m": 0.55,
+            "upper_m": 0.65,
+            "available": true,
+            "validated": true,
+            "mode": "validated",
+            "source": "metric_depth_floor_estimate",
+            "distance_reference": "camera_ground_projection",
+            "feet_checked": true,
+            "consistent_samples": 2,
+            "track_id": "synthetic-track-1",
+            "profile_id": "synthetic-recipient",
+            "age_seconds": 0.2
+          }
+        },
+        "observation_age": 0.1,
+        "robot_status": {
+          "status": "ok",
+          "motion_active": false,
+          "motors": {
+            "left": {
+              "state": [],
+              "speed": 0,
+              "commanded_speed": 0
+            },
+            "right": {
+              "state": [],
+              "speed": 0,
+              "commanded_speed": 0
+            }
+          }
+        },
+        "robot_status_age": 0.1,
+        "head_status": {
+          "moving": false,
+          "homing": false
+        },
+        "head_status_age": 0.1,
+        "mission_state": "found"
+      },
+      "expected": {
+        "permitted": true
+      },
+      "actual": {
+        "permitted": true,
+        "reason": null
+      },
+      "passed": true
+    },
+    {
+      "id": "estimated-arrival-withholds-delivery",
+      "image": {
+        "id": "seated-recipient",
+        "path": "assets/test-samples/seated-recipient-20260905.jpg",
+        "sha256": "862f063a469c39da619630daeefd70bc7354fb44c757180c1b2650db44d10653"
+      },
+      "feature": "Recipient-bound assistance-message delivery gate",
+      "policy": "delivery_gate",
+      "policy_source": "robot/jetson/perception/speech_delivery.py:delivery_gate",
+      "fixture_purpose": "A hypothetical estimated arrival remains insufficient for the validated delivery gate; playback is withheld.",
+      "synthetic_inputs": {
+        "report": {
+          "outcome": "target_found_at_estimated_standoff",
+          "target_observation": {
+            "identity_confirmed": true,
+            "profile_id": "synthetic-recipient",
+            "target_revision": "synthetic-revision-1",
+            "track_id": "synthetic-track-1",
+            "age_seconds": 0.1,
+            "identity_source": "clothing",
+            "clothing_approach_enabled": true,
+            "approximate_approach_enabled": true,
+            "range": {
+              "distance_m": 0.18,
+              "lower_m": 0.03,
+              "upper_m": 0.32999999999999996,
+              "available": true,
+              "validated": false,
+              "mode": "approximate",
+              "source": "metric_depth_floor_estimate",
+              "distance_reference": "camera_ground_projection",
+              "feet_checked": true,
+              "consistent_samples": 2,
+              "track_id": "synthetic-track-1",
+              "profile_id": "synthetic-recipient",
+              "age_seconds": 0.2
+            }
+          }
+        },
+        "profile_id": "synthetic-recipient",
+        "profile_revision": "synthetic-revision-1",
+        "observation": {
+          "identity_confirmed": true,
+          "profile_id": "synthetic-recipient",
+          "target_revision": "synthetic-revision-1",
+          "track_id": "synthetic-track-1",
+          "age_seconds": 0.1,
+          "identity_source": "clothing",
+          "clothing_approach_enabled": true,
+          "approximate_approach_enabled": true,
+          "range": {
+            "distance_m": 0.18,
+            "lower_m": 0.03,
+            "upper_m": 0.32999999999999996,
+            "available": true,
+            "validated": false,
+            "mode": "approximate",
+            "source": "metric_depth_floor_estimate",
+            "distance_reference": "camera_ground_projection",
+            "feet_checked": true,
+            "consistent_samples": 2,
+            "track_id": "synthetic-track-1",
+            "profile_id": "synthetic-recipient",
+            "age_seconds": 0.2
+          }
+        },
+        "observation_age": 0.1,
+        "robot_status": {
+          "status": "ok",
+          "motion_active": false,
+          "motors": {
+            "left": {
+              "state": [],
+              "speed": 0,
+              "commanded_speed": 0
+            },
+            "right": {
+              "state": [],
+              "speed": 0,
+              "commanded_speed": 0
+            }
+          }
+        },
+        "robot_status_age": 0.1,
+        "head_status": {
+          "moving": false,
+          "homing": false
+        },
+        "head_status_age": 0.1,
+        "mission_state": "found"
+      },
+      "expected": {
+        "permitted": false
+      },
+      "actual": {
+        "permitted": false,
+        "reason": "Delivery needs a completed approach with a measured, validated standoff; the robot stayed silent."
+      },
+      "passed": true
+    }
+  ]
+}

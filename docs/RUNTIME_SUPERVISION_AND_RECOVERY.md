@@ -60,6 +60,8 @@ python3 scripts/diagnostics/reproduce_checks.py
 
 The selected suite passed **138 checks across 11 modules** on 4 October 2026, including an export containing only staged repository files. It uses fake motors, sockets and clocks, generated observations and a synthetic cloud-view fixture. An audit hook rejects live network connections, subprocess launches and device access in these selected checks; missing imports, skips and expected failures count as failures. [Evaluation and reproduction](../evaluation/README.md) records the run and interpretation.
 
+The [visual scenario gallery](../evaluation/visual-scenarios/README.md) adds actual local-model and Gemini outputs on 12 retained camera images, alongside a separate 20-case policy harness. Authored cases cover cloud-unavailable camera probing, local-face priority, probe budgets, source/scene rejection, view restoration and action gates. Image hashes establish fixture provenance; their policy values are synthetic rather than inferred from the pictures. All 20 checks passed. Five additional floor-label checks verify the corrected support-surface selection.
+
 The table separates coverage in that reproducible suite from additional tests present in the repository. The latter are source references, not a claim that every test has been freshly executed in the minimal environment.
 
 | Behavior | Test entry points | Included in selected suite? |
