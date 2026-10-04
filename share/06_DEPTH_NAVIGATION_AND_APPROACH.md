@@ -1,6 +1,6 @@
 # Depth, floor assessment, hazards, and approach
 
-These guides retain the original source investigation and historical results, with a 2026-10-04 revision for the hospital assistance scenario and the current message-delivery code. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions; no live robot was tested for this revision. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder; cited source line numbers belong to the original investigation unless a current-source review is identified.
+This guide presents the implementation and evaluation status. Historical measurements retain their original provenance; see the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [source snapshot](SOURCE_SNAPSHOT.md).
 
 **C8. Depth, floor corridors, and hazard assessment**
 
@@ -37,7 +37,7 @@ A qualifying corridor receives a constant **0.15 m clear-distance value**. This 
 
 The investigation identified a label defect and a remaining geometry limitation:
 
-1. **Water was included in the old floor IDs; the source is now corrected.** The investigated `(3,21,28)` default mapped to floor, **water**, and rug, allowing confident water pixels into the local floor mask and range-plane fitting. On 2026-10-04, the [engine](../robot/mac/route_perception.py) was changed to `(3,28)` and support-surface names are validated at model load. [Five regression tests](../tests/test_floor_label_mapping.py) passed. The [retained-image evaluation](../evaluation/visual-scenarios/README.md) uses the corrected labels. This was a code/configuration mismatch, not a recorded water encounter; the correction has not been deployed to a running robot.
+1. **Water was included in the old floor IDs; the source is now corrected.** The investigated `(3,21,28)` default mapped to floor, **water**, and rug, allowing confident water pixels into the local floor mask and range-plane fitting. The [engine](../robot/mac/route_perception.py) was changed to `(3,28)` and support-surface names are validated at model load. [Five regression tests](../tests/test_floor_label_mapping.py) passed. The [retained-image evaluation](../evaluation/visual-scenarios/README.md) uses the corrected labels. This was a code/configuration mismatch, not a recorded water encounter; the correction has not been deployed to a running robot.
 2. **The image polygons are not a calibrated footprint projection.** The planner stores 20×25 cm dimensions and a 5 cm margin, but the corridor polygons are not derived from those dimensions, camera pose, or a turn swept volume. A claimed 30 cm-wide corridor is not geometrically proved by this active path.
 
 The floor/known thresholds also allow, mathematically, only `0.95 × 0.75 = 71.25%` of all sampled pixels to be confidently floor. The remaining pixels are not all proved traversable.
