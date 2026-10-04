@@ -653,7 +653,7 @@ Keep hardware-specific code isolated.
 
 Keep perception independent from navigation where practical.
 
-Log enough information to replay failures:
+Log enough information for replay and diagnosis:
 
 - camera timestamps
 - robot pose
@@ -662,7 +662,7 @@ Log enough information to replay failures:
 - detections
 - mission state
 
-Keep development notes crisp: record the result, essential measurement, failure
+Keep development notes crisp: record the result, essential measurement, issue
 cause, and next action only. Prioritize implementation and real-world testing
 over lengthy documentation.
 
