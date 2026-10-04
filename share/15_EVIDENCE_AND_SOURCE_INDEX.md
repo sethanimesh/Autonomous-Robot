@@ -1,6 +1,6 @@
 # Evidence and source index
 
-This index preserves the source paths and start lines from the original dossier. Existing public repository files are linked directly; local artifacts, the adjacent communication app, and external model metadata are explicitly identified. A source citation is not a new execution result, and historical line numbers may have shifted. The 2026-10-04 source review adds current delivery and command-worker references below.
+This index preserves the source paths and start lines from the original dossier. Existing public repository files are linked directly; local artifacts, the adjacent communication app, and external model metadata are explicitly identified. A source citation is not a new execution result, and historical line numbers may have shifted. The current source review adds current delivery and command-worker references below.
 
 | Original source | Historical cited start lines | Repository access |
 | --- | --- | --- |
@@ -62,7 +62,7 @@ This index preserves the source paths and start lines from the original dossier.
 | `robot/mac/wardrobe_advisor.py` | 8 | [Repository file](../robot/mac/wardrobe_advisor.py) |
 | `scripts/phase6/phase6.py` | 174, 189 | [Repository file](../scripts/phase6/phase6.py) |
 
-## Current-source additions (2026-10-04)
+## Current-source additions (current)
 
 | Source | Reviewed mechanism |
 | --- | --- |
@@ -76,9 +76,9 @@ This index preserves the source paths and start lines from the original dossier.
 
 ## Model metadata provenance
 
-SegFormer: `nvidia/segformer-b0-finetuned-ade-512-512`, cached snapshot `489d5cd81a0b59fab9b7ea758d3548ebe99677da`. Its label mapping identifies class 21 as water. The original investigation read configuration metadata and identified the old floor IDs `(3,21,28)`. The 2026-10-04 source revision uses `(3,28)`, validates floor/rug names and passes five regression tests. Fresh offline CPU inference on 11 retained images is now published in the [visual scenario evaluation](../evaluation/visual-scenarios/README.md), with weight/configuration hashes in [local-results.json](../evaluation/visual-scenarios/local-results.json). Deployment of the corrected source was not performed.
+SegFormer: `nvidia/segformer-b0-finetuned-ade-512-512`, cached snapshot `489d5cd81a0b59fab9b7ea758d3548ebe99677da`. Its label mapping identifies class 21 as water. The original investigation read configuration metadata and identified the old floor IDs `(3,21,28)`. The current source revision uses `(3,28)`, validates floor/rug names and passes five regression tests. Fresh offline CPU inference on 11 retained images is now published in the [visual scenario evaluation](../evaluation/visual-scenarios/README.md), with weight/configuration hashes in [local-results.json](../evaluation/visual-scenarios/local-results.json). Deployment of the corrected source was not performed.
 
-Depth Anything V2: `depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf`, cached snapshot `8078d68a9c75a972131914f6afd0c1723be0da7f`. Metadata indicates metric estimation, max depth 20, and float32 configuration. The 2026-10-04 gallery publishes fresh CPU outputs without applied range calibration or independent distance references. Neither the model metadata nor those raw outputs establish accurate physical distance on the robot.
+Depth Anything V2: `depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf`, cached snapshot `8078d68a9c75a972131914f6afd0c1723be0da7f`. Metadata indicates metric estimation, max depth 20, and float32 configuration. The current gallery publishes fresh CPU outputs without applied range calibration or independent distance references. Neither the model metadata nor those raw outputs establish accurate physical distance on the robot.
 
 ## Missing raw evidence
 

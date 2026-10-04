@@ -20,7 +20,7 @@ The checked-in deployment descriptions contain machine-specific working director
 
 ## Current supervised delivery dependencies
 
-The 2026-10-04 source review adds the [robot message-delivery contract](../docs/ROBOT_MESSAGE_DELIVERY.md). Reproducing this implemented path needs the console and sibling speech module, Jetson FFmpeg/ALSA tools and a verified speaker output, plus the Mac loopback ASR/TTS service, tunnel, configured providers, and the separately maintained communication environment. Repository presence does not establish that these services were activated on a device.
+The current source review adds the [robot message-delivery contract](../docs/ROBOT_MESSAGE_DELIVERY.md). Reproducing this implemented path needs the console and sibling speech module, Jetson FFmpeg/ALSA tools and a verified speaker output, plus the Mac loopback ASR/TTS service, tunnel, configured providers, and the separately maintained communication environment. Repository presence does not establish that these services were activated on a device.
 
 Playback requires a supported final mission report, a validated measured standoff interval, fresh unique profile-bound identity, matching track, and stopped tracks/head. Approximate range does not qualify. A reproduced `played` state means playback completed; it does not establish recipient receipt or acknowledgement. These dependencies extend the original documentation-only snapshot without changing its recorded trial results.
 
