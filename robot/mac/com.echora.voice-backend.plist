@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.echora.voice-backend</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/animesh/Animesh/Project 2.0/Echora Robo/communication/.venv/bin/python</string>
+    <string>-m</string>
+    <string>uvicorn</string>
+    <string>robot.mac.voice_delivery:app</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>8766</string>
+    <string>--no-access-log</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/animesh/Animesh/Project 2.0/Echora Robo</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHONPATH</key>
+    <string>/Users/animesh/Animesh/Project 2.0/Echora Robo</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/animesh/Library/Logs/Echora/voice-backend.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/animesh/Library/Logs/Echora/voice-backend-error.log</string>
+</dict>
+</plist>

@@ -8,14 +8,14 @@ Type=simple
 User=animesh
 WorkingDirectory=/home/animesh/echora
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/enrollment_console.py --port 8080 --model-name antelopev2_glintr100 --model-path /home/animesh/echora/models/antelopev2_glintr100_fp16.engine --model-sha256 4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf --yunet-engine-path /home/animesh/echora/models/yunet_2023mar_fp16.engine --store-path /home/animesh/echora/data/target_person.json'
+ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/enrollment_console.py --port 8080 --model-name antelopev2_glintr100 --model-path /home/animesh/echora/models/antelopev2_glintr100_fp16.engine --model-sha256 4ab1d6435d639628a6f3e5008dd4f929edf4c4124b1a7169e1048f9fef534cdf --yunet-engine-path /home/animesh/echora/models/yunet_2023mar_fp16.engine --store-path /home/animesh/echora/data/target_person.json --speech-url http://127.0.0.1:18766 --speech-device default'
 Restart=on-failure
 RestartSec=2
 KillSignal=SIGINT
 TimeoutStopSec=10
 NoNewPrivileges=true
 ProtectSystem=strict
-ReadWritePaths=/home/animesh/echora/data
+ReadWritePaths=/home/animesh/echora/data /home/animesh/echora/logs
 PrivateTmp=true
 
 [Install]
