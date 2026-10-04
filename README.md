@@ -67,6 +67,24 @@ The active single-room mission uses camera observations and odometry. Mapping, S
 
 Unknown or stale route evidence blocks movement. Recovery is bounded, and **STOP ROBOT** cancels the browser-owned mission and audio. Detailed branches and entry-point differences are in the [mission guide](share/02_ARCHITECTURE_AND_MISSION.md) and [delivery guide](docs/ROBOT_MESSAGE_DELIVERY.md).
 
+## Runtime supervision and bounded recovery
+
+The runtime supervision harness coordinates perception, asynchronous inference and actuation. It checks whether evidence still applies to the current scene, supervises camera and track commands, bounds recovery attempts, and withholds actions when their required evidence is unavailable. These mechanisms span the mission, perception, bridge and EV3 services.
+
+| Failure trigger | Implemented response | Boundary |
+|---|---|---|
+| No face in person crops | Rate-limited full-frame YuNet search | A detected face still requires identity verification |
+| Cloud camera-framing advice unavailable | Bounded local camera probes and restoration of a useful view | This fallback supports search; approach still requires route evidence |
+| Delayed inference refers to an obsolete scene | Reject mismatched source, identity, camera or motion bindings where required by that stage | Binding establishes relevance; it does not establish model accuracy |
+| Camera loss or interrupted approach | Stop, recover fresh observations and feedback, then reacquire the target | Changed references or exhausted recovery budgets require intervention |
+| Camera-head stall or command cancellation | Bounded same-target retry; fence cancelled requests before subsequent actuator calls | Retries retain their motion limits and deadlines |
+| Drive-command refresh loss | EV3-local software watchdog stops the motors | Default timeout is 500 ms; physical stop delay remains to be measured |
+| Arrival evidence insufficient for delivery | Withhold playback until recipient, measured standoff and stopped feedback satisfy the gate | Approximate arrival cannot authorize speech |
+
+The verification harness uses fake motors, sockets and clocks, generated observations and mocked inference. Recording and replay tools support diagnosis of timing, evidence and commands. The physical cable harness has its own strain-relief, neutral-heading and camera-support acceptance checks.
+
+See [runtime supervision, fallback policies and verification](docs/RUNTIME_SUPERVISION_AND_RECOVERY.md) for implementation links, configurable limits, test coverage and recorded validation boundaries.
+
 ## Recorded results
 
 These figures come from different historical component and room trials, not one end-to-end success benchmark.

@@ -38,6 +38,8 @@ The [README architecture](../README.md#architecture) shows deployment and author
 
 The underlying concepts are temporal evidence accumulation, profile/revision binding, state-machine control, shared-sensor scheduling, asynchronous request validation, serialized actuation, feedback supervision and bounded recovery. Fast inference is only one part of the mission's timing.
 
+The [runtime supervision and recovery guide](RUNTIME_SUPERVISION_AND_RECOVERY.md) makes this coordination inspectable through failure triggers, fallback actions, retry limits, stopping conditions and source/test references. It also distinguishes runtime supervision, the verification/replay harness and physical cable support as separate engineering responsibilities.
+
 | Consequential choice | Alternatives | Selected approach and trade-off | Record |
 |---|---|---|---|
 | Recipient evidence | Nearest person; face-only; appearance-only | Selected enrolled identity, repeated face observations and qualified appearance continuity; appearance can be ambiguous | [ADR 0001](adr/0001-recipient-identity-and-continuity.md) |

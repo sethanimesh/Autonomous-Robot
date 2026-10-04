@@ -42,7 +42,7 @@ For a new reader, read the scope and architecture guides first, then the subsyst
 
 ## Repository reading guides
 
-The [project framework](../docs/PROJECT_FRAMEWORK.md), [architecture decisions](../docs/adr/README.md), and [evaluation guide](../evaluation/README.md) connect the project problem, design choices, and reproducible checks. For the complete technical narrative, use the dossier; for an implementation and results assessment, read the matrix and evaluation guide together.
+The [project framework](../docs/PROJECT_FRAMEWORK.md), [architecture decisions](../docs/adr/README.md), and [evaluation guide](../evaluation/README.md) connect the project problem, design choices, and reproducible checks. The [runtime supervision and recovery guide](../docs/RUNTIME_SUPERVISION_AND_RECOVERY.md) maps failure triggers to fallback actions, limits, source code and tests. For the complete technical narrative, use the dossier; for an implementation and results assessment, read the matrix and evaluation guide together.
 
 Original project notes remain in their repository locations:
 
