@@ -117,20 +117,6 @@
       "synthetic": false
     },
     {
-      "id": "seated-legs-and-chair",
-      "source": "docs/perception/integrated_live_20260905/faster-multistep-live-20260906/completed-view.jpg",
-      "sha256": "f7e1d9948c2c191609f0f00409ab11b3ba9a22b6eb291ae05e24d7e94671021c",
-      "scenario": "Seated legs and chair spokes/casters; floor partly obscured and feet mostly outside frame.",
-      "retained_overlay": "Enrollment banner",
-      "provenance": "completed-view-timing.json capture timestamp; mission.json failure due stop not confirmed; no successful approach claim",
-      "path": "assets/visual-scenarios/inputs/seated-legs-and-chair.jpg",
-      "title": "Legs and chair; feet clipped",
-      "width": 640,
-      "height": 480,
-      "evidence_kind": "retained_real_camera_image",
-      "synthetic": false
-    },
-    {
       "id": "backlit-person",
       "source": "docs/perception/integrated_live_20260906/faster-integrated-20260906-045233/final.jpg",
       "sha256": "e6876b037ed69c6f26c0b5fa2744e7add9109a76d1a19c77dff4a96a1535a018",
@@ -172,5 +158,36 @@
       "evidence_kind": "retained_real_camera_image",
       "synthetic": false
     }
-  ]
+  ],
+  "framing_batches": [
+    {
+      "task_id": "framing-01",
+      "image_ids": [
+        "floor-hazards",
+        "seated-recipient",
+        "covered-lens"
+      ]
+    },
+    {
+      "task_id": "framing-02",
+      "image_ids": [
+        "overhead-view",
+        "clear-floor",
+        "chair-caster-edge"
+      ]
+    },
+    {
+      "task_id": "framing-04",
+      "image_ids": [
+        "backlit-person",
+        "camera-forward-overhead",
+        "camera-lowered-floor"
+      ]
+    }
+  ],
+  "curation": {
+    "at_utc": "2026-10-04T19:00:33+00:00",
+    "reason": "A capture and its associated outputs were removed at the project owner\u2019s request.",
+    "inference_rerun": false
+  }
 }

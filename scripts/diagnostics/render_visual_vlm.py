@@ -60,7 +60,7 @@ def validated_inputs(directory):
             raise ValueError('Completed task lacks a recorded Gemini model')
         if model not in plans:
             plans[model] = {row['task_id']: row for row in
-                            task_plan(images, routes, MODES, model)}
+                            task_plan(images, routes, MODES, model, manifest.get('framing_batches'))}
         expected = plans[model].get(task['task_id'])
         if (expected is None or task.get('mode') != expected['mode']
                 or task.get('image_ids') != expected['image_ids']
@@ -175,13 +175,20 @@ def main():
                 raise ValueError('Framing observation order changed')
             observations.update(zip(task['image_ids'], task['parsed_response']))
     if observations:
-        fig, axes = plt.subplots(3, 4, figsize=(15.5, 11), dpi=140)
+        observed_images = [item for item in manifest['images'] if item['id'] in observations]
+        columns = min(3, len(observed_images))
+        rows = (len(observed_images) + columns - 1) // columns
+        fig, axes = plt.subplots(rows, columns, figsize=(15.5, max(4, rows*3.6)), dpi=140,
+                                 squeeze=False)
         fig.patch.set_facecolor('#F7F9FC')
         fig.suptitle('Recorded views · actual Gemini framing observations', x=.035, y=.98,
                      ha='left', fontsize=19, weight='bold', color='#16273A')
         fig.text(.035, .94, 'Independent image interpretations; human visibility is not recipient identity confirmation',
                  fontsize=11, color='#52667E')
-        for ax, item in zip(axes.flat, manifest['images']):
+        for ax in axes.flat:
+            ax.axis('off')
+        for ax, item in zip(axes.flat, observed_images):
+            ax.axis('on')
             ax.imshow(Image.open(ROOT/item['path']).convert('RGB'))
             ax.set_xticks([])
             ax.set_yticks([])

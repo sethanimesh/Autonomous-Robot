@@ -1,0 +1,806 @@
+{
+  "schema_version": 1,
+  "analysis_generated_at_utc": "2026-10-04T19:22:01.432891+00:00",
+  "evidence_kind": "policy_schematics_and_synthetic_production_policy_execution",
+  "capture_provenance": null,
+  "image_capture_run": false,
+  "model_inference_run": false,
+  "robot_motion_run": false,
+  "cloud_requests_run": false,
+  "source_sha256": {
+    "person_continuity.py": "55fe5d7c94b3c1fd096484426c5588e7324063975bef339dd0cb68dffd7626ad",
+    "wardrobe_tracking.py": "1224025249941b0247df57d7803c82f1bec83354a39c0103cc2894fa80b30495",
+    "draw_policy_diagrams.py": "166c6027436dde4f972d689f3c4a33c645d6d12aa4e3d4df014e920046a87733"
+  },
+  "acceptance_examples": [
+    {
+      "name": "Stable overlap",
+      "synthetic": true,
+      "reference": {
+        "box": [
+          0.1,
+          0.1,
+          0.4,
+          0.9
+        ],
+        "appearance": [
+          1.0,
+          0.0
+        ]
+      },
+      "candidate": {
+        "box": [
+          0.18709677419354837,
+          0.1,
+          0.4870967741935484,
+          0.9
+        ],
+        "appearance": [
+          0.9025,
+          0.09750000000000003
+        ]
+      },
+      "actual_iou": 0.5500000000000002,
+      "actual_appearance_coefficient": 0.95,
+      "production_consistent": true
+    },
+    {
+      "name": "Similar colour, displaced box",
+      "synthetic": true,
+      "reference": {
+        "box": [
+          0.1,
+          0.1,
+          0.4,
+          0.9
+        ],
+        "appearance": [
+          1.0,
+          0.0
+        ]
+      },
+      "candidate": {
+        "box": [
+          0.3555555555555555,
+          0.1,
+          0.6555555555555556,
+          0.9
+        ],
+        "appearance": [
+          0.9409,
+          0.05910000000000004
+        ]
+      },
+      "actual_iou": 0.08000000000000011,
+      "actual_appearance_coefficient": 0.97,
+      "production_consistent": false
+    },
+    {
+      "name": "Overlap, changed appearance",
+      "synthetic": true,
+      "reference": {
+        "box": [
+          0.1,
+          0.1,
+          0.4,
+          0.9
+        ],
+        "appearance": [
+          1.0,
+          0.0
+        ]
+      },
+      "candidate": {
+        "box": [
+          0.1592814371257485,
+          0.1,
+          0.45928143712574854,
+          0.9
+        ],
+        "appearance": [
+          0.30250000000000005,
+          0.6975
+        ]
+      },
+      "actual_iou": 0.67,
+      "actual_appearance_coefficient": 0.55,
+      "production_consistent": false
+    },
+    {
+      "name": "Near-threshold pass",
+      "synthetic": true,
+      "reference": {
+        "box": [
+          0.1,
+          0.1,
+          0.4,
+          0.9
+        ],
+        "appearance": [
+          1.0,
+          0.0
+        ]
+      },
+      "candidate": {
+        "box": [
+          0.29999958333368054,
+          0.1,
+          0.5999995833336805,
+          0.9
+        ],
+        "appearance": [
+          0.6400000000000001,
+          0.3599999999999999
+        ]
+      },
+      "actual_iou": 0.2000010000000001,
+      "actual_appearance_coefficient": 0.8,
+      "production_consistent": true
+    }
+  ],
+  "continuity_timeline": {
+    "evidence_kind": "synthetic_inputs_actual_production_policy_execution",
+    "configuration": {
+      "maximum_face_age_seconds": 2.0,
+      "required_face_hits": 3
+    },
+    "main": [
+      {
+        "stamp_seconds": 0.0,
+        "now_seconds": 0.0,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 1,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.0,
+        "internal_seen_at": 0.0
+      },
+      {
+        "stamp_seconds": 0.1,
+        "now_seconds": 0.1,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 2,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.1,
+        "internal_seen_at": 0.1
+      },
+      {
+        "stamp_seconds": 0.2,
+        "now_seconds": 0.2,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "face_confirmed",
+          "face_hits": 3,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 0.2
+      },
+      {
+        "stamp_seconds": 0.4,
+        "now_seconds": 0.4,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "body_continuity",
+          "face_hits": 3,
+          "face_age_seconds": 0.2,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 0.4
+      },
+      {
+        "stamp_seconds": 0.8,
+        "now_seconds": 0.8,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "body_continuity",
+          "face_hits": 3,
+          "face_age_seconds": 0.6000000000000001,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 0.8
+      },
+      {
+        "stamp_seconds": 1.2,
+        "now_seconds": 1.2,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "body_continuity",
+          "face_hits": 3,
+          "face_age_seconds": 1.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 1.2
+      },
+      {
+        "stamp_seconds": 1.6,
+        "now_seconds": 1.6,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "body_continuity",
+          "face_hits": 3,
+          "face_age_seconds": 1.4000000000000001,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 1.6
+      },
+      {
+        "stamp_seconds": 2.0,
+        "now_seconds": 2.0,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "body_continuity",
+          "face_hits": 3,
+          "face_age_seconds": 1.8,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 2.0
+      },
+      {
+        "stamp_seconds": 2.4,
+        "now_seconds": 2.4,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "lost",
+          "reason": "face_anchor_expired",
+          "face_hits": 0
+        },
+        "internal_face_at": null,
+        "internal_seen_at": null
+      }
+    ],
+    "ambiguity_branch": [
+      {
+        "stamp_seconds": 0.0,
+        "now_seconds": 0.0,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 1,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.0,
+        "internal_seen_at": 0.0
+      },
+      {
+        "stamp_seconds": 0.1,
+        "now_seconds": 0.1,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 2,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.1,
+        "internal_seen_at": 0.1
+      },
+      {
+        "stamp_seconds": 0.2,
+        "now_seconds": 0.2,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "face_confirmed",
+          "face_hits": 3,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 0.2
+      },
+      {
+        "stamp_seconds": 0.4,
+        "now_seconds": 0.4,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          },
+          {
+            "box": [
+              0.23,
+              0.12,
+              0.79,
+              0.92
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "lost",
+          "reason": "ambiguous_body",
+          "face_hits": 0
+        },
+        "internal_face_at": null,
+        "internal_seen_at": null
+      }
+    ],
+    "stale_branch": [
+      {
+        "stamp_seconds": 0.0,
+        "now_seconds": 0.0,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 1,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.0,
+        "internal_seen_at": 0.0
+      },
+      {
+        "stamp_seconds": 0.1,
+        "now_seconds": 0.1,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "confirming_face",
+          "face_hits": 2,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.1,
+        "internal_seen_at": 0.1
+      },
+      {
+        "stamp_seconds": 0.2,
+        "now_seconds": 0.2,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [
+          [
+            0.35,
+            0.12,
+            0.55,
+            0.3
+          ]
+        ],
+        "actual_result": {
+          "state": "face_confirmed",
+          "face_hits": 3,
+          "face_age_seconds": 0.0,
+          "body_box": [
+            0.2,
+            0.1,
+            0.8,
+            0.9
+          ]
+        },
+        "internal_face_at": 0.2,
+        "internal_seen_at": 0.2
+      },
+      {
+        "stamp_seconds": 0.4,
+        "now_seconds": 1.3,
+        "people": [
+          {
+            "box": [
+              0.2,
+              0.1,
+              0.8,
+              0.9
+            ],
+            "appearance": [
+              1.0,
+              0.0
+            ]
+          }
+        ],
+        "matched_faces": [],
+        "actual_result": {
+          "state": "lost",
+          "reason": "stale_frame",
+          "face_hits": 0
+        },
+        "internal_face_at": null,
+        "internal_seen_at": null
+      }
+    ],
+    "note": "The two-second anchor lifetime is an explicit test configuration; production default is ten seconds. Matched face boxes are authored fixtures, not recognition outputs."
+  },
+  "diagrams": {
+    "appearance-descriptor-pipeline": {
+      "png": {
+        "path": "figures/appearance-descriptor-pipeline.png",
+        "sha256": "c3d93345f10600cbae4f7e5660a881e71d73486113535e8d374e7da4299e42c0",
+        "bytes": 298171
+      },
+      "svg": {
+        "path": "figures/appearance-descriptor-pipeline.svg",
+        "sha256": "bc43887f70c5d42bb790105e097e783c2a11991b9b0501c688515d6f512545a5",
+        "bytes": 17007
+      }
+    },
+    "continuity-acceptance-surface": {
+      "png": {
+        "path": "figures/continuity-acceptance-surface.png",
+        "sha256": "2256bf99b3759dda0f21526f9280be2922268b6fd0af7d6332ae8a86f4929219",
+        "bytes": 218173
+      },
+      "svg": {
+        "path": "figures/continuity-acceptance-surface.svg",
+        "sha256": "99aa253494eb9e1ec853747dadeb72e3f5f7e9da7c3c75ecdd53e71f75681ab9",
+        "bytes": 20109
+      }
+    },
+    "synthetic-continuity-timeline": {
+      "png": {
+        "path": "figures/synthetic-continuity-timeline.png",
+        "sha256": "18fc28b703cc2e6109c6142b878414d16793b0b4560dbe2f52b85a4806acfd47",
+        "bytes": 261890
+      },
+      "svg": {
+        "path": "figures/synthetic-continuity-timeline.svg",
+        "sha256": "8ff0a5d2ae3a018c7bb19bb50fb899fb517513fddfc0b46501c7c6854cc178ab",
+        "bytes": 24553
+      }
+    },
+    "distributed-supervision-sequence": {
+      "png": {
+        "path": "figures/distributed-supervision-sequence.png",
+        "sha256": "9a59bb47425959d923f37f964adbbd735b6f75f4bfc673b4d7683c7c7f1f8a19",
+        "bytes": 281994
+      },
+      "svg": {
+        "path": "figures/distributed-supervision-sequence.svg",
+        "sha256": "33f9632ee759d4adde5ae6b3e7cf24fea264217fd25873236aac17f2d9bb3420",
+        "bytes": 24257
+      }
+    }
+  }
+}

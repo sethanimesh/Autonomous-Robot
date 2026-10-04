@@ -22,13 +22,27 @@ These samples document perception and supervised search behavior. [Capture prove
 
 ## Visual scenario evaluation
 
-The [scenario gallery](evaluation/visual-scenarios/README.md) adds fresh YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 outputs on **12 retained camera images**, alongside **12 actual Gemini requests** covering framing, visible hazards, paired views and clothing descriptions. It includes dark captures, backlighting, partial people, clipped feet, cables, footwear and camera-view mismatches.
+The [scenario gallery](evaluation/visual-scenarios/README.md) adds fresh YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 outputs on **11 retained camera images**, alongside **10 actual Gemini requests** covering framing, visible hazards, paired views and a clothing description. It includes dark captures, backlighting, partial people, cables, footwear and camera-view mismatches.
 
 ![Actual Gemini hazard review beside the submitted corridor polygons](evaluation/visual-scenarios/figures/vlm-route-floor-hazards.png)
 
 *Saved-image route review: Gemini's cable and footwear classifications affect the conditional corridor policy. Exact submitted polygons and actual responses are visible. The preview has no fresh scene recheck and authorizes no movement.*
 
 The gallery publishes source/model hashes, numerical arrays and structured responses, including disagreements and weak predictions. A separate **20-case synthetic policy harness** checks route vetoes, framing recovery, approach limits and delivery gates; its authored inputs are labelled separately from actual model inference. This image evaluation adds no physical or hospital trial.
+
+## Appearance diagnostics from test captures
+
+The [appearance gallery](evaluation/appearance-diagnostics/README.md) examines retained camera captures using the production **12×4 Hue–Saturation histogram**, torso crop, clothing-band colour/texture descriptors and eight-strip partial-view signatures. It includes channel distributions for all 11 views and appearance comparisons for the three saved person detections.
+
+![HSV distributions across recorded camera views](evaluation/appearance-diagnostics/figures/hsv-overview.png)
+
+*Whole-image histograms describe scene colour, including background and retained overlays. Person continuity uses a separate inner-torso ROI; dark or low-saturation regions make hue less informative.*
+
+![Appearance descriptor pipeline and continuity gates](evaluation/appearance-diagnostics/figures/appearance-descriptor-pipeline.png)
+
+*Production descriptor geometry and scoring. Clothing-band names indicate proportional crop positions rather than anatomical segmentation. Appearance support remains bound to identity evidence and does not create fresh facial confirmation.*
+
+The gallery includes **162 labelled synthetic perturbations** covering brightness, saturation, hue, occlusion, partial cropping and blur, with response curves from the unchanged production functions. Additional diagrams show continuity thresholds, face-anchor expiry, ambiguity, stale observations and distributed supervision. Original source hashes, ROI geometry and analysis provenance accompany the figures.
 
 ## Implemented capabilities
 

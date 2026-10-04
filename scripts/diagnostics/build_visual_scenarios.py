@@ -186,10 +186,15 @@ def render(manifest, report, output):
         overview_rows.append((item, groups))
 
     # This overview compares actual semantic outputs with one fixed legend.
-    fig, axes = plt.subplots(3, 4, figsize=(15, 9.5), dpi=140)
+    columns = min(4, len(overview_rows))
+    rows = (len(overview_rows) + columns - 1) // columns
+    fig, axes = plt.subplots(rows, columns, figsize=(15, max(4, rows*3.15)), dpi=140,
+                             squeeze=False)
     fig.patch.set_facecolor('#F7F9FC')
-    fig.suptitle('Twelve recorded views · SegFormer-B0 semantic evidence', x=.035, y=.98,
+    fig.suptitle('{} recorded views · SegFormer-B0 semantic evidence'.format(len(overview_rows)), x=.035, y=.98,
                  ha='left', fontsize=20, weight='bold', color='#16273A')
+    for ax in axes.flat:
+        ax.axis('off')
     for ax, (item, groups) in zip(axes.flat, overview_rows):
         ax.imshow(groups, cmap=ListedColormap(palette), vmin=-.5, vmax=5.5, interpolation='nearest')
         ax.set_title(item['title'], fontsize=10, loc='left')
@@ -202,6 +207,8 @@ def render(manifest, report, output):
     plt.close(fig)
     report['overview'] = str(overview.relative_to(ROOT))
     report['overview_sha256'] = digest(overview)
+    report['rendered_at_utc'] = datetime.now(timezone.utc).isoformat()
+    report['render_source_sha256'] = digest(Path(__file__))
 
 
 def run(manifest, args, output):
@@ -333,7 +340,8 @@ def main():
         report = run(manifest, args, output)
     render(manifest, report, output)
     (output/'local-results.json').write_text(json.dumps(report, indent=2, allow_nan=False)+'\n')
-    print('Saved local inference records, numerical arrays and 13 scientific figures.', flush=True)
+    print('Saved local inference records, numerical arrays and {} scientific figures.'.format(
+        len(manifest['images']) + 1), flush=True)
 
 
 if __name__ == '__main__':

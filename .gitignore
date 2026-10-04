@@ -35,3 +35,6 @@ share/reference_docs/
 
 # The communication app is maintained separately from the robot repository.
 communication/
+
+# Local diagnostic generation scripts; figures and reports remain reviewable.
+/local_diagnostics/tools/

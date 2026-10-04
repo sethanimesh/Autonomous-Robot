@@ -27,7 +27,7 @@ The repository has additional perception, range, camera, and speech tests outsid
 
 ## Retained-image model evaluation
 
-The [visual scenario gallery](visual-scenarios/README.md) publishes fresh CPU outputs from YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 on 12 original home-room images, plus 12 actual Gemini requests spanning camera framing, route hazards, paired views and clothing descriptions. Model/configuration hashes, numerical arrays, parsed responses and visible disagreements are included. The selected images are qualitative diagnostic examples without independent model-accuracy or physical-clearance labels.
+The [visual scenario gallery](visual-scenarios/README.md) publishes fresh CPU outputs from YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 on 11 original home-room images, plus 10 actual Gemini requests spanning camera framing, route hazards, paired views and a clothing description. Model/configuration hashes, numerical arrays, parsed responses and visible disagreements are included. The retained requests preserve their original input bindings; two local-model views have no published framing response. The selected images are qualitative diagnostic examples without independent model-accuracy or physical-clearance labels.
 
 Two additional commands reproduce 20 authored policy scenarios and 5 floor-label regression tests without models, cloud credentials or hardware:
 
@@ -37,6 +37,8 @@ python3 -m unittest tests.test_floor_label_mapping
 ```
 
 Both passed on 2026-10-04 with Python 3.14.7. CI includes these alongside the selected regression suite. Scenario inputs are explicitly synthetic and are not pixel-derived measurements; image hashes establish which retained input each fixture accompanies. The gallery documents separate model and cloud reproduction commands.
+
+The [appearance diagnostics gallery](appearance-diagnostics/README.md) adds whole-frame HSV distributions, exact production torso/clothing/strip descriptors on saved person detections, and 162 controlled synthetic image variations. Score matrices and response curves expose colour, lighting and crop sensitivity. Policy diagrams retain separate authored-input provenance; the original images retain their test-capture provenance. The reusable generation tools are maintained locally under a Git-ignored directory.
 
 ## Historical component results
 

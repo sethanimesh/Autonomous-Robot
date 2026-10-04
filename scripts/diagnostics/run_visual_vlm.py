@@ -27,7 +27,7 @@ OCCLUSION_PAIRS = (
     ("seated-recipient", "partial-body"),
     ("camera-forward-overhead", "camera-lowered-floor"),
 )
-WARDROBE_IMAGES = ("partial-body", "seated-legs-and-chair")
+WARDROBE_IMAGES = ("partial-body",)
 EVIDENCE_KIND = "actual_vlm_inference_on_retained_images"
 
 
@@ -127,7 +127,7 @@ def checked_routes(path, images):
     return routes
 
 
-def task_plan(images, routes, modes, model):
+def task_plan(images, routes, modes, model, framing_batches=None):
     from robot.cloud_models import GEMINI_THINKING_LEVEL
     from robot.mac.person_search_advisor import SEARCH_PROMPT, SEARCH_SCHEMA
     from robot.mac.navigation_advisor import ROUTE_PROMPT, OCCLUSION_PROMPT
@@ -149,10 +149,26 @@ def task_plan(images, routes, modes, model):
                           request_signature=signature, request_sha256=json_digest(signature)))
 
     if "framing" in modes:
-        ordered = list(images)
-        for start in range(0, len(ordered), 3):
-            ids = ordered[start:start + 3]
-            append("framing-{:02d}".format(start // 3 + 1), "framing", ids,
+        if framing_batches is None:
+            ordered = list(images)
+            framing_batches = [dict(task_id="framing-{:02d}".format(start // 3 + 1),
+                                    image_ids=ordered[start:start + 3])
+                               for start in range(0, len(ordered), 3)]
+        if not isinstance(framing_batches, list) or not framing_batches:
+            raise ValueError("Framing batches must be a nonempty list")
+        seen_tasks, seen_images = set(), set()
+        for batch in framing_batches:
+            if not isinstance(batch, dict):
+                raise ValueError("Framing batches must be objects")
+            task_id, ids = batch.get("task_id"), batch.get("image_ids")
+            if (not isinstance(task_id, str) or not re.fullmatch(r"framing-[0-9]{2}", task_id)
+                    or task_id in seen_tasks or not isinstance(ids, list) or not 1 <= len(ids) <= 3
+                    or any(not isinstance(key, str) or key not in images for key in ids)
+                    or len(set(ids)) != len(ids) or seen_images.intersection(ids)):
+                raise ValueError("Framing batches need unique task and retained-image bindings")
+            seen_tasks.add(task_id)
+            seen_images.update(ids)
+            append(task_id, "framing", ids,
                    SEARCH_PROMPT, SEARCH_SCHEMA,
                    dict(image_order="manifest order; classify each image independently"))
     if "route" in modes:
@@ -332,7 +348,7 @@ def main(argv=None):
         manifest = read_json(args.manifest)
         images = checked_images(manifest)
         routes = checked_routes(args.local_results, images) if "route" in modes else {}
-        tasks = task_plan(images, routes, modes, model)
+        tasks = task_plan(images, routes, modes, model, manifest.get("framing_batches"))
         cache = load_cache(args.output)
         for task in tasks:
             previous = cache.get(task["task_id"])

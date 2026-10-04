@@ -1375,169 +1375,6 @@
       "figure_sha256": "58083c9d0f80a33cdc22280a5759e0fe3353b3b45197d7aa1c6e4296fb714207"
     },
     {
-      "id": "seated-legs-and-chair",
-      "sha256": "f7e1d9948c2c191609f0f00409ab11b3ba9a22b6eb291ae05e24d7e94671021c",
-      "route": {
-        "ok": true,
-        "generated_at_unix": 1791136833.1685271,
-        "frame_sha256": "f7e1d9948c2c191609f0f00409ab11b3ba9a22b6eb291ae05e24d7e94671021c",
-        "image": {
-          "width": 640,
-          "height": 480
-        },
-        "model": "nvidia/segformer-b0-finetuned-ade-512-512",
-        "device": "cpu",
-        "inference_ms": 310.7,
-        "floor_label_ids": [
-          3,
-          28
-        ],
-        "floor_horizon_y": null,
-        "scene": {
-          "floor_fraction": 0.08806640625,
-          "ceiling_fraction": 0.0030240885416666667,
-          "known_fraction": 0.25349283854166665,
-          "minimum_pixel_confidence": 0.65,
-          "bottom_floor_fraction": 0.35032552083333335,
-          "bottom_known_fraction": 0.4758072916666667,
-          "bottom_left_floor_fraction": 0.37539123630672927,
-          "bottom_left_known_fraction": 0.6127934272300469,
-          "bottom_right_floor_fraction": 0.24731308411214953,
-          "bottom_right_known_fraction": 0.32807632398753894
-        },
-        "evidence": [
-          {
-            "heading_degrees": -30,
-            "floor_fraction": 0.37178776113884265,
-            "known_fraction": 0.38003231925806225,
-            "sample_count": 14233
-          },
-          {
-            "heading_degrees": 0,
-            "floor_fraction": 0.7942302031204004,
-            "known_fraction": 0.23868746486790332,
-            "sample_count": 14232
-          },
-          {
-            "heading_degrees": 30,
-            "floor_fraction": 0.4919881305637982,
-            "known_fraction": 0.23052192352418086,
-            "sample_count": 14619
-          }
-        ],
-        "candidates": [
-          {
-            "heading_degrees": -30,
-            "clear_distance_m": 0.0,
-            "confidence": 0.37178776113884265,
-            "known_fraction": 0.38003231925806225
-          },
-          {
-            "heading_degrees": 0,
-            "clear_distance_m": 0.0,
-            "confidence": 0.7942302031204004,
-            "known_fraction": 0.23868746486790332
-          },
-          {
-            "heading_degrees": 30,
-            "clear_distance_m": 0.0,
-            "confidence": 0.4919881305637982,
-            "known_fraction": 0.23052192352418086
-          }
-        ],
-        "decision": {
-          "blocked": true,
-          "heading_degrees": 0.0,
-          "distance_m": 0.0,
-          "score": null,
-          "reason": "no proven footprint-wide route"
-        }
-      },
-      "person_detections": [],
-      "face_detections": [],
-      "semantic_classes": [
-        {
-          "id": 0,
-          "label": "wall",
-          "fraction": 0.3842903645833333
-        },
-        {
-          "id": 126,
-          "label": "animal",
-          "fraction": 0.19421549479166667
-        },
-        {
-          "id": 3,
-          "label": "floor",
-          "fraction": 0.13180989583333333
-        },
-        {
-          "id": 12,
-          "label": "person",
-          "fraction": 0.11516276041666666
-        },
-        {
-          "id": 5,
-          "label": "ceiling",
-          "fraction": 0.09402669270833333
-        },
-        {
-          "id": 122,
-          "label": "tank",
-          "fraction": 0.062106119791666664
-        },
-        {
-          "id": 43,
-          "label": "signboard",
-          "fraction": 0.008863932291666666
-        },
-        {
-          "id": 132,
-          "label": "sculpture",
-          "fraction": 0.008606770833333333
-        },
-        {
-          "id": 42,
-          "label": "column",
-          "fraction": 0.0005078125
-        },
-        {
-          "id": 18,
-          "label": "curtain",
-          "fraction": 0.00041015625
-        }
-      ],
-      "semantic_group_fraction": {
-        "floor": 0.08806640625,
-        "person": 0.000654296875,
-        "furniture": 0.0,
-        "ceiling": 0.0030240885416666667,
-        "other_known": 0.161748046875,
-        "low_confidence": 0.7465071614583333
-      },
-      "depth": {
-        "calibration_applied": false,
-        "physically_validated": false,
-        "finite_fraction": 1.0,
-        "percentiles": {
-          "5": 0.9620991349220276,
-          "50": 1.1796916723251343,
-          "95": 1.487926721572876
-        },
-        "note": "Pretrained metric model output; no independently verified physical range"
-      },
-      "timing_ms": {
-        "segmentation": 310.7,
-        "depth": 313.91,
-        "person": 65.29,
-        "face": 5.1
-      },
-      "arrays": "evaluation/visual-scenarios/arrays/seated-legs-and-chair.npz",
-      "arrays_sha256": "baeffd36f62253e0ec4541c27ffdb464a5f8b5c1a977f395607c5b70e1fb9826",
-      "figure": "evaluation/visual-scenarios/figures/seated-legs-and-chair.png",
-      "figure_sha256": "5af41f19ac475c2041aebe703b58dffd7e682bbf4a1c5a6b13fb99bdbd5f7412"
-    },
-    {
       "id": "backlit-person",
       "sha256": "e6876b037ed69c6f26c0b5fa2744e7add9109a76d1a19c77dff4a96a1535a018",
       "route": {
@@ -1988,5 +1825,12 @@
     }
   ],
   "overview": "evaluation/visual-scenarios/figures/segmentation-overview.png",
-  "overview_sha256": "bff4cfa83591cebc849fdf7f9cf5bc778e343cf90fb21023a04b492e413266ad"
+  "overview_sha256": "14ca5bd58f8e6bbd1aca2d37926041e0989763139d5875d76cf52608c6bea2f8",
+  "curation": {
+    "at_utc": "2026-10-04T19:00:33+00:00",
+    "reason": "A capture and its associated outputs were removed at the project owner\u2019s request.",
+    "inference_rerun": false
+  },
+  "rendered_at_utc": "2026-10-04T19:00:58.676339+00:00",
+  "render_source_sha256": "95e514c47c46fd872c01e7694cc7ac15032361408dc5507ec2c4885ec9925f76"
 }

@@ -1,12 +1,12 @@
 # Visual scenario evaluation
 
-Twelve retained home-room camera images exercise the robot's person observation, floor inspection, camera framing and appearance-description pipeline. Fresh model inference was performed on **4 October 2026**; the plots below render the saved numerical outputs and structured responses.
+Eleven retained home-room camera images exercise the robot's person observation, floor inspection, camera framing and appearance-description pipeline. Fresh model inference was performed on **4 October 2026**; the plots below render the saved numerical outputs and structured responses.
 
 | Evidence | Completed coverage | Published record |
 |---|---|---|
-| Original camera inputs | 12 selected views: visible face, partial body, backlighting, clipped feet, cable, footwear, chair caster, dark capture and camera-view mismatch | [Image manifest and provenance](manifest.json) |
-| Local vision inference | YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 on all 12 images | [Detections, class fractions, settings and hashes](local-results.json) |
-| Gemini inference | 12 requests: 4 three-image framing batches, 4 route reviews, 2 paired-view interpretations and 2 clothing descriptions; 20 structured observations | [Actual responses and request metadata](vlm-results.json) |
+| Original camera inputs | 11 selected views: visible face, partial body, backlighting, cable, footwear, chair caster, dark capture and camera-view mismatch | [Image manifest and provenance](manifest.json) |
+| Local vision inference | YOLOX-s, YuNet, SegFormer-B0 and Depth Anything V2 on all 11 images | [Detections, class fractions, settings and hashes](local-results.json) |
+| Gemini inference | 10 requests: 3 three-image framing batches, 4 route reviews, 2 paired-view interpretations and 1 clothing description; 16 structured observations | [Actual responses and request metadata](vlm-results.json) |
 | Conditional policy checks | 20 authored scenarios run through production policy functions | [Inputs and expectations](scenario_checks.json), [20/20 results](policy-results.json) |
 | Floor-label regression checks | 5 tests for valid support surfaces and invalid/duplicate/unknown labels | [Tests](../../tests/test_floor_label_mapping.py) |
 
@@ -24,19 +24,21 @@ Fresh boxes are **cyan for people** and **magenta for faces/landmarks**. Origina
 
 The segmentation display groups ADE20K classes into floor/rug, person, furniture, ceiling, other known and low confidence. The confidence threshold is **0.65**. All argmax labels and maximum probabilities are retained in the numerical arrays; the grouped display is for inspection. Corridor percentages denote floor among known sampled pixels, rather than the fraction of all corridor pixels proved traversable.
 
-![SegFormer outputs across twelve retained camera views](figures/segmentation-overview.png)
+![SegFormer outputs across eleven retained camera views](figures/segmentation-overview.png)
 
-*The selected views expose both usable floor regions and difficult inputs. For example, the overhead image contains a small predicted floor region despite showing no usable floor, while the legs-and-chair view is largely uncertain. These predictions remain visible in the report.*
+*The selected views expose both usable floor regions and difficult inputs. For example, the overhead image contains a small predicted floor region despite showing no usable floor. These predictions remain visible in the report.*
 
 Depth uses **Depth Anything V2 Metric Indoor Small**. The gallery applies no camera geometry or range calibration, and the outputs have no independently measured distance reference. Its fixed colour scale clips the display at 8; the saved float32 depth arrays retain the full model output. These plots cannot establish stopping distance.
 
 ## Actual Gemini responses
 
-All 12 requests completed using **`gemini-3.5-flash-lite`**. The runner uses the existing framing, navigation, occlusion and wardrobe adapters. Responses are advisory and contain no motor commands. The report records model ID, image hashes, prompt/schema-template hashes, evaluation context, elapsed time and sanitized token usage; its request signatures describe the evaluated inputs rather than a complete serialized provider request.
+The 10 published requests completed using **`gemini-3.5-flash-lite`**. The runner uses the existing framing, navigation, occlusion and wardrobe adapters. Responses are advisory and contain no motor commands. The report records model ID, image hashes, prompt/schema-template hashes, evaluation context, elapsed time and sanitized token usage; its request signatures describe the evaluated inputs rather than a complete serialized provider request.
 
-![Actual Gemini camera-framing observations for twelve images](figures/vlm-framing-overview.png)
+Requests containing an image withdrawn from the gallery were removed in full. The remaining responses preserve their original image order, input bindings and request metadata; no response was reassigned to a different image set. The slipper and partial-body inputs retain local-model outputs but have no published framing response.
 
-*Framing observations distinguish dark captures, floor views and partial people. The partial-body view prompted a `raise` hint, while the forward-labelled ceiling view was classified as `ceiling_only`. Human visibility does not confirm the selected recipient.*
+![Actual Gemini camera-framing observations for nine retained images](figures/vlm-framing-overview.png)
+
+*The published framing observations distinguish dark captures, floor views and visible people. The forward-labelled ceiling view was classified as `ceiling_only`. Human visibility does not confirm the selected recipient.*
 
 For route review, Gemini receives the original image, the exact normalized candidate polygons and the local evidence. The following plot places the returned classifications beside those polygons:
 
@@ -55,7 +57,7 @@ These are the model's classifications, including imperfect categories and spatia
 
 The paired-view requests returned `partial_person` for the seated-face/partial-body pair and `camera_changed` for the ceiling/floor pair. Their ordering and camera-change bindings are authored evaluation fixtures, not proof of a synchronized physical transition or identity continuity.
 
-The two wardrobe requests used **describe-only** mode with no enrolled clothing references. They described blue upper/lower clothing in the partial-body image and blue patterned shorts in the legs-and-chair image; both returned `uncertain` with an empty reference ID. The first also associated an unworn background sandal with the subject's footwear even though the feet are outside the frame, exposing an appearance-association error. These outputs demonstrate descriptor generation, not clothing-based recipient matching.
+The retained wardrobe request used **describe-only** mode with no enrolled clothing references. It described blue upper/lower clothing in the partial-body image and returned `uncertain` with an empty reference ID. It also associated an unworn background sandal with the subject's footwear even though the feet are outside the frame, exposing an appearance-association error. This output demonstrates descriptor generation, not clothing-based recipient matching.
 
 ## Inspect every retained input
 
@@ -71,12 +73,11 @@ Each linked diagnostic contains the same four model panels. Detection counts are
 | [Chair caster at frame edge](../../assets/visual-scenarios/inputs/chair-caster-edge.jpg) | 0 / 0 | [Models](figures/chair-caster-edge.png) |
 | [Slipper in floor view](../../assets/visual-scenarios/inputs/slipper-obstruction.jpg) | 0 / 0 | [Models](figures/slipper-obstruction.png) |
 | [Partial body; face outside frame](../../assets/visual-scenarios/inputs/partial-body.jpg) | 1 / 0 | [Models](figures/partial-body.png) |
-| [Legs and chair; feet clipped](../../assets/visual-scenarios/inputs/seated-legs-and-chair.jpg) | 0 / 0 | [Models](figures/seated-legs-and-chair.png) |
 | [Backlit person](../../assets/visual-scenarios/inputs/backlit-person.jpg) | 1 / 0 | [Models](figures/backlit-person.png) |
 | [Forward-labelled ceiling view](../../assets/visual-scenarios/inputs/camera-forward-overhead.jpg) | 0 / 0 | [Models](figures/camera-forward-overhead.png) |
 | [Lowered floor view](../../assets/visual-scenarios/inputs/camera-lowered-floor.jpg) | 0 / 0 | [Models](figures/camera-lowered-floor.png) |
 
-Two useful disagreements remain in the saved outputs: Gemini described the backlit face as visible although fresh YuNet returned no face, and its framing response listed feet in the legs-and-chair image even though they are mostly clipped. Gemini also labelled the overhead reference `room` rather than `ceiling_only`. These cases support checking model interpretations against current geometry and visibility rather than treating a fluent description as ground truth.
+Two useful disagreements remain in the saved outputs: Gemini described the backlit face as visible although fresh YuNet returned no face, and it labelled the overhead reference `room` rather than `ceiling_only`. These cases support checking model interpretations against current geometry and visibility rather than treating a fluent description as ground truth.
 
 ## Policy harness and fallback coverage
 
@@ -93,7 +94,7 @@ The [20 case definitions](scenario_checks.json) and [recorded results](policy-re
 
 | Project feature | Evidence added here | Remaining boundary |
 |---|---|---|
-| Person and face detection | Fresh YOLOX-s/YuNet detections on 12 images | No new InsightFace embeddings or enrolled-recipient recognition run |
+| Person and face detection | Fresh YOLOX-s/YuNet detections on 11 images | No new InsightFace embeddings or enrolled-recipient recognition run |
 | Floor and depth inference | Fresh SegFormer/depth outputs and saved arrays | No calibrated footprint, measured range or obstacle ground truth |
 | Cloud scene understanding | Actual framing, route, paired-view and wardrobe responses | No identity conclusion from scene/clothing descriptions |
 | Recovery and action gating | Conditional policy cases plus existing regression tests | No newly injected physical fault or measured stop delay |
@@ -143,7 +144,7 @@ python scripts/diagnostics/run_visual_vlm.py --dry-run
 python scripts/diagnostics/run_visual_vlm.py --allow-cloud
 ```
 
-The default plan is limited to the same 12 tasks. Matching completed responses are reused; `--overwrite` explicitly reruns them. A failed task is recorded without provider error bodies, and the runner stops. Changed source/context/signature bindings require an explicit rerun. The renderer consumes saved responses without contacting the provider. See the [Mac backend configuration](../../robot/mac/README.md) for credential setup.
+The default plan preserves the 10 published tasks and their original image groups. Matching completed responses are reused; `--overwrite` explicitly reruns them. A failed task is recorded without provider error bodies, and the runner stops. Changed source/context/signature bindings require an explicit rerun. The renderer consumes saved responses without contacting the provider. See the [Mac backend configuration](../../robot/mac/README.md) for credential setup.
 
 The manifest records exact published-file hashes and the original local source paths. Some captures have hash-bound sidecars; others have only related trial records or no sidecar. Those distinctions are retained, and the unpublished sidecars are not required to reproduce inference on the published images. The images are not a recording of the completed home caregiver demonstration.
 
