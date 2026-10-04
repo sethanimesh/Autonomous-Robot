@@ -81,7 +81,7 @@ def validate_mission_profile(request, target):
 
 PHONE_SETUP_PAGE = """<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Echora phone setup</title>
-<style>body{font:16px/1.6 system-ui;background:#E8E5DD;color:#191A1C;max-width:640px;margin:40px auto;padding:0 20px}a{color:#1D5C4E}li{margin-bottom:12px}h1{line-height:1.2}</style>
+<style>body{font:16px/1.6 system-ui;background:#F2F5F2;color:#17231C;max-width:640px;margin:40px auto;padding:0 20px}a{color:#1E5B48}li{margin-bottom:12px}h1{line-height:1.2}</style>
 <h1>Use your phone camera</h1><p>Complete this once on each phone, while connected to your home Wi-Fi.</p>
 <ol><li><a href="/phone-ca.crt">Download the Echora local certificate</a>.</li>
 <li><strong>iPhone / iPad:</strong> open Settings → General → VPN &amp; Device Management and install the downloaded certificate profile. Then open General → About → Certificate Trust Settings and enable full trust for that certificate.
@@ -98,32 +98,29 @@ PAGE = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#E8E5DD">
+<meta name="theme-color" content="#F2F5F2">
 <title>Echora Control</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root {
   color-scheme: light;
   --e-out: cubic-bezier(.16, 1, .3, 1);
   --e-spring: cubic-bezier(.34, 1.42, .64, 1);
   --t-press: 90ms; --t-release: 280ms; --t-state: 220ms; --t-open: 400ms;
-  --sans: "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --void: #E8E5DD; --panel-1: #FDFCFA; --panel-2: #F6F4EF; --sunk: #EFECE4; --well: #DFDBD1;
-  --line: #DCD7CB; --line-2: #C5BEAF; --text: #191A1C; --muted: #5A5E62; --faint: #83878C;
-  --signal: #1D5C4E; --sig-soft: rgba(29, 92, 78, .075); --sig-line: rgba(29, 92, 78, .38);
+  --void: #F2F5F2; --panel-1: #FFFFFF; --panel-2: #F8FAF8; --sunk: #F0F4F1; --well: #E7EEE9;
+  --line: #DCE5DF; --line-2: #C2D0C7; --text: #17231C; --muted: #4F6055; --faint: #627269;
+  --signal: #1E5B48; --sig-soft: rgba(30, 91, 72, .085); --sig-line: rgba(30, 91, 72, .38);
   --warn: #93651B; --warn-soft: rgba(147, 101, 27, .1);
   --alert: #B03A30; --alert-soft: rgba(176, 58, 48, .13);
   --alert-line: #A8352C; --alert-fill: linear-gradient(180deg, #BC4237, #A2322A); --alert-fg: #FFF6F4;
   --dgr-line: #DBB8B1; --dgr-fill: linear-gradient(180deg, #FDF2F0, #F8E6E2); --dgr-fg: #963028;
-  --key-1: #FFFFFF; --key-2: #FAF8F4; --key-3: #F1EEE7; --key-line: #D2CCC0; --key-line-hi: #ACA494; --key-fg: #232527;
-  --press-1: #E7E3DA; --press-2: #F1EEE7;
-  --act-1: #1F6153; --act-2: #184C40; --act-fg: #F4F8F6; --act-label: rgba(244, 248, 246, .68);
-  --bevel: rgba(255, 255, 255, .95); --seat: rgba(70, 60, 44, .1); --drop: rgba(70, 60, 44, .2);
-  --glow: rgba(29, 92, 78, .26); --shade: rgba(70, 60, 44, .03);
+  --key-1: #FFFFFF; --key-2: #FBFCFB; --key-3: #EFF4F0; --key-line: #D3DED6; --key-line-hi: #AABBAF; --key-fg: #203128;
+  --press-1: #E7EFE9; --press-2: #F1F5F2;
+  --act-1: #236A52; --act-2: #195640; --act-fg: #F4F8F6; --act-label: rgba(244, 248, 246, .76);
+  --bevel: rgba(255, 255, 255, .95); --seat: rgba(24, 61, 43, .09); --drop: rgba(24, 61, 43, .13);
+  --glow: rgba(30, 91, 72, .2); --shade: rgba(24, 61, 43, .025);
 
   font-family: var(--sans);
   background: var(--void);
@@ -131,7 +128,7 @@ PAGE = r"""<!doctype html>
 }
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--void); }
-body { min-height: 100vh; margin: 0; background: var(--void); }
+body { min-height: 100dvh; margin: 0; background: var(--void); }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 button:disabled { cursor: not-allowed; }
@@ -148,7 +145,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 /* ---------------- app bar ---------------- */
 .bar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   min-height: 58px; padding: max(9px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
-  border-bottom: 1px solid var(--line); background: rgba(253, 252, 250, .92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-mark { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px;
   border: 1px solid var(--line-2); background: linear-gradient(160deg, var(--key-1), var(--key-3)); color: var(--signal);
@@ -274,7 +271,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   width: 100%; padding: 10px 14px; border: 1px solid var(--key-line); border-radius: 13px;
   background: linear-gradient(180deg, var(--key-1) 0%, var(--key-2) 56%, var(--key-3) 100%);
   color: var(--key-fg); font-size: 13.5px; font-weight: 500; text-align: center;
-  box-shadow: inset 0 1px 0 var(--bevel), inset 0 -1px 0 var(--seat), 0 6px 14px -7px var(--drop), 0 1px 2px var(--seat);
+  box-shadow: 0 1px 2px var(--seat), 0 5px 12px -9px var(--drop);
   transition: transform var(--t-release) var(--e-spring), box-shadow var(--t-release) var(--e-out),
               border-color var(--t-state) var(--e-out), background var(--t-state) var(--e-out), color var(--t-state) var(--e-out);
   will-change: transform; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -283,7 +280,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   opacity: 0; transition: opacity 260ms var(--e-out); }
 .key:hover:not(:disabled)::before, .opener:hover::before, .mod > summary:hover .opener::before, .stop-all:hover::before { opacity: 1; }
 .key:hover:not(:disabled) { border-color: var(--key-line-hi); transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 var(--bevel), inset 0 -1px 0 var(--seat), 0 12px 22px -10px var(--drop), 0 1px 2px var(--seat); }
+  box-shadow: 0 8px 18px -10px var(--drop); }
 .key:active:not(:disabled) { transition-duration: var(--t-press); transform: translateY(2px) scale(.985);
   background: linear-gradient(180deg, var(--press-1), var(--press-2)); box-shadow: inset 0 2px 7px var(--seat); }
 .key:disabled { opacity: .42; transform: none; box-shadow: inset 0 1px 0 var(--shade); }
@@ -412,7 +409,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .brand-mark { width: 32px; height: 32px; border-radius: 10px; }
   .brand-name { font-size: 14.5px; }
   .work { display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 24px; align-items: start;
-    padding: 26px 32px 40px; height: calc(100vh - 66px); }
+    padding: 26px 32px 40px; height: calc(100dvh - 66px); }
   .stage { gap: 18px; height: 100%; }
   .live-panel { flex: 1; min-height: 0; border-radius: 18px; }
   .camera-frame { min-height: 0; }
