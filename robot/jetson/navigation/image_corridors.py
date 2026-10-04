@@ -39,7 +39,7 @@ DEFAULT_CORRIDORS = (
 def estimate_floor_horizon(
     floor_mask,
     minimum_y=0.20,
-    maximum_y=0.75,
+    maximum_y=0.80,
     minimum_row_floor_fraction=0.55,
     consecutive_rows=5,
     stride=2,
@@ -140,6 +140,14 @@ def evaluate_corridor(floor_mask, corridor, stride=2):
     )
 
 
+def route_corridors(horizon, corridors=DEFAULT_CORRIDORS, minimum_route_y=0.50):
+    """Use the same near-floor polygons for local and cloud interpretation."""
+    if horizon is None:
+        return tuple(corridors)
+    return tuple(trim_corridor_top(corridor, max(horizon, minimum_route_y))
+                 for corridor in corridors)
+
+
 def semantic_route_candidates(
     floor_mask,
     corridors=DEFAULT_CORRIDORS,
@@ -150,14 +158,7 @@ def semantic_route_candidates(
 ):
     """Convert the near-floor footprint to bounded short-route candidates."""
     horizon = estimate_floor_horizon(floor_mask)
-    active_corridors = (
-        corridors
-        if horizon is None
-        else tuple(
-            trim_corridor_top(corridor, max(horizon, minimum_route_y))
-            for corridor in corridors
-        )
-    )
+    active_corridors = route_corridors(horizon, corridors, minimum_route_y)
     candidates = []
     evidence = []
     for corridor in active_corridors:

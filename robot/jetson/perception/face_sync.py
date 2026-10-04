@@ -132,8 +132,14 @@ def select_person_regions(
     padding_fraction,
     height_fraction,
     minimum_pixels,
+    fallback_full_frame=False,
 ):
-    """Return largest valid upper-person crops in source-image coordinates."""
+    """Return bounded face-search crops in source-image coordinates.
+
+    A single full-frame fallback can be requested when YOLO returns no usable
+    person box.  The caller remains responsible for rate limiting that more
+    expensive path.
+    """
     candidates = []
     for detection in detections:
         score = _person_score(detection)
@@ -161,4 +167,12 @@ def select_person_regions(
             continue
         candidates.append(region)
     candidates.sort(key=lambda item: item.area, reverse=True)
-    return candidates[: int(max_regions)]
+    selected = candidates[: int(max_regions)]
+    if (
+        not selected
+        and fallback_full_frame
+        and int(image_width) >= int(minimum_pixels)
+        and int(image_height) >= int(minimum_pixels)
+    ):
+        return [PersonRegion(0, 0, int(image_width), int(image_height))]
+    return selected

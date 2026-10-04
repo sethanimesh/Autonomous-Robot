@@ -8,12 +8,12 @@ SHA = "a" * 64
 
 
 class RecognitionConfigTests(unittest.TestCase):
-    def test_valid_configuration_is_conservative(self):
+    def test_default_household_profile_uses_two_supporting_matches(self):
         config = RecognitionConfig(model_sha256=SHA)
         self.assertEqual("antelopev2_glintr100", config.model_name)
-        self.assertEqual(3, config.confirmation_required)
+        self.assertEqual(2, config.confirmation_required)
         self.assertEqual(5, config.confirmation_window)
-        self.assertAlmostEqual(0.45, config.match_threshold)
+        self.assertAlmostEqual(0.40, config.match_threshold)
 
     def test_model_digest_is_required(self):
         with self.assertRaises(DetectorConfigError):

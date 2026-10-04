@@ -2,6 +2,7 @@ import unittest
 
 from robot.jetson.mission.target_gate import TargetGateError
 from robot.jetson.mission.target_gate import build_target_observation
+from robot.jetson.mission.target_gate import target_box_position
 
 
 def confirmed_status():
@@ -12,6 +13,13 @@ def confirmed_status():
 
 
 class TargetGateTests(unittest.TestCase):
+    def test_position_uses_largest_target_match_and_actual_image_size(self):
+        self.assertEqual({'center_x_fraction': .75, 'center_y_fraction': .5},
+                         target_box_position([(100, 100, 40, 50), (960, 360, 100, 120)], 1280, 720))
+        for box in ((float('nan'), 100, 40, 50), (1500, 100, 40, 50), (100, 100, 40, -1)):
+            self.assertIsNone(target_box_position([box], 1280, 720))
+        self.assertIsNone(target_box_position([], 0, 0))
+
     def test_confirmed_status_requires_current_box(self):
         result = build_target_observation(confirmed_status(), 0.1, 0.05, [])
         self.assertFalse(result.confirmed)

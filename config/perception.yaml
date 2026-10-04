@@ -58,8 +58,8 @@ echora_person_detector:
     status_interval_sec: 5.0
     latency_window: 120
 
-# Face detection is a separate GPU stage and is gated by the exact-frame
-# YOLOX person boxes. It does not perform recognition or persist biometrics.
+# Face detection uses exact-frame person boxes, with a bounded full-frame
+# fallback for partial bodies or missing person messages.
 echora_face_detector:
   ros__parameters:
     image_topic: /camera/image_raw
@@ -73,7 +73,7 @@ echora_face_detector:
     model_path: /home/animesh/echora/models/yunet_2023mar_fp16.engine
     model_input_width: 640
     model_input_height: 640
-    confidence_threshold: 0.75
+    confidence_threshold: 0.60
     nms_iou_threshold: 0.30
     max_faces: 20
 
@@ -83,6 +83,11 @@ echora_face_detector:
     person_roi_padding: 0.08
     person_roi_height_fraction: 0.72
     minimum_person_roi_pixels: 24
+    # A seated or partly occluded person may expose a clear face while YOLO
+    # has no complete person box. Search one full frame at a bounded rate so
+    # identity recognition can still proceed without unbounded GPU work.
+    enable_full_frame_fallback: true
+    full_frame_fallback_rate_hz: 3.0
     max_inference_rate_hz: 10.0
 
     # 24 camera frames is roughly 0.9 seconds at the measured camera rate.
@@ -118,11 +123,11 @@ echora_target_recognizer:
     input_std: 127.5
     target_store_path: /home/animesh/echora/data/target_person.json
 
-    # Deliberately above common ArcFace demonstration thresholds; three of
-    # five recent observations must agree before target_confirmed is emitted.
-    match_threshold: 0.45
+    # Household profile: two supporting matches in five distinct observations.
+    # These are tuning defaults; compare against other family members live.
+    match_threshold: 0.40
     confirmation_window: 5
-    confirmation_required: 3
+    confirmation_required: 2
     max_inference_rate_hz: 8.0
     max_faces: 3
     image_cache_size: 24

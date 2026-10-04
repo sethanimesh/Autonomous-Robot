@@ -32,13 +32,15 @@ PARAMETER_DEFAULTS = {
     "model_path": "/home/animesh/echora/models/yunet_2023mar_fp16.engine",
     "model_input_width": 640,
     "model_input_height": 640,
-    "confidence_threshold": 0.75,
+    "confidence_threshold": 0.60,
     "nms_iou_threshold": 0.30,
     "max_inference_rate_hz": 10.0,
     "max_person_rois": 3,
     "person_roi_padding": 0.08,
     "person_roi_height_fraction": 0.72,
     "minimum_person_roi_pixels": 24,
+    "enable_full_frame_fallback": True,
+    "full_frame_fallback_rate_hz": 3.0,
     "image_cache_size": 24,
     "max_frame_age_sec": 0.5,
     "frame_timeout_sec": 2.0,
@@ -121,6 +123,15 @@ class FaceDetectorConfig(object):
         )
         self.minimum_person_roi_pixels = _positive_int(
             "minimum_person_roi_pixels", values["minimum_person_roi_pixels"], 1000
+        )
+        self.enable_full_frame_fallback = _boolean(
+            "enable_full_frame_fallback", values["enable_full_frame_fallback"]
+        )
+        self.full_frame_fallback_rate_hz = _bounded_float(
+            "full_frame_fallback_rate_hz",
+            values["full_frame_fallback_rate_hz"],
+            0.0,
+            10.0,
         )
         self.image_cache_size = _positive_int(
             "image_cache_size", values["image_cache_size"], 1000

@@ -1,9 +1,10 @@
 # Jetson Perception
 
 `person_detector.py`, `face_detector.py`, and `target_recognizer.py` form the
-stationary Phase 3 perception pipeline. YOLOX finds people, YuNet finds faces
-inside exact-frame person regions, and AntelopeV2 compares aligned faces with
-the enrolled target. All three execute on the Jetson GPU through TensorRT FP16.
+stationary Phase 3 perception pipeline. YOLOX finds people, YuNet searches
+exact-frame person regions and a bounded full-frame fallback, and AntelopeV2
+compares aligned faces with the enrolled target. All three execute on the
+Jetson GPU through TensorRT FP16.
 
 These nodes only look. There is no tracking, following, liveness/authentication
 claim, or motor command. They do not connect to the EV3. Full camera frames are
@@ -53,6 +54,12 @@ accepted only when seconds, nanoseconds, and frame ID agree exactly. The
 largest three upper-person regions are processed per output cycle, bounding
 worst-case work in a crowded room. Overlap across person boxes is removed with
 global NMS.
+
+A seated or partly occluded person can expose a clear face while YOLOX returns
+no complete person box, or a crop that excludes the face. If all person-region
+passes find zero faces, YuNet may inspect one full frame at a separate 3 Hz cap.
+The fallback is still exact-frame, publishes the same transient observations,
+and never stores camera pixels.
 
 ### YuNet model
 
@@ -133,10 +140,36 @@ duplicates, multiple people, and a face inconsistent with the session. The
 default stores embeddings only. Opt-in retention stores 112×112 aligned face
 crops with mode 0600; original uploads and room frames are never retained.
 
+The locally validated update adds **Settings → Profiles**, phone/robot camera
+enrollment, and a profile picker in **Find Me**. It has not been deployed. See
+[phone enrollment and setup](../../../docs/PHONE_ENROLLMENT.md) for validation
+and the prepared local HTTPS installer.
+
+The page also exposes the Phase 6 **Find person** action. It will not enable
+until a target is enrolled, the camera is fresh, the head is homed and
+calibrated, no enrollment or mission is active, and the operator checks the
+one-use cable-neutral confirmation. The action launches the fixed bounded
+`autonomous_find.py` workflow; browser input cannot alter the command. An
+exclusive camera-control lease disables manual tilt for the duration. The
+adjacent **STOP ROBOT** action terminates the complete mission process group and
+separately publishes zero chassis velocity plus a camera-head stop, even when no
+mission is active.
+
+For supervised setup and recovery, the same page has car-style manual controls.
+The operator establishes the current marked cable-neutral pose once, then holds
+Forward, Back, Left, or Right and releases to stop. The browser renews a
+low-speed command through a session-specific sequence; out-of-order commands,
+camera/EV3/odometry staleness, page loss, or 0.25 seconds without renewal all
+stop the chassis. Live odometry prevents outward steering near the configured
+±80° usable tether envelope. Manual driving and the autonomous mission cannot
+run together.
+
 During camera-head calibration, this same page shows the live encoder position
 and provides **Tilt up** / **Tilt down** controls in 5° and 15° steps. Controls
-disable when head status is stale, unhomed, outside limits, or already moving.
-The EV3 still owns track isolation and rejects unsafe overlap. A current
+disable when head status is stale, unhomed, or outside limits. While moving,
+only the same direction remains enabled: another press retries the exact active
+target instead of stacking another step. The EV3 still owns track isolation
+and rejects unsafe overlap. A current
 one-shot JPEG is available at `/snapshot.jpg` for visual classification without
 opening another MJPEG stream.
 
@@ -330,3 +363,24 @@ and annotation placement — all in the repository test suite.
 `inference.py` is importable without TensorRT so its model-loading failure
 paths are tested too. The ROS node itself holds only pixels, CUDA calls, and
 ROS plumbing.
+# Manual camera limits
+
+In the existing console's **Adjust the view** panel, use Up/Down to choose the
+lowest comfortable view, then press **Save lower limit**. Raise the camera to
+the highest comfortable view and press **Save upper limit**. Saving records the
+stopped encoder position; it does not move or zero the motor. Saving a new lower
+limit replaces the previous setup and requires saving an upper limit again.
+
+The bridge persists endpoints in `/home/animesh/echora/data/camera-head-limits.json`
+(parameter `camera_head_limits_path`). Limits survive service restarts and are
+bound to the EV3 encoder reference; power loss/reference changes require setup
+again. Automatic targets reserve the configured settling margins inside the
+saved endpoints. Find Me performs the three-view Groq check before searching.
+Manual movement buttons still bypass saved limits; returning within the saved
+range restores eligibility for automatic view checks without repeating setup.
+
+Person, face and recognition nodes use `image_subscription.py` to recreate a
+camera subscription after ten seconds without frames. This also covers a
+subscription that remains idle after the stream returns, without reloading the
+model. Health status includes `image_subscription_reconnects`. Existing stale
+frame checks continue to prevent old detections from authorising movement.

@@ -46,6 +46,7 @@ from detector_health import STATE_MODEL_ERROR
 from detector_health import STATE_STALE_INPUT
 from detector_health import STATE_STOPPED
 from detector_health import STATE_WAITING_FOR_FRAMES
+from image_subscription import ReconnectingImageSubscription, configure_perception_transport
 from image_intake import REJECT_MALFORMED
 from image_intake import REJECT_STALE_FRAME
 from image_intake import SUPPORTED_ENCODINGS
@@ -131,8 +132,8 @@ class PersonDetectorNode(Node):
 
         # Depth 1 best-effort: the middleware keeps only the newest frame, and
         # the one-deep slot below guarantees it a second time.
-        self.create_subscription(
-            Image,
+        self.image_input = ReconnectingImageSubscription(
+            self, Image,
             self.config.image_topic,
             self.on_image,
             QoSProfile(
@@ -407,6 +408,8 @@ class PersonDetectorNode(Node):
 
     def on_status_timer(self):
         now = time.monotonic()
+        if self.image_input.refresh_if_stale(now, self.health.seconds_since_frame(now)):
+            self.get_logger().warning('Reconnected camera input after ten seconds without frames')
         if self.health.state == STATE_DETECTING and self.health.input_is_stale(
             now, self.config.frame_timeout_sec
         ):
@@ -417,6 +420,7 @@ class PersonDetectorNode(Node):
         if not rclpy.ok():
             return
         extra = {
+            "image_subscription_reconnects": getattr(getattr(self, 'image_input', None), 'reconnects', 0),
             "image_topic": self.config.image_topic,
             "model_path": self.config.model_path,
             "input_size": "{0}x{1}".format(
@@ -477,6 +481,7 @@ class PersonDetectorNode(Node):
 
 
 def main(args=None):
+    configure_perception_transport()
     rclpy.init(args=args)
     node = None
     try:

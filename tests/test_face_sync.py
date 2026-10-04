@@ -137,3 +137,28 @@ class PersonRegionTests(unittest.TestCase):
 
         self.assertEqual(2, len(regions))
         self.assertGreaterEqual(regions[0].area, regions[1].area)
+
+    def test_full_frame_fallback_is_single_and_explicit(self):
+        self.assertEqual([], self.select([]))
+
+        regions = self.select([], fallback_full_frame=True)
+
+        self.assertEqual(1, len(regions))
+        self.assertEqual((0, 0, 640, 480), (
+            regions[0].x1,
+            regions[0].y1,
+            regions[0].x2,
+            regions[0].y2,
+        ))
+
+    def test_full_frame_fallback_rejects_too_small_images(self):
+        self.assertEqual(
+            [],
+            self.select(
+                [],
+                image_width=20,
+                image_height=20,
+                minimum_pixels=24,
+                fallback_full_frame=True,
+            ),
+        )

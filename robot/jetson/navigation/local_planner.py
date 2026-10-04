@@ -68,7 +68,7 @@ class LocalRoutePlanner:
         maximum_step_m=0.10,
         maximum_heading_degrees=45.0,
         minimum_confidence=0.70,
-        minimum_known_fraction=0.85,
+        minimum_known_fraction=0.75,
     ):
         values = (
             robot_width_m,

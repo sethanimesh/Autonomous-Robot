@@ -51,7 +51,7 @@ class LocalRoutePlannerTests(unittest.TestCase):
 
     def test_unknown_or_uncertain_route_fails_closed(self):
         decision = self.planner.choose(
-            [route(0, 1.0, confidence=0.69), route(15, 1.0, known=0.84)]
+            [route(0, 1.0, confidence=0.69), route(15, 1.0, known=0.74)]
         )
         self.assertTrue(decision.blocked)
         self.assertEqual(0.0, decision.distance_m)
@@ -68,4 +68,3 @@ class LocalRoutePlannerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

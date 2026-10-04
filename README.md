@@ -15,6 +15,21 @@ Phase 4 encoder-odometry floor calibration is complete. The active next phase
 is camera-only autonomous movement inside one prepared room. Mapping, Nav2, and
 multi-room search are deliberately deferred until after the PWA.
 
+Startup calibration runs before the browser find-person mission and remains
+under hardware validation. Physical camera limits must be explicitly referenced;
+segmentation never defines encoder zero. Prepared calibration restores poses
+within the same reference and checks floor, room, and upper views on return.
+The target margin and named-move tolerance are now three counts, based on the
+head tests; the five-second settling pause remains in place.
+
+Repeated head testing completed 18 bounded moves without motor retries, followed
+by a semantic survey. SegFormer and tested local vision-language models missed
+the wooden overhead panel. An optional operator-labelled image match can verify
+that particular view without changing floor masks or route-clearance decisions.
+A network-reset crash that erased the reference has a tested EV3 repair staged
+for installation. A new power cycle still requires a confirmed physical lower
+pose. Complete autonomous Phase 6 operation has not been demonstrated.
+
 ## Working rules
 
 - Default to stopping when communication or sensor data is uncertain.
@@ -59,46 +74,46 @@ straight, and every run ended with confirmed stopped feedback.
 
 ## Active roadmap
 
-1. Camera-head limits and forward/down positions.
-2. Camera-only 360-degree scan and visual floor guidance in one room.
-3. Target-person search, route changes, cautious approach, and safe stop.
-4. Voice and higher-level intelligence for the single-room mission.
-5. PWA for enrollment, live status, and mission control.
-6. Deferred: mapping/localization, whole-home Nav2, and multi-room search.
+1. Secure or replace the movement-sensitive USB camera lead and fit permanent
+   strain relief while retaining the tested cable-neutral marker.
+2. Validate one target approach from beyond the accepted safe standoff; the
+   bounded seated-person search and stop are now proven live.
+3. Voice and higher-level intelligence for the single-room mission.
+4. PWA for enrollment, live status, and mission control.
+5. Deferred: mapping/localization, whole-home Nav2, and multi-room search.
 
-Camera-head control is now implemented in uncalibrated mode. The bridge exposes
-`/camera_head/command` and `/camera_head/status`; only small encoder jogs are
-accepted until real forward/down positions are recorded. Position moves run on
-the EV3 with a four-second timeout, ±720-degree hard protocol bound, tighter
-Jetson software bounds, and mutual exclusion between camera and chassis motion.
-The live enrollment console remains available on port 8080 as the operator
-camera view during calibration.
+The operator-selected camera range is normalized to **0 for floor, -27 for the
+person/forward search, -42 for face/identity, and -54 for the hard maximum
+height**. The named poses were verified with live frames and detector output.
+Position moves have tight software bounds and mutual exclusion with the
+chassis; every stop path brakes both tracks and actively holds the camera motor.
 
 The same page provides **Tilt up** and **Tilt down** controls in bounded 5° and
-15° steps. Each click requests one encoder position move, shows
-the current encoder position, disables itself while the head is moving or its
-status is stale, and relies on the EV3 to keep both tracks stopped.
+15° steps. Each click requests one encoder position move and shows the current
+encoder position. During a move, the same-direction buttons stay available to
+retry the unchanged absolute target; the opposite direction is disabled so
+clicks cannot stack extra travel. The EV3 keeps both tracks stopped.
 
-The tilt direction was settled on 2026-09-03 by watching the lens while jogging
-and checking the live camera frames: **encoder counts increase as the lens
-tilts down**, so positive is down and negative is up. Both earlier readings —
-the "camera started at its top limit" note and the "top = 0" convention that
-replaced it — had the sign backwards, which is why the browser controls moved
-the opposite way from their labels. `camera_controls.py` now records the
-convention in one place as `CAMERA_UP_SIGN`/`CAMERA_DOWN_SIGN`.
+Live before/after frames on 2026-09-05 established the current linkage direction:
+**negative encoder counts lift the camera and positive counts lower it**. The
+browser sends semantic directions through one sign mapping. Autonomous travel
+uses targets no larger than 15 counts. If the encoder advances fewer than two
+counts for one second, the brick retries the same target once; difficult
+negative lifting uses 1500 counts/s while gravity-assisted lowering keeps its
+normal speed. A second one-second stall stops and holds.
 
-Encoder 0 is not intrinsically a physical angle. On 2026-09-04, settled camera
-frames established a sequence from ceiling through the wall/ceiling edge to a
-forward room view; a further +16° showed the nearby route/floor. The loaded
-upward direction later failed at one linkage point even at 1000 counts/s. After
-output A was physically reconnected, a safe 300-count/s round trip reached
-forward 0°, route/down +17°, and forward +2° with matching images. Named
-positions are enabled inside a deliberately narrow -5°..+25° range.
+A live 15-count round trip from maximum height succeeded: -54 to -40 and back
+to -55 against a -54 target, with no retry needed. A later floor → person → face
+cycle reached +1, -27, and -42 with both tracks stopped. At -27 the person
+detector found the standing subject in 17/31 frames; at -42 it found the subject
+in 29/29 frames and confirmed the enrolled target.
 
-The console also exposes `/snapshot.jpg`, a no-store copy of the latest frame
-for one-shot visual classification. Runtime motion will use local image-change
-checks on every step. An optional cloud vision label may identify
-ceiling/forward/floor, but a network or model failure always means stop.
+The console also exposes `/snapshot.jpg`, a no-store copy of the latest frame.
+Calibration and autonomous tilt checks compare a frame before movement, a frame
+after the loaded linkage has settled, and a second held frame. Encoder motion
+without a corresponding stable visual change is rejected. If USB drops, the
+robot remains stopped while a bounded reconnect window waits for a fresh frame.
+This local check is deterministic; an LLM is not in the motor safety loop.
 
 The single-room controller will move only in short segments and inspect the
 forward and downward views between them. Uncertain or stale vision means stop.
@@ -108,9 +123,18 @@ pipeline never assumes the camera is forward while it is checking the floor.
 The first local-navigation slice now uses the measured 20 cm × 25 cm chassis
 and requires perception to prove a 30 cm wide corridor before selecting one
 5–10 cm motion primitive. Route confidence and known-image coverage fail
-closed. Because a long external cable remains attached, the scan pattern
-sweeps only to +180°, unwinds, sweeps to -180°, and unwinds to its starting
-heading instead of accumulating full rotations.
+closed. Because a long external cable remains attached, full scans are limited
+to ±90° inside a hard ±120° tether envelope with a 5° margin. Chassis motion
+is locked until the operator confirms the marked cable-neutral pose, every turn
+is checked before motion, measured afterward, and returned toward its scan
+origin. See `docs/CABLE_AND_CAMERA_SUPPORT.md` for the physical harness.
+
+A supervised right-first Phase 6 scan found the seated enrolled target after
+two measured ~12° right turns. It stopped at an absolute cable heading of
+**+24.46°** and a 0.2083 person-box height fraction, already beyond the 0.15
+safe-standoff threshold, so no forward drive was issued. The suspect USB lead
+disconnected during the first turn and recovered automatically; permanent
+strain relief or lead replacement remains required before unattended use.
 
 The stationary camera pipeline is live. Enabled
 `echora-camera.service` publishes `/camera/image_raw`, `/camera/camera_info`,
@@ -159,15 +183,23 @@ for this project.
 
 The live camera and enrollment console is kept active at
 `http://192.168.1.48:8080/` by the boot-enabled
-`echora-enrollment-console.service`. It accepts both guided live views and uploaded photos, rejects mixed
-identities and poor samples, requires front/left/right diversity, and stores
-only private numerical embeddings by default. The opt-in photo setting retains
-only aligned 112×112 face crops, never full camera frames.
+`echora-enrollment-console.service`. Its **Find person** button starts the
+bounded single-room Phase 6 mission only after the operator confirms the robot
+is at the marked cable-neutral heading and the tether is clear. The adjacent
+**STOP ROBOT** button independently stops the mission process, chassis, and
+camera head. A supervised manual-drive panel provides press-and-hold forward,
+back, left, and right controls. Releasing stops, stale browser commands stop in
+0.25 seconds, and odometry blocks further turning near the tether envelope.
+The same page accepts guided live views and uploaded photos,
+rejects mixed identities and poor samples, requires front/left/right diversity,
+and stores only private numerical embeddings by default. The opt-in photo
+setting retains only aligned 112×112 face crops, never full camera frames.
 
 Note that the installed **PyTorch is a CPU-only build** and provides no
 acceleration; TensorRT is the working GPU path. Model weights and engines are
-**not** committed. No tracking, following, mapping, or recording has been
-added, and the motors stayed stopped throughout perception development.
+**not** committed. Mapping and recording have not been added. Phase 6 movement
+is restricted to the deterministic, tether-bounded find-and-approach mission;
+the perception nodes themselves never command motors.
 
 See:
 

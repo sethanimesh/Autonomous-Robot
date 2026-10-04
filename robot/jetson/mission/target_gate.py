@@ -63,3 +63,20 @@ def build_target_observation(
         age_seconds=float(match_frame_age_seconds),
         box_height_fraction=fraction,
     )
+
+
+def target_box_position(boxes, image_width, image_height):
+    """Position of the same largest matched face used by the height gate."""
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               and math.isfinite(v) and v > 0 for v in (image_width, image_height)):
+        return None
+    valid = []
+    for x, y, width, height in boxes:
+        if all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               and math.isfinite(v) for v in (x, y, width, height)):
+            if width > 0 and height > 0 and 0 <= x <= image_width and 0 <= y <= image_height:
+                valid.append((x, y, width, height))
+    if not valid:
+        return None
+    x, y, _, _ = max(valid, key=lambda box: box[3])
+    return {'center_x_fraction': x / image_width, 'center_y_fraction': y / image_height}

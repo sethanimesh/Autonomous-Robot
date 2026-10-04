@@ -12,6 +12,8 @@ class FaceDetectorConfigTests(unittest.TestCase):
         self.assertEqual("/perception/face_observations", config.face_observations_topic)
         self.assertEqual((640, 640), config.model_input_shape())
         self.assertEqual(3, config.max_person_rois)
+        self.assertTrue(config.enable_full_frame_fallback)
+        self.assertAlmostEqual(3.0, config.full_frame_fallback_rate_hz)
         self.assertAlmostEqual(0.1, config.inference_period_sec())
         self.assertAlmostEqual(3.0, config.max_annotated_rate_hz)
 
@@ -38,3 +40,8 @@ class FaceDetectorConfigTests(unittest.TestCase):
     def test_person_crop_fraction_is_bounded(self):
         with self.assertRaises(DetectorConfigError):
             FaceDetectorConfig(person_roi_height_fraction=0.2)
+
+    def test_full_frame_fallback_rate_is_positive_and_bounded(self):
+        for value in (0.0, 10.1):
+            with self.subTest(value=value), self.assertRaises(DetectorConfigError):
+                FaceDetectorConfig(full_frame_fallback_rate_hz=value)

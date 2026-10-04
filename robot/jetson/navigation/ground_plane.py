@@ -31,10 +31,10 @@ def expected_floor_z_m(pixel_y, focal_y, center_y, pitch_degrees, lens_height_m)
     denominator = vertical_ray * math.cos(pitch) + math.sin(pitch)
     if denominator <= 0.05:
         return None
-    forward = lens_height_m * (
-        math.cos(pitch) - vertical_ray * math.sin(pitch)
-    ) / denominator
-    return forward if forward > 0.02 else None
+    # Model depth is optical-axis Z. Ground-forward distance is a separate
+    # rotation: Z * (cos(pitch) - vertical_ray * sin(pitch)).
+    optical_z = lens_height_m / denominator
+    return optical_z if optical_z > 0.02 else None
 
 
 def fit_ground_plane(

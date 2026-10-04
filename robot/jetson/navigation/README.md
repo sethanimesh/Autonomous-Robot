@@ -9,9 +9,11 @@ The route selector accepts clearance, model confidence, and known-pixel
 coverage for candidate headings. Low confidence, too much unknown image area,
 or insufficient clearance produces `blocked`; unknown never means free.
 
-Because a long external cable is attached, the chassis scan pattern is bounded:
-0° to +180°, unwind to 0°, 0° to -180°, and unwind to 0°. It covers the room
-without accumulating cable twist.
+Because a long external cable is attached, a full chassis scan is bounded to
+±90° around a physically marked neutral pose. An independent absolute guard
+rejects any planned or measured heading outside ±115° (the ±120° envelope minus
+a 5° margin), and each scan returns to its origin. The main mission refuses to
+move the chassis until the operator explicitly confirms the neutral pose.
 
 Depth backends will be compared on real Echora frames before one is selected:
 

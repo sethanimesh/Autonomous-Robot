@@ -55,6 +55,12 @@ class ImageCorridorTests(unittest.TestCase):
         self.assertFalse(decision.blocked)
         self.assertNotEqual(decision.heading_degrees, 0)
 
+    def test_lower_quarter_floor_is_usable_but_a_thin_bottom_strip_is_not(self):
+        for first_floor_row, blocked in [(365, False), (432, True)]:
+            mask = [[y >= first_floor_row for x in range(120)] for y in range(480)]
+            candidates, _ = semantic_route_candidates(mask)
+            self.assertEqual(blocked, LocalRoutePlanner().choose(candidates).blocked)
+
     def test_no_detected_floor_fails_closed(self):
         mask = [[False for _ in range(120)] for _ in range(90)]
         candidates, _ = semantic_route_candidates(mask)

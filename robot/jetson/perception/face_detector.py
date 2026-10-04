@@ -34,6 +34,7 @@ from face_detections import map_face_to_source, select_faces
 from face_inference import FaceInferenceError, TensorRTMultiOutputBackend, YuNetFaceDetector
 from face_observations import serialize_face_observations
 from face_sync import ExactPairMatcher, select_person_regions, stamp_key
+from image_subscription import ReconnectingImageSubscription, configure_perception_transport
 from image_intake import REJECT_MALFORMED, REJECT_STALE_FRAME, SUPPORTED_ENCODINGS, frame_age_seconds, is_frame_too_old, validate_image_message
 from messages import MessageFactories, build_detection_array
 
@@ -78,7 +79,10 @@ class FaceDetectorNode(Node):
         self.matched_person_messages = 0
         self.no_person_batches = 0
         self.person_rois_processed = 0
+        self.full_frame_fallbacks_run = 0
+        self._last_full_frame_fallback_at = 0.0
         self._last_person_message_time = None
+        self.latest_frame = None
         self._last_annotated_time = 0.0
         self.factories = MessageFactories(
             Detection2DArray, Detection2D, BoundingBox2D, ObjectHypothesisWithPose
@@ -110,8 +114,9 @@ class FaceDetectorNode(Node):
 
         self.set_state(STATE_LOADING_MODEL)
         self.load_model()
-        self.create_subscription(Image, self.config.image_topic, self.on_image, sensor_qos)
-        self.create_subscription(
+        self.image_input = ReconnectingImageSubscription(self, Image, self.config.image_topic, self.on_image, sensor_qos)
+        self.person_input = ReconnectingImageSubscription(
+            self,
             Detection2DArray,
             self.config.person_detections_topic,
             self.on_person_detections,
@@ -169,6 +174,7 @@ class FaceDetectorNode(Node):
         if message.encoding == "rgb8":
             image = image[:, :, ::-1]
         frame = CameraFrame(image, message.header.stamp, message.header.frame_id)
+        self.latest_frame = frame
         pair = self.matcher.offer_left(stamp_key(message.header.stamp), frame)
         if pair is not None:
             self.queue_pair(*pair)
@@ -199,13 +205,17 @@ class FaceDetectorNode(Node):
 
     def on_inference_timer(self):
         now = time.monotonic()
-        if self.health.input_is_stale(now, self.config.frame_timeout_sec) or self.person_input_is_stale(now):
+        if self.health.input_is_stale(now, self.config.frame_timeout_sec):
             if self.set_state(STATE_STALE_INPUT):
                 self.get_logger().warning("camera or person-detection input is stale; waiting")
             self.slot.clear()
             self.matcher.clear()
             return
         batch = self.slot.take()
+        if self.person_input_is_stale(now) and self.config.enable_full_frame_fallback:
+            if self.latest_frame is None or now-self._last_full_frame_fallback_at < 1./self.config.full_frame_fallback_rate_hz:
+                return
+            batch = PendingBatch(self.latest_frame, [])
         if batch is None:
             return
         age = frame_age_seconds(
@@ -223,10 +233,6 @@ class FaceDetectorNode(Node):
         if not batch.regions:
             self.no_person_batches += 1
             self.health.recent_person_count = 0
-            self.health.detections_published += 1
-            self.publish_detections([], batch.frame)
-            self.publish_annotated([], batch.frame)
-            return
 
         started = time.monotonic()
         mapped = []
@@ -249,6 +255,43 @@ class FaceDetectorNode(Node):
                             height,
                         )
                     )
+            # Partial/occluded seated bodies can produce a valid YOLO region
+            # whose crop excludes a clearly visible face.  When all bounded
+            # person crops return no face, try the whole frame at a separately
+            # capped rate.  This remains one region and never persists pixels.
+            fallback_interval = 1.0 / self.config.full_frame_fallback_rate_hz
+            if (
+                not mapped
+                and self.config.enable_full_frame_fallback
+                and time.monotonic() - self._last_full_frame_fallback_at
+                >= fallback_interval
+            ):
+                full_regions = select_person_regions(
+                    (),
+                    width,
+                    height,
+                    1,
+                    0.0,
+                    1.0,
+                    self.config.minimum_person_roi_pixels,
+                    fallback_full_frame=True,
+                )
+                if full_regions:
+                    region = full_regions[0]
+                    candidates = self.detector.infer(batch.frame.image)
+                    self._last_full_frame_fallback_at = time.monotonic()
+                    self.full_frame_fallbacks_run += 1
+                    for candidate in candidates:
+                        mapped.append(
+                            map_face_to_source(
+                                candidate,
+                                region,
+                                region.width,
+                                region.height,
+                                width,
+                                height,
+                            )
+                        )
         except Exception as exc:  # one frame must never kill the managed service
             self.record_inference_error(exc)
             return
@@ -326,6 +369,13 @@ class FaceDetectorNode(Node):
 
     def on_status_timer(self):
         now = time.monotonic()
+        if self.image_input.refresh_if_stale(now, self.health.seconds_since_frame(now)):
+            self.get_logger().warning('Reconnected camera input after ten seconds without frames')
+        person_age = None if self._last_person_message_time is None else now - self._last_person_message_time
+        if self.person_input.refresh_if_stale(now, person_age):
+            self.matcher.clear()
+            self.slot.clear()
+            self.get_logger().warning('Reconnected person detections after ten seconds without messages')
         if self.health.state == STATE_DETECTING and (
             self.health.input_is_stale(now, self.config.frame_timeout_sec)
             or self.person_input_is_stale(now)
@@ -340,6 +390,9 @@ class FaceDetectorNode(Node):
             time.monotonic(),
             dropped_frames=self.slot.dropped,
             extra={
+                "image_subscription_reconnects": getattr(getattr(self, 'image_input', None), 'reconnects', 0),
+                "person_subscription_reconnects": getattr(getattr(self, 'person_input', None), 'reconnects', 0),
+                "last_person_message_age_sec": None if self._last_person_message_time is None else round(time.monotonic() - self._last_person_message_time, 3),
                 "image_topic": self.config.image_topic,
                 "person_detections_topic": self.config.person_detections_topic,
                 "face_detections_topic": self.config.face_detections_topic,
@@ -359,6 +412,9 @@ class FaceDetectorNode(Node):
                 "person_cache_depth": self.matcher.right_depth,
                 "person_rois_processed": self.person_rois_processed,
                 "no_person_batches": self.no_person_batches,
+                "enable_full_frame_fallback": self.config.enable_full_frame_fallback,
+                "full_frame_fallback_rate_hz": self.config.full_frame_fallback_rate_hz,
+                "full_frame_fallbacks_run": self.full_frame_fallbacks_run,
                 "recent_face_count": self.health.recent_person_count,
                 "privacy": "no frames or biometric data persisted; landmarks are transient",
             },
@@ -394,6 +450,7 @@ class FaceDetectorNode(Node):
 
 
 def main(args=None):
+    configure_perception_transport()
     rclpy.init(args=args)
     node = None
     try:
