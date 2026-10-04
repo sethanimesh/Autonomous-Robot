@@ -14,7 +14,7 @@ The Jetson retains mission and movement authority. The companion Mac handles hea
 
 ## Current approved-message path
 
-The 2026-10-04 source review identifies an implemented supervised delivery path:
+The current source review identifies an implemented supervised delivery path:
 
 1. Select an enrolled profile and enter exact text or record speech for transcription.
 2. Review/edit the transcript and approve the message bound to profile and message revisions.
@@ -28,6 +28,6 @@ Search-only **Find person** never speaks. Approximate/estimated arrival cannot a
 
 ## Demonstration and evaluation status
 
-The project owner reported a complete home demonstration on 2026-10-04, covering selected-recipient finding, approach, request playback, and human acknowledgement. Retained artifacts provide additional measurements of partial approach and reacquisition trials. Trial count, timing, independently measured stopping distance, and a recording of the complete demonstration are not documented. Hospital participants, patient outcomes, emergency-response timing, and care-coordination benefit remain future evaluation areas.
+A complete home demonstration confirmed selected-recipient finding, approach, request playback, and human acknowledgement. Retained artifacts provide additional measurements of partial approach and reacquisition trials. Trial count, timing, independently measured stopping distance, and a recording of the complete demonstration are not documented. Hospital participants, patient outcomes, emergency-response timing, and care-coordination benefit remain future evaluation areas.
 
 [Back to reading guide](README.md)
