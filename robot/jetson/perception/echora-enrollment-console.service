@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora live camera and target-person enrollment console
+Description=Robot live camera and target-person enrollment console
 After=network-online.target echora-camera.service echora-face-detector.service
 Wants=network-online.target echora-camera.service
 

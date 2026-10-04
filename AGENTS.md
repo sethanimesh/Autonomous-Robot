@@ -4,10 +4,10 @@ THIS IS FOR PERSONAL NON-COMMERCIAL USE, WE CAN USE ANYTHING
 
 ## Project Goal
 
-Build Echora as **On-Call Hospital Assistance with Recipient Directed Care
-Coordination**: an identity-aware LEGO EV3 / Jetson robot that locates the
-pre-enrolled caregiver selected in an assistance request, inspects the route,
-approaches in short checked segments, and presents an approved message.
+Build an identity-aware LEGO EV3 / Jetson robot for **On-Call Hospital Assistance
+with Recipient Directed Care Coordination**. The robot locates the pre-enrolled
+caregiver selected in an assistance request, inspects the route, approaches in
+short checked segments, and presents an approved message.
 
 The current scope is a prepared single room. The project owner has completed a
 home simulation covering recipient search, approach, playback, and human

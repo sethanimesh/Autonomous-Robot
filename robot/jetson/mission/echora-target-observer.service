@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora mission target-observation gate
+Description=Robot mission target-observation gate
 After=network-online.target echora-target-recognizer.service
 Wants=network-online.target
 

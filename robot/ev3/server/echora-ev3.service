@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora EV3 fail-safe motor server
+Description=Robot EV3 fail-safe motor server
 After=network.target
 
 [Service]

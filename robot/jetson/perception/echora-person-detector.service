@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora ROS 2 person detector (TensorRT)
+Description=Robot ROS 2 person detector (TensorRT)
 After=network-online.target echora-camera.service
 Wants=network-online.target
 # A weak ordering only. The detector is designed to start, and stay up,

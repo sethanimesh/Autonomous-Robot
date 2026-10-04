@@ -15,7 +15,7 @@ rejects any planned or measured heading outside ±115° (the ±120° envelope mi
 a 5° margin), and each scan returns to its origin. The main mission refuses to
 move the chassis until the operator explicitly confirms the neutral pose.
 
-Depth backends will be compared on real Echora frames before one is selected:
+Depth backends will be compared on real robot frames before one is selected:
 
 - UniDepth V2 Small for metric depth and uncertainty.
 - YOLO26 nano depth for a fast current deployment path.

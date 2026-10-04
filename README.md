@@ -1,14 +1,14 @@
-# Echora — On-Call Hospital Assistance with Recipient Directed Care Coordination
+# On-Call Hospital Assistance with Recipient Directed Care Coordination
 
 An identity-aware assistance robot that searches for a selected enrolled caregiver, checks a camera-observed route, and approaches through short supervised movement segments.
 
 ## Problem and scope
 
-A patient needs assistance while the assigned nurse or doctor is attending to another task elsewhere in the room and does not have a phone in hand. A general callout can attract attention without reaching the person responsible; a device notification depends on someone checking it. Echora explores bringing an assistance request directly to its intended recipient.
+A patient needs assistance while the assigned nurse or doctor is attending to another task elsewhere in the room and does not have a phone in hand. A general callout can attract attention without reaching the person responsible; a device notification depends on someone checking it. This project explores bringing an assistance request directly to its intended recipient.
 
 The recipient is selected from pre-enrolled identities. The robot scans the room, adjusts its camera, detects people, compares facial observations with enrolled references, and uses appearance memory when a previously identified person's face becomes obscured. One motorized webcam serves both person observation and floor inspection. The engineering contribution is coordinating recipient identity, camera views, route assessments, motion and fault handling on a compact LEGO EV3 / Jetson platform.
 
-**Demonstrated scenario:** the project owner reports a complete home-room demonstration: Echora located the selected recipient, approached, played the approved request, and the recipient acknowledged it. Retained artifacts document separate search and approach trials; quantitative records and a recording of the complete demonstration remain to be documented. Hospital performance has not been evaluated, and acknowledgement is currently observed by the operator. The [evaluation guide](evaluation/README.md) explains the evidence and proposed measurements.
+**Demonstrated scenario:** the project owner reports a complete home-room demonstration: the robot located the selected recipient, approached, played the approved request, and the recipient acknowledged it. Retained artifacts document separate search and approach trials; quantitative records and a recording of the complete demonstration remain to be documented. Hospital performance has not been evaluated, and acknowledgement is currently observed by the operator. The [evaluation guide](evaluation/README.md) explains the evidence and proposed measurements.
 
 ## Real test samples
 

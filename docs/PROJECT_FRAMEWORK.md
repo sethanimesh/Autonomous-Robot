@@ -1,14 +1,14 @@
 # Project framework: recipient-directed assistance
 
-Following the Universal GitHub Project Framework, this guide documents Echora's problem, architecture, design decisions, implementation and evaluation. The hospital scenario defines the application; current demonstrations were conducted in a home room.
+Following the Universal GitHub Project Framework, this guide documents the robot's problem, architecture, design decisions, implementation and evaluation. The hospital scenario defines the application; current demonstrations were conducted in a home room.
 
 ## Problem, existing approaches and scope
 
-A request has an intended caregiver. Raising a general alert does not establish that this person received it, and a phone notification depends on device attention. Echora's computing problem is to bind a request to an enrolled identity, locate that person, preserve qualified continuity through occlusion and camera changes, and supervise a checked approach before speaking.
+A request has an intended caregiver. Raising a general alert does not establish that this person received it, and a phone notification depends on device attention. The robot's computing problem is to bind a request to an enrolled identity, locate that person, preserve qualified continuity through occlusion and camera changes, and supervise a checked approach before speaking.
 
 The system boundary includes enrollment, explicit recipient selection, camera perception, local mission authority, offboard visual interpretation, EV3 control and gated playback. Patient assignment, clinical triage, hospital directories and a recipient acknowledgement workflow are outside the current implementation. Mapping and multi-room navigation remain future work.
 
-| Candidate baseline | Useful property | Question Echora explores | Comparison status |
+| Candidate baseline | Useful property | Question this project explores | Comparison status |
 |---|---|---|---|
 | General callout | Can attract anyone nearby | Can the intended recipient be reached specifically? | Contextual baseline; no comparative response-time trial |
 | Device notification | Addresses a selected device/account | Can attention be reached without device checking? | Contextual baseline; no comparative trial |
@@ -17,7 +17,7 @@ The system boundary includes enrollment, explicit recipient selection, camera pe
 | Face-only tracking | Stronger identity evidence when visible | What does appearance add during face occlusion? | Proposed ablation; not evaluated |
 | Fully onboard inference | Fewer remote dependencies | Can heavier interpretation be offloaded without transferring actuation authority? | Architectural alternative; no controlled whole-stack comparison |
 
-These alternatives explain the decisions. They do not establish that Echora outperforms existing hospital alert systems.
+These alternatives explain the decisions. They do not establish that the robot outperforms existing hospital alert systems.
 
 ## Goals and observable success criteria
 

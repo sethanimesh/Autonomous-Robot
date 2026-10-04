@@ -1,1 +1,1 @@
-"""Echora Robo software."""
+"""Indoor assistance robot software."""

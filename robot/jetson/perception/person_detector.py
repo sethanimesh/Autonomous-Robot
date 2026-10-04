@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS 2 person detector for Echora Robo.
+"""ROS 2 person detector for the robot.
 
 Subscribes to the live camera stream, runs a YOLOX person detector on the
 Jetson GPU through TensorRT, and publishes standards-based detections, an

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS 2 /cmd_vel bridge for the Echora EV3 service."""
+"""ROS 2 /cmd_vel bridge for the robot EV3 service."""
 
 import json
 import math

@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora target-person recognizer (AntelopeV2 TensorRT)
+Description=Robot target-person recognizer (AntelopeV2 TensorRT)
 After=network-online.target echora-camera.service echora-face-detector.service
 Wants=network-online.target echora-camera.service echora-face-detector.service
 StartLimitBurst=5

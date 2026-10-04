@@ -1,4 +1,4 @@
-"""Anchor relative monocular depth to Echora's known floor geometry."""
+"""Anchor relative monocular depth to the robot's known floor geometry."""
 
 from dataclasses import dataclass
 import math

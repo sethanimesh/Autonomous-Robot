@@ -1,4 +1,4 @@
-# Echora stationary person detection.
+# Robot stationary person detection.
 #
 # Model: YOLOX-s, Apache-2.0, from the official Megvii YOLOX 0.1.1rc0
 # release, compiled to a TensorRT FP16 engine on the Jetson itself. The engine

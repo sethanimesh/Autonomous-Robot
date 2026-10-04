@@ -1,4 +1,4 @@
-# Echora assistive communication and caregiver delivery plan
+# Assistive communication and caregiver delivery plan
 
 Build a communication companion that helps a person express what they mean, confirm the wording through an accessible input method, and reach a chosen caregiver. Start with a stationary app using cloud audio inference. Add the existing robot as a delivery channel after the communication loop works.
 
@@ -13,11 +13,11 @@ Confirmed UI direction: beautiful, elegant, light theme with Three.js and real-t
 The first useful demonstration is:
 
 1. The person says a few words, types, or selects pictures.
-2. Echora proposes a short message that preserves their meaning.
+2. The application proposes a short message that preserves their meaning.
 3. If something consequential is unclear, it asks one focused question using speech, pictures, or choices.
 4. The person confirms the message and recipient.
-5. Echora speaks it locally or delivers it to a caregiver screen.
-6. The caregiver acknowledges or replies; Echora presents that reply accessibly.
+5. The application speaks it locally or delivers it to a caregiver screen.
+6. The caregiver acknowledges or replies; the application presents that reply accessibly.
 
 Later, step 5 can send the robot to find the enrolled caregiver, stop at a safe distance, and play the confirmed message. The sender retains an accessible device while the robot travels.
 
@@ -155,7 +155,7 @@ The current official pricing page lists the free model at $0, but an older launc
 post names an August 31 deadline, so account access must be checked explicitly.
 Voice/facial cue inference remains deferred; tone is chosen by the user.
 
-Progress, 5 September: webcam gaze trials are paused after inconsistent repeat results. Mac Head Pointer was tested with Echora dwell, then turned off at the user's request. Standard controls are active. Explicit Neutral/Warm/Cheerful/Firm choices and the shared speaking-pace setting now sit beside the message. Confirmation records delivery separately from wording and pronunciation; changing delivery requires a new confirmation. Device playback applies only the confirmed pace. Tone synthesis, Fish Audio integration, and voice/face cue inference remain pending.
+Progress, 5 September: webcam gaze trials are paused after inconsistent repeat results. Mac Head Pointer was tested with dwell selection, then turned off at the user's request. Standard controls are active. Explicit Neutral/Warm/Cheerful/Firm choices and the shared speaking-pace setting now sit beside the message. Confirmation records delivery separately from wording and pronunciation; changing delivery requires a new confirmation. Device playback applies only the confirmed pace. Tone synthesis, Fish Audio integration, and voice/face cue inference remain pending.
 
 Add high-quality cloud text to speech with **Fish Audio as the preferred provider**. Prioritize the input, transcription, contextual drafting, confirmation, and accessible UI first. Expressive speech and optional voice/facial expression cues must be built before robot delivery; the caregiver screen is deferred and is not a prerequisite. Milestone A needs basic readable playback through an available device/browser voice; integrating Fish Audio and running voice/facial expression inference are deferred work, not prerequisites for the first slice. Device playback does not replace the required cloud audio understanding.
 
@@ -181,7 +181,7 @@ Use React and Three.js for a calm, polished light interface. The proposed palett
 
 The main screen centers one clear action: speak, select pictures, or type. Keep the message preview and recipient visible, with an understated progress area for listening, interpreting, clarification, and delivery. On a phone, stack these into a single column; on a tablet, use the extra space for the message and recipient without shrinking touch controls. The caregiver screen uses the same visual language with a prominent message and acknowledgment action.
 
-Make a real Three.js-rendered input globe the centerpiece of the voice screen, taking visual inspiration from the fluid voice interfaces the user associates with Apple and OpenAI. Give Echora its own pearl, teal, pale blue, and soft peach treatment on the ivory background. Use a rounded volumetric form, gently flowing surface detail, soft illumination, and smooth transitions between states. The globe should feel dimensional and responsive. Build its geometry, materials, lighting, and animation in Three.js, with a lightweight custom shader where useful.
+Make a real Three.js-rendered input globe the centerpiece of the voice screen, taking visual inspiration from the fluid voice interfaces the user associates with Apple and OpenAI. Use a distinctive pearl, teal, pale blue, and soft peach treatment on the ivory background. Use a rounded volumetric form, gently flowing surface detail, soft illumination, and smooth transitions between states. The globe should feel dimensional and responsive. Build its geometry, materials, lighting, and animation in Three.js, with a lightweight custom shader where useful.
 
 | Globe state | Appearance and motion | Source of truth |
 | --- | --- | --- |
@@ -338,7 +338,7 @@ User rejected basic profiles as insufficiently personal. Implemented editable pe
 
 ## Hinglish reuse implemented — 5 September 2026
 
-Following the user's approval, integrated the actual Echora 2.0 core in an independent vendored package with source hashes (Archive itself unchanged). Dedicated pronunciation preparation now separates readable message text from transliterated/normalized speech text. The original lexical fast path, selective Hindi conversion, English guard, names/URLs protection and pronunciation normalizer are reused. Ambiguities use the current Groq 20B model without automatic fallback. Preparation has SSE states, explicit preview, revision-bound confirmation and invalidation on edits/context changes.
+Following the user's approval, integrated the archived speech core in an independent vendored package with source hashes (Archive itself unchanged). Dedicated pronunciation preparation now separates readable message text from transliterated/normalized speech text. The original lexical fast path, selective Hindi conversion, English guard, names/URLs protection and pronunciation normalizer are reused. Ambiguities use the current Groq 20B model without automatic fallback. Preparation has SSE states, explicit preview, revision-bound confirmation and invalidation on edits/context changes.
 
 154 backend tests and frontend checks pass. The new 20B smoke comparison scored 31/33 span labels on 15 selected existing gold sentences, with known slang/structural-label misses and one schema failure corrected by a closed-ID reminder. This limited mixed-before/after-adapter test does not establish parity with 120B or participant performance. Live full-pipeline preparation preserved English words in a mixed Hindi-English sentence and kept the reviewed text unchanged. Next is the user's pronunciation/listening test; Fish Audio and emotion work remain before robot delivery.
 
@@ -386,7 +386,7 @@ Supersedes the separate camera-preview flow above at the user's request. Optiona
 
 ## Automatic combined delivery and dedicated facial models — 5 September 2026
 
-User requested that Echora resolve voice/face disagreement and let facial cues affect pace. Implemented one automatic tone/pace recommendation with no source chooser. Current fusion is an explicit, bounded styling rule rather than learned multimodal inference: audio anchors pace, consistent smile/broad-smile cues shape the tone and move pace no more than one supported step. Neutral/unclear/invalid views cannot imply slow speech. A missing voice pace uses the current playback setting as its baseline. The UI waits for both checks; successful partial results remain usable after the other source fails. Existing apply and Confirm & speak remain. Validation: 19 targeted frontend tests, types, lint and production build passed. Actual listening quality still needs user testing.
+User requested that the system resolve voice/face disagreement and let facial cues affect pace. Implemented one automatic tone/pace recommendation with no source chooser. Current fusion is an explicit, bounded styling rule rather than learned multimodal inference: audio anchors pace, consistent smile/broad-smile cues shape the tone and move pace no more than one supported step. Neutral/unclear/invalid views cannot imply slow speech. A missing voice pace uses the current playback setting as its baseline. The UI waits for both checks; successful partial results remain usable after the other source fails. Existing apply and Confirm & speak remain. Validation: 19 targeted frontend tests, types, lint and production build passed. Actual listening quality still needs user testing.
 
 Dedicated-model research (not installed or enabled):
 

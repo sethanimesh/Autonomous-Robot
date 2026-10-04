@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora temporary camera calibration preview
+Description=Robot temporary camera calibration preview
 After=echora-camera.service
 Requires=echora-camera.service
 

@@ -25,10 +25,10 @@ from calibrate_charuco import ros_image_to_bgr
 
 PAGE = b"""<!doctype html>
 <html><head><meta name=viewport content="width=device-width,initial-scale=1">
-<title>Echora camera calibration</title>
+<title>Robot camera calibration</title>
 <style>body{margin:0;background:#111;color:#eee;font:18px sans-serif;text-align:center}
 h2{margin:12px}.note{margin:8px}img{width:min(100vw,960px);height:auto}</style></head>
-<body><h2>Echora camera calibration</h2>
+<body><h2>Robot camera calibration</h2>
 <div class=note id=status>Connecting...</div>
 <div class=note>Move only the board. Green corners mean it is detectable.</div>
 <img src=/stream.mjpg>

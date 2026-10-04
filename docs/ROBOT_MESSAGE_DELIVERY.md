@@ -2,7 +2,7 @@
 
 The operator can approve typed text or an edited speech transcript for one enrolled person, preview the generated audio through the Jetson speaker, then start a supervised one-room search. Search-only remains a separate action. Playback begins only after a supported arrival report, fresh unique identity for the selected profile, a validated measured person distance in the configured standoff interval, stopped left/right motor feedback, and a stopped camera head. An estimated arrival, stale or ambiguous identity, changed profile/message revision, unavailable speech service, or uncertain feedback leaves the robot silent.
 
-`played` means the ALSA playback process completed. Echora has no recipient acknowledgement and does not claim that the person heard or understood the message. Recorded operator audio is forwarded by the Mac service to the configured transcription provider; recordings and synthesized MP3s are held only in memory by Echora. Fish Audio is used to synthesize the reviewed text.
+`played` means the ALSA playback process completed. The robot has no recipient acknowledgement and does not claim that the person heard or understood the message. Recorded operator audio is forwarded by the Mac service to the configured transcription provider; recordings and synthesized MP3s are held only in memory by the services. Fish Audio is used to synthesize the reviewed text.
 
 ## Mac speech service
 

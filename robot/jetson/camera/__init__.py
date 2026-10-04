@@ -1,1 +1,1 @@
-"""Jetson USB camera source for Echora Robo."""
+"""Jetson USB camera source for the robot."""

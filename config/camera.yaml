@@ -1,4 +1,4 @@
-# Echora USB camera source.
+# Robot USB camera source.
 #
 # Measured on the Jetson Orin Nano with USB camera 0c45:6366:
 #   MJPG 640x480 is advertised at 30 fps and sustains ~27 fps.

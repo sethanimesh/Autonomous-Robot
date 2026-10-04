@@ -1,1 +1,1 @@
-"""Mac-hosted helpers for compute offload during Echora development."""
+"""Mac-hosted helpers for compute offload during robot development."""

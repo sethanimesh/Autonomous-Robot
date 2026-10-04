@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Camera calibration loading for the Echora camera node.
+"""Camera calibration loading for the robot camera node.
 
 Intrinsics are never invented. When no usable calibration file is present the
 node publishes an explicitly uncalibrated CameraInfo: D, K, R and P are all

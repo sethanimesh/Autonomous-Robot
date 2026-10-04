@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configuration for the Echora ROS 2 USB camera node.
+"""Configuration for the robot ROS 2 USB camera node.
 
 This module is deliberately free of ROS, OpenCV, and numpy imports so the
 validation rules can be tested on any machine.

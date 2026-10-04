@@ -1,6 +1,6 @@
-# Echora — On-Call Hospital Assistance with Recipient Directed Care Coordination
+# On-Call Hospital Assistance with Recipient Directed Care Coordination
 
-A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the room and does not have a phone in hand. Echora explores a person-directed response: find the pre-enrolled caregiver named in the request, inspect the route, approach through short checked segments, and present an approved message when the delivery gates permit it.
+A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the room and does not have a phone in hand. The robot supports a person-directed response: find the pre-enrolled caregiver named in the request, inspect the route, approach through short checked segments, and present an approved message when the delivery gates permit it.
 
 The compact prototype coordinates identity, one motorized webcam, distributed visual inference, and locally supervised movement. The recorded engineering trials were conducted in household/room settings. The project owner reports a complete home demonstration covering finding, approach, playback, and human acknowledgement. Clinical evaluation remains future work.
 

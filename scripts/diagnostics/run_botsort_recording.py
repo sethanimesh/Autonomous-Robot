@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run an offline BoT-SORT baseline on an Echora mission recording.
+"""Run an offline BoT-SORT baseline on a robot mission recording.
 
 Uses the recording's person detections; never starts ROS or connects to EV3.
 The optional LAP adapter uses Ultralytics' own NumPy assignment solver when the

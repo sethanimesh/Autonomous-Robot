@@ -80,16 +80,16 @@ def validate_mission_profile(request, target):
 
 
 PHONE_SETUP_PAGE = """<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Echora phone setup</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Robot phone setup</title>
 <style>body{font:16px/1.6 system-ui;background:#F2F5F2;color:#17231C;max-width:640px;margin:40px auto;padding:0 20px}a{color:#1E5B48}li{margin-bottom:12px}h1{line-height:1.2}</style>
 <h1>Use your phone camera</h1><p>Complete this once on each phone, while connected to your home Wi-Fi.</p>
-<ol><li><a href="/phone-ca.crt">Download the Echora local certificate</a>.</li>
+<ol><li><a href="/phone-ca.crt">Download the robot's local certificate</a>.</li>
 <li><strong>iPhone / iPad:</strong> open Settings → General → VPN &amp; Device Management and install the downloaded certificate profile. Then open General → About → Certificate Trust Settings and enable full trust for that certificate.
 <br><a href="https://support.apple.com/102390">Apple instructions</a></li>
 <li><strong>Android:</strong> open Settings → Security &amp; privacy → More security settings → Encryption &amp; credentials → Install a certificate → CA certificate, then select the downloaded file. Names vary by phone.
 <br><a href="https://support.google.com/pixelphone/answer/2844832">Android instructions</a></li></ol>
-<p>Follow the step for your phone, then <a href="https://192.168.1.48/">open the secure Echora console</a>. Choose Settings → Profiles → Add a person → Phone camera. Allow camera access when asked.</p>
-<p>Keep the Jetson on. The EV3 can stay off during enrollment. Original photos are not stored by Echora; aligned face crops are retained only when selected.</p>
+<p>Follow the step for your phone, then <a href="https://192.168.1.48/">open the secure robot console</a>. Choose Settings → Profiles → Add a person → Phone camera. Allow camera access when asked.</p>
+<p>Keep the Jetson on. The EV3 can stay off during enrollment. The robot does not store original photos; aligned face crops are retained only when selected.</p>
 <p><a href="/">Back to console</a></p></html>""".encode("utf-8")
 
 
@@ -99,7 +99,7 @@ PAGE = r"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F2F5F2">
-<title>Echora Control</title>
+<title>Robot Control</title>
 <style>
 :root {
   color-scheme: light;
@@ -449,7 +449,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 <body>
 <a class="skip-link" href="#controls">Skip to controls</a>
 <header class="bar">
-  <div class="brand" aria-label="Echora Control">
+  <div class="brand" aria-label="Robot Control">
     <span class="brand-mark" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
         <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"></circle>
@@ -458,7 +458,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
       </svg>
     </span>
     <div>
-      <h1 class="brand-name">Echora Control</h1>
+      <h1 class="brand-name">Robot Control</h1>
       <span class="brand-subtitle">SINGLE-ROOM OPERATOR</span>
     </div>
   </div>
@@ -483,7 +483,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
         <span class="live-state" id="liveFeedState">Connecting to camera…</span>
       </div>
       <div class="camera-frame" id="cameraFrame">
-        <img id="cameraStream" src="/stream" alt="Live view from Echora's front camera">
+        <img id="cameraStream" src="/stream" alt="Live view from the robot's front camera">
       </div>
       <div class="live-footer">
         <span>USE THIS VIEW WHENEVER THE ROBOT IS MOVING</span>
@@ -605,12 +605,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
         <span class="opener" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
       </summary>
       <div class="mod-pad">
-        <div><p class="k">Who should Echora find?</p><div id="findProfiles" class="profile-grid" role="group" aria-label="Choose a person to find"></div></div>
+        <div><p class="k">Who should the robot find?</p><div id="findProfiles" class="profile-grid" role="group" aria-label="Choose a person to find"></div></div>
         <button class="key" id="addFirstProfile" type="button" onclick="openSettings();familyEnroll(false)" hidden>Add a person</button>
         <div class="field" style="margin-top:16px">
           <label for="deliveryText">Message to say</label>
           <textarea id="deliveryText" class="delivery-editor" maxlength="2000" placeholder="Type the exact message the robot should say."></textarea>
-          <p class="supporting-copy">You can type a message or record it for transcription. Review and approve the exact text before speech is prepared. A recording is sent to the Mac's configured transcription provider; Echora does not retain it.</p>
+          <p class="supporting-copy">You can type a message or record it for transcription. Review and approve the exact text before speech is prepared. A recording is sent to the Mac's configured transcription provider; the robot does not retain it.</p>
         </div>
         <div class="delivery-actions">
           <button class="key" id="recordMessage" type="button" onclick="startMessageRecording()">Record message</button>
@@ -633,7 +633,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
           <span>The robot is at cable-neutral and the supported cable is loose and clear of both tracks.</span>
         </label>
         <button class="key find" id="findPerson" type="button" onclick="startMission()" aria-describedby="missionReadiness" style="min-height:60px;font-size:15px" disabled>Find person</button>
-        <p class="supporting-copy">Echora scans the room, verifies the floor before each short movement, and stops whenever the route or identity is uncertain.</p>
+        <p class="supporting-copy">The robot scans the room, verifies the floor before each short movement, and stops whenever the route or identity is uncertain.</p>
       </div>
     </details>
 
@@ -749,7 +749,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
       </div>
     </details>
 </dialog>
-<noscript><p class="system-note">JavaScript is required to show status and operate Echora safely.</p></noscript>
+<noscript><p class="system-note">JavaScript is required to show status and operate the robot safely.</p></noscript>
 <script>
 const H={'X-Echora-Action':'1'};
 async function post(url,body,type='application/json',extra={}){let h={...H,...extra.headers};if(type)h['Content-Type']=type;let r=await fetch(url,{method:'POST',headers:h,body,signal:extra.signal});let j=await r.json();if(!r.ok){let e=Error(j.error||'Request failed');e.status=r.status;throw e}return j}

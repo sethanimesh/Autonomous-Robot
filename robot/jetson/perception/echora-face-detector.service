@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora ROS 2 face detector (YuNet TensorRT)
+Description=Robot ROS 2 face detector (YuNet TensorRT)
 After=network-online.target echora-camera.service echora-person-detector.service
 Wants=network-online.target echora-camera.service echora-person-detector.service
 StartLimitBurst=5

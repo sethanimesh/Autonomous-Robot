@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS 2 USB camera source for Echora Robo.
+"""ROS 2 USB camera source for the robot.
 
 Publishes /camera/image_raw, /camera/camera_info and /camera/status from a
 V4L2 USB camera. This node only reads the camera; it never sends a motor

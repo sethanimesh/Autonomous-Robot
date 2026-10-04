@@ -1,6 +1,6 @@
 # Evaluation and reproduction
 
-Echora's application is **On-Call Hospital Assistance with Recipient Directed Care Coordination**: find the pre-enrolled caregiver named in a request, inspect the route, approach in bounded segments, and bring the request to that person's attention. Evaluation distinguishes identifying the recipient, reaching them, playing a message, and obtaining acknowledgement as separate outcomes.
+The project's application is **On-Call Hospital Assistance with Recipient Directed Care Coordination**: find the pre-enrolled caregiver named in a request, inspect the route, approach in bounded segments, and bring the request to that person's attention. Evaluation distinguishes identifying the recipient, reaching them, playing a message, and obtaining acknowledgement as separate outcomes.
 
 ## Reproduce automated checks
 

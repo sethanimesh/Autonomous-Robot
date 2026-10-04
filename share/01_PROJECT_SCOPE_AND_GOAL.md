@@ -4,7 +4,7 @@ This guide describes the implementation and evaluation status as documented on 2
 
 **A. Technical goal and demonstrated scope**
 
-**Hospital assistance scenario.** A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the same room and does not have a phone in hand. A general callout may attract another person; a notification still depends on someone checking a device. The proposed role of Echora is to locate the pre-enrolled caregiver named in the request and bring that request to their attention.
+**Hospital assistance scenario.** A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the same room and does not have a phone in hand. A general callout may attract another person; a notification still depends on someone checking a device. The robot's proposed role is to locate the pre-enrolled caregiver named in the request and bring that request to their attention.
 
 The robotics contribution is identity-aware, recipient-directed search and approach: choose whom to find, obtain useful person views, retain qualified identity evidence, inspect the route with the same motorized webcam, and supervise short movements. The scenario supplies the motivation; the recorded prototype evidence comes from supervised household/room trials.
 

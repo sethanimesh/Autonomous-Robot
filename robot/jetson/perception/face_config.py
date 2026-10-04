@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validated configuration for the Echora face detector."""
+"""Validated configuration for the robot face detector."""
 
 try:
     from detector_config import (

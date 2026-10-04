@@ -1,1 +1,1 @@
-"""Deterministic mission logic for Echora."""
+"""Deterministic mission logic for the robot."""

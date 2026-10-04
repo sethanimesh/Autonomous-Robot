@@ -1,6 +1,6 @@
 # Runtime supervision, fallback policies and verification
 
-Echora's systems-engineering contribution includes the coordination code around its perception models: evidence validation, camera scheduling, serialized actuation, feedback supervision and bounded recovery. This guide maps those mechanisms to implementation and verification. The runtime harness is distributed across existing services rather than implemented as a single component.
+The project's systems-engineering contribution includes the coordination code around its perception models: evidence validation, camera scheduling, serialized actuation, feedback supervision and bounded recovery. This guide maps those mechanisms to implementation and verification. The runtime harness is distributed across existing services rather than implemented as a single component.
 
 | Responsibility | Purpose | Repository entry points |
 |---|---|---|

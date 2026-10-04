@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora temporary face-detection preview
+Description=Robot temporary face-detection preview
 After=echora-face-detector.service
 Requires=echora-face-detector.service
 

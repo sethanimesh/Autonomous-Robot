@@ -1,5 +1,5 @@
 [Unit]
-Description=Echora ROS 2 USB camera source
+Description=Robot ROS 2 USB camera source
 After=network-online.target
 Wants=network-online.target
 

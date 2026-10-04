@@ -1,4 +1,4 @@
-# Echora — On-Call Hospital Assistance with Recipient Directed Care Coordination
+# On-Call Hospital Assistance with Recipient Directed Care Coordination
 
 This dossier retains the original repository-grounded technical investigation and measurements. The 2026-10-04 documentation revision applies the hospital assistance scenario and records the current supervised message-delivery code. It is a source review, not a new live evaluation. Repository links work from this folder; some raw evidence and the adjacent communication app remain local-only. Historical source line citations may have shifted since the original investigation.
 
@@ -6,7 +6,7 @@ See [reading guide](README.md), [source snapshot](SOURCE_SNAPSHOT.md), [reproduc
 
 ---
 
-**Echora is presented as On-Call Hospital Assistance with Recipient Directed Care Coordination. Its implementation combines selected-person search, bounded approach, and supervised approved-message delivery.** The principal systems work coordinates identity evidence, a shared movable camera, delayed remote inference, and short feedback-monitored movements.
+**This project is presented as On-Call Hospital Assistance with Recipient Directed Care Coordination. Its implementation combines selected-person search, bounded approach, and supervised approved-message delivery.** The principal systems work coordinates identity evidence, a shared movable camera, delayed remote inference, and short feedback-monitored movements.
 
 Recorded runs demonstrate finding an enrolled person, selecting a route, moving short distances, reacquiring the person, and stopping. They also document incomplete approaches, inaccurate distance estimates, camera and communication issues, and recovery limits. The current delivery code adds gated robot playback; the retained trials do not establish a complete physical request-to-recipient delivery, and there is no caregiver-acknowledgement mechanism.
 
@@ -18,7 +18,7 @@ The original investigation was read-only: it did not run tests, import project m
 
 **A. Technical goal and demonstrated scope**
 
-**Hospital assistance scenario.** A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the same room and does not have a phone in hand. A general callout may attract another person; a notification still depends on someone checking a device. The proposed role of Echora is to locate the pre-enrolled caregiver named in the request and bring that request to their attention.
+**Hospital assistance scenario.** A patient needs urgent assistance while the assigned nurse or doctor is occupied elsewhere in the same room and does not have a phone in hand. A general callout may attract another person; a notification still depends on someone checking a device. The robot's proposed role is to locate the pre-enrolled caregiver named in the request and bring that request to their attention.
 
 The robotics contribution is identity-aware, recipient-directed search and approach: choose whom to find, obtain useful person views, retain qualified identity evidence, inspect the route with the same motorized webcam, and supervise short movements. The scenario supplies the motivation; the recorded prototype evidence comes from supervised household/room trials.
 

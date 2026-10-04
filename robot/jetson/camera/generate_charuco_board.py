@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the exact ChArUco board used by Echora camera calibration."""
+"""Generate the exact ChArUco board used by the robot camera calibration."""
 
 import argparse
 import os

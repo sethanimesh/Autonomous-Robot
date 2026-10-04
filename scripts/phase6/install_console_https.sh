@@ -36,7 +36,7 @@ https://192.168.1.48 {
 CADDY
 cat > /etc/systemd/system/echora-https.service <<UNIT
 [Unit]
-Description=Echora private home Wi-Fi HTTPS console
+Description=Robot private home Wi-Fi HTTPS console
 After=network-online.target echora-enrollment-console.service
 Wants=network-online.target
 

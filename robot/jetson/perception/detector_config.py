@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configuration for the Echora ROS 2 person detector.
+"""Configuration for the robot ROS 2 person detector.
 
 Deliberately free of ROS, OpenCV, numpy, and TensorRT imports so every
 validation rule can be tested on a development machine.

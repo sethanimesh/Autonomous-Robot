@@ -1,6 +1,6 @@
 # Hospital scenario and approved request delivery
 
-Echora is presented as **On-Call Hospital Assistance with Recipient Directed Care Coordination**. The motivating scenario is a patient seeking urgent help from an assigned nurse or doctor who is occupied elsewhere in the same room and does not have a phone in hand. The robot should locate that named, pre-enrolled caregiver and bring the approved request directly to their attention. The prototype is evaluated in a home setting; hospital deployment and emergency-response performance remain future evaluation areas.
+This project is presented as **On-Call Hospital Assistance with Recipient Directed Care Coordination**. The motivating scenario is a patient seeking urgent help from an assigned nurse or doctor who is occupied elsewhere in the same room and does not have a phone in hand. The robot should locate that named, pre-enrolled caregiver and bring the approved request directly to their attention. The prototype is evaluated in a home setting; hospital deployment and emergency-response performance remain future evaluation areas.
 
 ## Recipient-directed robotics
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small synchronous client for the Echora EV3 JSON service."""
+"""Small synchronous client for the robot EV3 JSON service."""
 
 import argparse
 import json

@@ -48,7 +48,7 @@ BANNER_HEIGHT = 26
 
 PAGE = (
     b"<!doctype html><html><head><meta name='viewport' "
-    b"content='width=device-width,initial-scale=1'><title>Echora preview</title>"
+    b"content='width=device-width,initial-scale=1'><title>Robot preview</title>"
     b"</head><body style='margin:0;background:#111;text-align:center'>"
     b"<img src='/stream' style='max-width:100%;height:auto'></body></html>"
 )

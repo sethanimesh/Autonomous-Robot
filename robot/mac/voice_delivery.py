@@ -25,7 +25,7 @@ MAX_SYNTHESIS_CALLS = 20
 synthesis_calls = 0
 synthesis_lock = asyncio.Lock()
 
-app = FastAPI(title="Echora robot speech", docs_url=None, redoc_url=None)
+app = FastAPI(title="Robot speech", docs_url=None, redoc_url=None)
 
 
 class SynthesisRequest(BaseModel):
