@@ -1828,7 +1828,7 @@
   "overview_sha256": "14ca5bd58f8e6bbd1aca2d37926041e0989763139d5875d76cf52608c6bea2f8",
   "curation": {
     "at_utc": "2026-10-04T19:00:33+00:00",
-    "reason": "A capture and its associated outputs were removed at the project owner\u2019s request.",
+    "reason": "A capture and its associated outputs were removed at the project lead\u2019s request.",
     "inference_rerun": false
   },
   "rendered_at_utc": "2026-10-04T19:00:58.676339+00:00",

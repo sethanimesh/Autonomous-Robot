@@ -9,7 +9,7 @@ with Recipient Directed Care Coordination**. The robot locates the pre-enrolled
 caregiver selected in an assistance request, inspects the route, approaches in
 short checked segments, and presents an approved message.
 
-The current scope is a prepared single room. The project owner has completed a
+The current scope is a prepared single room. A
 home simulation covering recipient search, approach, playback, and human
 acknowledgement. Describe this as a simulated caregiver scenario, keeping it
 separate from hospital deployment or measured clinical benefit. Retained
