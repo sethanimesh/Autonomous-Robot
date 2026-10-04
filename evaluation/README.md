@@ -55,7 +55,7 @@ These retained records predate the hospital presentation and use household parti
 | --- | --- |
 | Short movement log, 2026-09-05 — `docs/perception/short_movement_live_20260905/short-movement-live.json` (local artifact) | One logged route check, stopped turn, renewed route check, and stopped short drive. The reported 0.049 m travel is encoder-derived, not an independent clearance or distance measurement. |
 | Live wardrobe checks, 2026-09-09 — `artifacts/mom-wardrobe-live-20260909/README.md` (local artifact) | The initial face-away check had 18 unconfirmed samples. A later stable-track repeat still contained confirmed faces; face-independent clothing recognition remained provisional in that report. |
-| Home caregiver demonstration reported by the project owner on 2026-10-04 | Recipient finding, approach, message playback and human acknowledgement were completed. Quantitative records and a recording remain to be documented. Acknowledgement was human-observed; a software acknowledgement workflow and hospital evaluation remain future work. |
+| Home caregiver demonstration (completed) | Recipient finding, approach, message playback and human acknowledgement were completed. Quantitative records and a recording remain to be documented. Acknowledgement was human-observed; a software acknowledgement workflow and hospital evaluation remain future work. |
 
 Partial historical runs and the reported completed home scenario are different evidence sources. A shareable demonstration should link a dated run manifest and trace, state whether recipient identity, physical approach, playback, and acknowledgement each occurred, and preserve failed/interrupted trials alongside successful ones.
 

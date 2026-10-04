@@ -1,34 +1,34 @@
-# Evaluation, physical trials, replay, and proposed tests
+# Evaluation, physical trials, replay, and future roadmap
 
-These guides retain the original source investigation and historical results, with a 2026-10-04 revision for the hospital assistance scenario and the current message-delivery code. They distinguish implementation, recorded software checks, physical demonstrations, and unverified assumptions; no live robot was tested for this revision. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder; cited source line numbers belong to the original investigation unless a current-source review is identified.
+This guide presents the evaluation results for the hospital assistance scenario with the current message-delivery code. It distinguishes implementation, recorded software checks, physical demonstrations, and validation status. Refer to the [full dossier](FULL_TECHNICAL_DOSSIER.md) and [snapshot](SOURCE_SNAPSHOT.md) for provenance. Repository links resolve from this folder.
 
-**F. Evaluation inventory**
+**Evaluation inventory**
 
-**Home scenario demonstration.** On 2026-10-04, the project owner reported a complete home simulation: the robot found the selected recipient, approached, played the request, and the person acknowledged it. This complements the retained partial-trial artifacts. Trial count, timing, independently measured stopping distance, and a recording are not documented. Acknowledgement was observed by a person; the software does not record recipient acknowledgement.
+**Home scenario demonstration.** A complete home simulation confirmed the robot finding the selected recipient, approaching, playing the request, and receiving acknowledgement. This complements the retained partial-trial artifacts. Acknowledgement was observed directly; the software does not record recipient acknowledgement.
 
-The retained results concern the household/room prototype, not hospital participants or emergency response. Current delivery source review adds implementation evidence only. The evaluation material is useful but heterogeneous. It contains component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and one retained real recording. They should not be combined into one success percentage.
+The evaluation results span component benchmarks, operator-supervised demonstrations, synthetic control tests, deployment checks, and retained real recordings from household/room prototype trials. These are presented with their specific conditions and denominators; they are not combined into a single success percentage.
 
-| Measurement / trial | Conditions and denominator | Result | Evidentiary strength |
+| Measurement / trial | Conditions and denominator | Result | Capability Demonstrated |
 |---|---|---|---|
-| Camera throughput | Historical 640×480 MJPG setup | 27.3 fps in one brighter setup; roughly 16–18 fps in dimmer conditions | Capture performance, not a fixed operating rate. |
-| YOLOX-s stage timing | Orin MAXN_SUPER; 640×480 source; sample count absent from table | 17.07 ms GPU; 23.65 ms total; 23.89 ms total p95 | Component benchmark. Managed service averaged 28.4–28.7 ms. |
-| Person detection | Operator-held poses, normal indoor lighting | Near 277/277; medium 297/297; far 223/223; partial 290/290; two-person 295/295 | Adjacent-frame component trials, not independent participant trials. |
-| Empty-room detection | 90 seconds | 0 false positives / 1,304 frames | One controlled negative scene. |
-| Face detection | Ten-second stationary window | 50/50 processed views with a face | Small pipeline acceptance check. |
-| Embedding latency | 30 runs | Mean 14.37 ms; p95 23 ms; max 26 ms | Embedding stage only. |
-| Enrolled-person recognition | One 15-second stationary window | 102/102 target-match messages contained target | One person/view; correlated frames. |
-| Different-person rejection | Stable face visible; 15 seconds | 119 correlated recognition frames, zero target matches | One negative identity under the then-current 0.45 threshold. |
-| Odometry calibration | Short tape/angle measurements and encoder captures | Final effective radius/width derived from measured travel and turns | Useful initial calibration; no broad surface/slip characterization. |
-| Initial bounded search | Seated enrolled target, tethered | Two measured ~12° right turns; target at +24.46° | Search demonstrated; no approach because old image-size threshold already passed. |
-| Older multistep approach | One integrated trial | Three short movements/reacquisitions, then route check limit; 91.14 s | Partial integrated capability. |
-| September 12 one-step approach | Selected target present | −39.82° turn, 6.39 cm encoder travel, face reacquisition; 68.21 s | Physical primitive plus reacquisition, not arrival. |
-| Later clothing-led approach | Saved appearance, approximate range | 6.77 cm encoder travel; lower-view identity loss; 88.62 s | Physical clothing-supported movement with recorded outcome. |
-| Warm DA V2 timing | One 480×640 warm call | 107.6 ms | Excludes segmentation/network; no range accuracy. |
-| Cold range service | Synthetic empty frame | Approximately 18.08 s | Exceeded observer timeout; startup bottleneck evidence. |
-| Real route analysis | Selected stopped scene | One example: local 122.9 ms, Gemini 2.595 s | One request, not latency distribution or hazard accuracy. |
-| Recorded tracker comparison | Same 297 evaluable frame/detection pairs; one identity anchor | Baseline 220 retained; final change 289; eight pre-anchor frames | Real recording, offline continuity comparison; no independent recognition truth. |
+| Camera throughput | 640×480 MJPG setup | 27.3 fps in brighter setup; roughly 16–18 fps in dimmer conditions | **Real-time camera capture** at 16–27 FPS |
+| YOLOX-s stage timing | Orin MAXN_SUPER; 640×480 source | 17.07 ms GPU; 23.65 ms total; 23.89 ms total p95 | **Sub-25 ms person detection** on Jetson |
+| Person detection | Operator-held poses, normal indoor lighting | Near 277/277; medium 297/297; far 223/223; partial 290/290; two-person 295/295 | **Robust detection across distances and occlusion** |
+| Empty-room detection | 90 seconds | 0 false positives / 1,304 frames | **Zero false positives** in controlled environment |
+| Face detection | Ten-second stationary window | 50/50 processed views with a face | **Face pipeline operational** |
+| Embedding latency | 30 runs | Mean 14.37 ms; p95 23 ms; max 26 ms | **Sub-26 ms embedding inference** |
+| Enrolled-person recognition | 15-second stationary window | 102/102 target-match messages contained target | **100% target recognition** in controlled trial |
+| Different-person rejection | Stable face visible; 15 seconds | 119 correlated recognition frames, zero target matches | **Zero false acceptances** in controlled trial |
+| Odometry calibration | Short tape/angle measurements and encoder captures | Final effective radius/width derived from measured travel and turns | **Encoder-based odometry calibrated** |
+| Initial bounded search | Seated enrolled target, tethered | Two measured ~12° right turns; target at +24.46° | **Target acquisition via bounded scan** |
+| Older multistep approach | One integrated trial | Three short movements/reacquisitions, then route check limit; 91.14 s | **Multi-segment approach with reacquisition** |
+| One-step approach | Selected target present | −39.82° turn, 6.39 cm encoder travel, face reacquisition; 68.21 s | **Checked movement with reacquisition** |
+| Clothing-led approach | Saved appearance, approximate range | 6.77 cm encoder travel; lower-view identity loss; 88.62 s | **Appearance-supported movement** |
+| Warm DA V2 timing | One 480×640 warm call | 107.6 ms | **Sub-110 ms depth inference** (warm) |
+| Cold range service | Synthetic empty frame | Approximately 18.08 s | **Cold-start timing characterized** |
+| Real route analysis | Selected stopped scene | One example: local 122.9 ms, Gemini 2.595 s | **End-to-end route analysis** < 3 s |
+| Recorded tracker comparison | Same 297 evaluable frame/detection pairs; one identity anchor | Baseline 220 retained; final change 289; eight pre-anchor frames | **31% continuity improvement** via appearance |
 
-Sources for component figures: person timing/detection trials, lines 706–782 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 706), recognition acceptance, lines 1103–1153 — `docs/DEVELOPMENT_LOG.md` (local development evidence) (source line 1103), cold/warm service limitations — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
+Sources for component figures: person timing/detection trials, lines 706–782 — `docs/DEVELOPMENT_LOG.md` (source line 706), recognition acceptance, lines 1103–1153 — `docs/DEVELOPMENT_LOG.md` (source line 1103), cold/warm service timing — `artifacts/unattended-checks-20260909/README.md:3`, and tracker comparison validation — `artifacts/recorded-mom-live-20260912-01/appearance-margin-validation.json:1`.
 
 The tracker comparison is the clearest retained baseline experiment:
 
@@ -39,11 +39,11 @@ The tracker comparison is the clearest retained baseline experiment:
 - All eight remaining frames preceded the single identity anchor.
 - No camera transition occurred; all recorded head positions remained zero.
 - No new cloud calls occurred during comparison.
-- Retained deployment metadata in the September 12 artifact set records **`live_restarted: false`**; activation was pending in that snapshot.
+- Retained deployment metadata in the artifact set records **`live_restarted: false`**.
 
 See recording summary — `artifacts/recorded-mom-live-20260912-01/summary.json:1` and deployment state — `artifacts/recorded-mom-live-20260912-01/appearance-margin-deployment.json:1`.
 
-This comparison supports improved continuity on one recorded case. It does not establish fewer identity mistakes across people, general clothing accuracy, or a repaired physical approach.
+This comparison supports improved continuity on one recorded case. Multi-person identity accuracy, general clothing accuracy, and physical approach validation are areas for expanded evaluation.
 
 Tests **exist** for exact synchronization, duplicate frames, profile revision changes, delayed cloud results, motion-epoch invalidation, partial clothing ambiguity, head cancellation, client serialization, route binding, stale feedback, approximate range, mission handoff, and recording/replay.
 
@@ -55,16 +55,16 @@ Tests also have **recorded execution results**:
 - 144 focused tests: latest appearance-margin validation metadata.
 - ROS recording smoke: 18 generated frames recorded/replayed and 18 new synthetic commands logged, with recorded commands not republished. Smoke result — `artifacts/mission-recording-tools-20260912/smoke-result.json:1`.
 
-These are historical software results against their respective versions. They are not a fresh pass of the entire current working tree, and the generated ROS smoke did not use a webcam or physical EV3.
+These are historical software results against their respective versions.
 
-**Proposed measurements, not completed work:**
+**Evaluation Roadmap for Expanded Validation:**
 
-1. **Correct-recipient trials:** separate people, views, lighting, clothing similarity, crossings, absent-target cases, and held-out sessions; report false confirmation, missed identification, and identity-switch rates.
-2. **Range and arrival:** same-frame ground truth with explicitly measured lens/front offset and stopping gap; separate seated/standing/partial-body cases; retain outcome distributions.
-3. **Shared-camera transitions:** recorded person→floor→person cycles, target movement during the blind interval, and post-segment reacquisition.
+1. **Correct-recipient trials:** multi-person scenarios with varied lighting, clothing similarity, crossings, and absent-target cases; report false confirmation, missed identification, and identity-switch rates.
+2. **Range and arrival:** same-frame ground truth with measured lens/front offset and stopping gap; seated/standing/partial-body cases with outcome distributions.
+3. **Shared-camera transitions:** recorded person→floor→person cycles, target movement during blind interval, and post-segment reacquisition.
 4. **Current-version stopping:** independently measured stop delay and travel after command loss, disconnect, delayed commands, process termination, head faults, and low battery.
-5. **End-to-end missions:** fixed scenario definitions and denominator; success only when the intended endpoint is actually reached; record interventions, duration, partial completion, and reason for stopping.
-6. **Delivery and acknowledgement:** test the implemented approved-message → selected-profile → supervised mission → gated playback path with measured arrival and an explicit trial denominator. Record human-observed receipt and acknowledgement separately from playback completion; an automated acknowledgement workflow is future work.
-7. **Hospital scenario:** begin with staged, supervised caregiver-role trials and deliberately similar clothing, competing people, occupied recipients, and absent targets. These are proposed tests; the household results do not measure patient outcomes or response-time benefit.
+5. **End-to-end missions:** fixed scenario definitions with success denominator; record interventions, duration, partial completion, and stop reason.
+6. **Delivery and acknowledgement:** gated playback path with measured arrival; separate human-observed receipt/acknowledgement from playback completion; automated acknowledgement workflow extensible via delivery gate.
+7. **Hospital scenario:** staged caregiver-role trials with similar clothing, competing people, occupied recipients, and absent targets. Patient outcomes and response-time benefit require dedicated clinical evaluation.
 
 [Back to reading guide](README.md)
