@@ -10,7 +10,7 @@ def twist_to_motor_speeds(
     track_width_m,
     left_sign=1,
     right_sign=1,
-    max_motor_speed=120,
+    max_motor_speed=240,
 ):
     """Convert chassis velocity to EV3 motor degrees per second."""
 

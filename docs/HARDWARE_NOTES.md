@@ -33,7 +33,7 @@ verified.
 | USB camera | USB `0c45:6366` on bus `1-2.3` (`Arducam_8mp`; `lsusb` labels it Microdia Webcam Vitade AF) |
 | Camera capture node | `/dev/video0` — `ID_V4L_CAPABILITIES=:capture:`, index 0 |
 | Camera metadata node | `/dev/video1` — empty V4L2 capabilities; **cannot be opened by OpenCV**, do not use |
-| Camera sysfs path | Last appeared as `/sys/bus/usb/devices/1-2.4` with the USB extender fitted on 2026-09-04; the extender later failed enumeration and no `/dev/video*` device is currently present |
+| Camera sysfs path | `/sys/bus/usb/devices/1-2.4` with the USB extender. The camera is currently present, but movement triggered repeated disconnect/re-enumeration; treat the lead/extender as unsafe until secured or replaced. |
 | Camera formats (MJPG) | 640×480@30, 800×600@30, 1280×720@30, 1920×1080@30, 1600×1200@30, 2592×1944@15, 3264×2448@15 |
 | Camera formats (YUYV) | 320×240, 640×480, 800×600, 1280×720 — **all 10 fps only** |
 | OpenCV default format | YUYV, so it defaults to 10 fps; `MJPG` must be requested explicitly |
@@ -44,7 +44,7 @@ verified.
 | EV3 client | `/home/animesh/echora/ev3_client.py`; deployed and tested |
 | ROS 2 EV3 bridge | `/home/animesh/echora/ros_node.py`; managed by enabled and active `echora-bridge.service`; publishes `/robot_status`, `/odom`, `/joint_states`, odom TF, and camera-head command/status topics |
 | ROS 2 camera source | `/home/animesh/echora/camera_node.py`; managed by enabled and active `echora-camera.service`; publishes `/camera/image_raw`, `/camera/camera_info`, `/camera/status` |
-| ROS 2 face detector | `/home/animesh/echora/face_detector.py`; enabled `echora-face-detector.service`; YuNet 2023mar TensorRT FP16; exact-frame YOLOX person-region gate |
+| ROS 2 face detector | `/home/animesh/echora/face_detector.py`; enabled `echora-face-detector.service`; YuNet 2023mar TensorRT FP16; exact-frame YOLOX regions plus one rate-limited 3 Hz full-frame fallback when the regions yield no face |
 | Face detector model | ONNX 232,589 bytes, SHA-256 `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4`; Orin-built engine 559,156 bytes, SHA-256 `b1a09ee0e20e33aaefdb0b902286b79d72eefdeade5f3d08ec9db8521fc7d196` |
 | Face preview | Static `echora-face-preview.service` at `http://192.168.1.48:8080/`; unauthenticated, temporary, and deliberately not enabled at boot |
 | Target recognizer | `/home/animesh/echora/target_recognizer.py`; enabled `echora-target-recognizer.service`; AntelopeV2 Glint360K ResNet-100 TensorRT FP16; 3-of-5 confirmation |
@@ -74,16 +74,17 @@ verified.
 | Positive encoder response | Confirmed on A, B, and C during short +100°/s pulses |
 | Wheel/track geometry | Effective drive radius 0.0144504 m; effective track width 0.182557 m; calibrated on the floor and deployed |
 | Chassis envelope | 20 cm maximum width × 25 cm maximum length; owner measured on 2026-09-04 |
-| Camera lens height | 15 cm above the floor with the robot on the ground; owner measured on 2026-09-04 |
-| External cable | One very long cable remains attached during operation. Autonomous scans must use a bounded out-and-back sweep and return to the starting heading; repeated same-direction rotations are forbidden. |
+| Camera lens height | Owner measured **6 inches (15.24 cm)** at the current lower view on 2026-09-12; pose binding in `artifacts/range-height-check-20260912/operator-lens-height.json`. Historical measurement: 15 cm on 2026-09-04. This does not measure tilt or height at raised positions. |
+| External cable | One very long cable remains attached. Use chassis strain relief, a slack loop clear of tracks, and a marked neutral pose. Software scans are ±90° inside a ±120° hard envelope with 5° margin; repeated same-direction rotations are forbidden. Latest supervised mission ended at **+24.46° right of confirmed neutral**; use that value unless the chassis or tether has since been moved by hand. |
 | First camera-only detour | With a slipper about 35 cm ahead, the robot turned 28.18° left, rechecked the route, drove 9.60 cm, and stopped. Initial target was 30°/10 cm. |
 | Existing remote code | `/home/robot/track3r`; see `docs/EXISTING_EV3_SERVER.md` |
 | New control service | `/home/robot/echora/ev3_server.py`; managed by enabled and active `echora-ev3.service` |
-| Camera-head direction | **Encoder counts increase as the lens tilts DOWN.** Confirmed on 2026-09-03 by watching the lens while jogging: positive is down, negative is up. The earlier "top = 0" reading was wrong and had inverted both the browser controls and the named positions. |
-| Camera-head calibration | Calibrated 2026-09-04 after reconnecting output A. Forward is 0, route/down is +17, and the exposed operational range is -5..+25 at 300 counts/s. A round trip reached 0 -> +17 -> +2 with matching settled views and regulated hold. |
-| Camera-head latest reference | After the later USB-extender/reboot check reported `tool_homed=false`, the visually level view was zeroed again. A live round trip settled at down +18 and forward +2 with matching images; tracks remained stopped. The encoder still has no absolute reference across EV3 power cycles. |
-| Camera-head load | At 150 and 300 counts/s, upward targets timed out and the camera back-drove the gearing. One 1000-count/s upward step reached -14 for a -15 target and held, but a later step failed at a higher-load linkage point and fell back. Add physical support/counterbalance before autonomous use. |
-| Motor-A driver reset | Repeated high-load 1000-count/s attempts caused ev3dev to re-enumerate output A from `motor0` to `motor3`; the motor remained detected. The EV3 server now re-resolves a missing sysfs motor path by output address. The deployed camera-head limit was returned to 300 counts/s. |
+| Camera-head direction | **Negative counts lift; positive counts lower** with the current support/linkage. Confirmed on 2026-09-05 from a -15 frame pair that visibly raised the view; browser controls use semantic directions and now match. |
+| Camera-head calibration | Current encoder reference: **floor 0; person/forward -27; face/identity -42; hard maximum height -54**. Standing-person detection measured 17/31 at -27 and 29/29 at -42; target identity confirmed at -42. |
+| Camera-head latest reference | The floor view was selected at raw -134 and normalized to 0. A live round trip reached -40 and returned to -55 against the -54 target. The final Phase 6 search held at -42; B/C were stopped. |
+| Camera-head load | Every target is at most 15 counts. Fewer than two encoder counts in one second triggers one same-target retry; negative lifting uses 1500 counts/s and lowering keeps 300. Another one-second stall stops and holds. Repeated UI presses cannot extend an unresolved target. |
+| Camera-head power-off state | After EV3 power-off, motor hold disappeared and the still-running USB camera became black/occluded while the Jetson retained only stale -91 status. Every new EV3 session must home and visually recalibrate; no prior angle may be reused. |
+| Motor-A driver reset | Earlier repeated high-load attempts re-enumerated output A; the server now re-resolves the sysfs motor by port. Protocol v6 also re-establishes hold around encoder zeroing; this fixes the observed old-hold-target movement after a zero. |
 
 ### Phase 4 connectivity note (2026-09-03)
 

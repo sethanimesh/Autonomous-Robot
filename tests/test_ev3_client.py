@@ -116,6 +116,9 @@ class Ev3ClientTests(unittest.TestCase):
 
         commands = [item["command"] for item in fake_socket.sent]
         self.assertEqual(["drive", "drive", "drive", "stop"], commands)
+        self.assertTrue(
+            all("tool" not in item for item in fake_socket.sent if item["command"] == "drive")
+        )
         self.assertEqual(3, len(responses))
         self.assertAlmostEqual(10.25, clock.now)
 
@@ -147,19 +150,20 @@ class Ev3ClientTests(unittest.TestCase):
         self.assertEqual(
             [
                 {"command": "tool_move", "position": 25, "speed": 40},
-                {"command": "tool_home", "speed": 25},
+                {"command": "tool_home", "speed": 300},
                 {"command": "tool_zero"},
                 {"command": "tool_acknowledge_position"},
             ],
             fake_socket.sent,
         )
 
-    def test_camera_head_cli_defaults_to_low_speed(self):
+    def test_camera_head_cli_uses_the_loaded_home_speed(self):
         args = parse_args(["tool-move", "--position", "25"])
 
         self.assertEqual("tool-move", args.action)
         self.assertEqual(25, args.position)
         self.assertEqual(40, args.speed)
+        self.assertEqual(300, parse_args(["tool-home"]).speed)
 
     def test_closed_connection_is_reported_and_discarded(self):
         client, fake_socket, _ = self.make_client()

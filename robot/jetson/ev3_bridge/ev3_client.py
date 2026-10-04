@@ -6,7 +6,9 @@ import json
 import math
 import socket
 import sys
+import threading
 import time
+from functools import wraps
 
 
 DEFAULT_EV3_HOST = "192.168.1.25"
@@ -29,6 +31,14 @@ class Ev3RemoteError(Ev3ClientError):
     """Raised when the EV3 returns an error response."""
 
 
+def _serialized(method):
+    @wraps(method)
+    def call(self, *args, **kwargs):
+        with self.io_lock:
+            return method(self, *args, **kwargs)
+    return call
+
+
 class Ev3Client(object):
     """Sequential request/response client with safe finite-duration driving."""
 
@@ -49,7 +59,11 @@ class Ev3Client(object):
         self.sleeper = sleeper or time.sleep
         self.socket = None
         self.receive_buffer = b""
+        # A complete request owns both its write and response. Head progress
+        # and a stop must never consume each other's response on the one socket.
+        self.io_lock = threading.RLock()
 
+    @_serialized
     def connect(self):
         if self.socket is not None:
             return
@@ -62,6 +76,7 @@ class Ev3Client(object):
             self.socket = None
             raise Ev3ConnectionError("cannot connect to EV3: {0}".format(exc))
 
+    @_serialized
     def close(self):
         if self.socket is None:
             return
@@ -86,6 +101,7 @@ class Ev3Client(object):
         line, self.receive_buffer = self.receive_buffer.split(b"\n", 1)
         return line
 
+    @_serialized
     def request(self, command):
         if not isinstance(command, dict):
             raise ValueError("command must be a dictionary")
@@ -129,14 +145,12 @@ class Ev3Client(object):
             raise ValueError("{0} speed must be finite".format(name))
         return int(round(value))
 
-    def drive(self, left, right, tool=None):
+    def drive(self, left, right):
         command = {
             "command": "drive",
             "left": self._validate_speed("left", left),
             "right": self._validate_speed("right", right),
         }
-        if tool is not None:
-            command["tool"] = self._validate_speed("tool", tool)
         return self.request(command)
 
     def move_tool(self, position, speed):
@@ -148,7 +162,7 @@ class Ev3Client(object):
             }
         )
 
-    def home_tool(self, speed=25):
+    def home_tool(self, speed=300):
         return self.request(
             {
                 "command": "tool_home",
@@ -166,7 +180,6 @@ class Ev3Client(object):
         self,
         left,
         right,
-        tool=0,
         duration_seconds=0.25,
         refresh_seconds=DEFAULT_REFRESH_SECONDS,
     ):
@@ -187,7 +200,7 @@ class Ev3Client(object):
         responses = []
         try:
             while self.clock() < deadline:
-                responses.append(self.drive(left, right, tool))
+                responses.append(self.drive(left, right))
                 remaining = deadline - self.clock()
                 if remaining > 0:
                     self.sleeper(min(refresh_seconds, remaining))
@@ -230,7 +243,7 @@ def parse_args(argv):
     subparsers.add_parser("tool-zero")
     subparsers.add_parser("tool-acknowledge-position")
     tool_home = subparsers.add_parser("tool-home")
-    tool_home.add_argument("--speed", type=int, default=25)
+    tool_home.add_argument("--speed", type=int, default=300)
 
     tool_move = subparsers.add_parser("tool-move")
     tool_move.add_argument("--position", type=int, required=True)
@@ -239,7 +252,6 @@ def parse_args(argv):
     pulse = subparsers.add_parser("pulse")
     pulse.add_argument("--left", type=int, default=0)
     pulse.add_argument("--right", type=int, default=0)
-    pulse.add_argument("--tool", type=int, default=0)
     pulse.add_argument("--duration", type=float, default=0.25)
     pulse.add_argument("--refresh", type=float, default=DEFAULT_REFRESH_SECONDS)
     return parser.parse_args(argv)
@@ -267,7 +279,6 @@ def main(argv=None):
             responses = client.drive_for(
                 args.left,
                 args.right,
-                args.tool,
                 args.duration,
                 args.refresh,
             )

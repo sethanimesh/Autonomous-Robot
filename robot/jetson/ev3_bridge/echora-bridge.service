@@ -8,6 +8,7 @@ Type=simple
 User=animesh
 WorkingDirectory=/home/animesh/echora
 Environment=PYTHONUNBUFFERED=1
+Environment=FASTRTPS_DEFAULT_PROFILES_FILE=/home/animesh/echora/control_transport.xml
 ExecStart=/bin/bash -lc 'source /opt/ros/humble/setup.bash && exec /usr/bin/python3 /home/animesh/echora/ros_node.py --ros-args --params-file /home/animesh/echora/robot.yaml'
 Restart=on-failure
 RestartSec=2

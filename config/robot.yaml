@@ -6,22 +6,39 @@ ev3_bridge:
     track_width_m: 0.182557
     left_sign: 1
     right_sign: 1
-    max_motor_speed: 120
+    max_motor_speed: 240
     encoder_counts_per_rev: 360
     command_timeout_sec: 0.3
     update_rate_hz: 10.0
     odom_frame: odom
     base_frame: base_link
     publish_odom_tf: true
-    camera_head_calibrated: true
-    # Each EV3 power cycle invalidates the old encoder origin. The startup
-    # calibrator homes toward the downward mechanical stop and sets that to 0;
-    # negative positions then tilt upward. Vision may replace the runtime
-    # forward position after its calibration sweep.
-    camera_head_forward_position: -30
-    camera_head_down_position: 0
-    camera_head_minimum_position: -150
-    camera_head_maximum_position: 0
-    camera_head_speed: 300
-    camera_head_home_speed: 60
+    # Named poses stay locked until the current encoder reference's three views
+    # publishes a complete runtime calibration.
+    camera_head_calibrated: false
+    # Retained lower boundary approved on 2026-09-05: encoder -106 in the reference below.
+    # Never infer this boundary from floor pixels or reset zero automatically.
+    # This saved boundary belongs ONLY to this EV3 reference; reboot/re-zero
+    # locks head movement until the physical reference is established again.
+    camera_head_require_approved_reference: true
+    camera_head_approved_reference_id: "422ad9760eba46ada3276f650fc03287"
+    # Loaded settling reached four counts beyond target in repeated live tests.
+    # Reserve six counts inside the physical endpoint; accept four-count settling.
+    camera_head_lower_target_margin: 6
+    camera_head_upper_target_margin: 3
+    camera_head_settle_tolerance: 4
+    # Saved candidate views; startup verifies them with Gemini.
+    camera_head_forward_position: -117
+    camera_head_down_position: -112
+    camera_head_up_position: -125
+    # Physical range demonstrated in this reference; targets reserve settling margins.
+    camera_head_minimum_position: -128
+    camera_head_maximum_position: -106
+    camera_head_speed: 450
+    camera_head_post_move_settle_seconds: 0.2
+    # Motor A reports 1560 counts/s maximum. This near-rated boost is allowed
+    # for one 15-count upward/lifting retry only. The step never grows beyond
+    # 15 counts.
+    camera_head_boost_speed: 1500
+    camera_head_home_speed: 300
     camera_head_max_jog_degrees: 15

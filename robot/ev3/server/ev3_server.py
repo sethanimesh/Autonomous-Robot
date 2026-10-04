@@ -14,18 +14,28 @@ import os
 import socket
 import sys
 import time
+import uuid
 
 
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 6
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 9999
 DEFAULT_ALLOWED_CLIENT = "192.168.1.48"
 DEFAULT_WATCHDOG_SECONDS = 0.5
+DEFAULT_CLIENT_IDLE_TIMEOUT_SECONDS = 5.0
 DEFAULT_DRIVE_SPEED_LIMIT = 250
-DEFAULT_TOOL_SPEED_LIMIT = 300
-DEFAULT_TOOL_POSITION_LIMIT = 720
+DEFAULT_TOOL_SPEED_LIMIT = 1500
+DEFAULT_TOOL_POSITION_LIMIT = 180
+DEFAULT_TOOL_STEP_LIMIT = 15
 DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS = 8.0
-DEFAULT_TOOL_HOME_SPEED_LIMIT = 100
+DEFAULT_TOOL_STALL_RETRY_SECONDS = 1.0
+DEFAULT_TOOL_STALL_RETRY_LIMIT = 1
+DEFAULT_TOOL_PROGRESS_COUNTS = 2
+TOOL_SETTLE_TARGET_COUNTS = 4
+TOOL_SETTLE_POSITION_COUNTS = 1
+TOOL_SETTLE_SPEED_COUNTS_PER_SECOND = 5
+TOOL_SETTLE_SECONDS = 0.4
+DEFAULT_TOOL_HOME_SPEED_LIMIT = 300
 DEFAULT_TOOL_HOME_TIMEOUT_SECONDS = 8.0
 DEFAULT_TOOL_HOME_NO_PROGRESS_SECONDS = 0.4
 DEFAULT_POLL_SECONDS = 0.05
@@ -53,13 +63,17 @@ class SysfsMotor(object):
         self.port = port
         self.sysfs_root = sysfs_root
         self.path = self._find_motor(sysfs_root, port)
+        self.generation = uuid.uuid4().hex
+        self.path_inode = os.stat(self.path).st_ino
 
     def _ensure_path(self):
         # ev3dev may remove and recreate a motor with a new motorN name after a
         # driver reset. Resolve the output port again instead of requiring the
         # whole service to be restarted with the stale sysfs path.
-        if not os.path.isdir(self.path):
+        if not os.path.isdir(self.path) or os.stat(self.path).st_ino != self.path_inode:
             self.path = self._find_motor(self.sysfs_root, self.port)
+            self.path_inode = os.stat(self.path).st_ino
+            self.generation = uuid.uuid4().hex
 
     @staticmethod
     def _find_motor(sysfs_root, port):
@@ -103,6 +117,13 @@ class SysfsMotor(object):
                 "failed to read {0} for {1}: {2}".format(attribute, self.port, exc)
             )
 
+    def reference_identity(self):
+        self._ensure_path()
+        with open("/proc/sys/kernel/random/boot_id") as handle:
+            boot_id = handle.read().strip()
+        return {"boot_id": boot_id, "device": os.path.realpath(self.path),
+                "inode": os.stat(self.path).st_ino, "port": self.port}
+
     def set_speed(self, speed):
         if speed == 0:
             self.stop()
@@ -134,6 +155,7 @@ class SysfsMotor(object):
             "position": int(self._read("position")),
             "speed": int(self._read("speed")),
             "state": state.split() if state else [],
+            "generation": self.generation,
         }
 
 
@@ -147,11 +169,16 @@ class MotorController(object):
         drive_speed_limit=DEFAULT_DRIVE_SPEED_LIMIT,
         tool_speed_limit=DEFAULT_TOOL_SPEED_LIMIT,
         tool_position_limit=DEFAULT_TOOL_POSITION_LIMIT,
+        tool_step_limit=DEFAULT_TOOL_STEP_LIMIT,
         tool_move_timeout_seconds=DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS,
+        tool_stall_retry_seconds=DEFAULT_TOOL_STALL_RETRY_SECONDS,
+        tool_stall_retry_limit=DEFAULT_TOOL_STALL_RETRY_LIMIT,
+        tool_progress_counts=DEFAULT_TOOL_PROGRESS_COUNTS,
         tool_home_speed_limit=DEFAULT_TOOL_HOME_SPEED_LIMIT,
         tool_home_timeout_seconds=DEFAULT_TOOL_HOME_TIMEOUT_SECONDS,
         tool_home_no_progress_seconds=DEFAULT_TOOL_HOME_NO_PROGRESS_SECONDS,
         clock=None,
+        reference_path=None,
     ):
         missing = sorted(set(MOTOR_PORTS) - set(motors))
         if missing:
@@ -164,14 +191,26 @@ class MotorController(object):
         self.drive_speed_limit = int(drive_speed_limit)
         self.tool_speed_limit = int(tool_speed_limit)
         self.tool_position_limit = int(tool_position_limit)
+        self.tool_step_limit = int(tool_step_limit)
         self.tool_move_timeout_seconds = float(tool_move_timeout_seconds)
+        self.tool_stall_retry_seconds = float(tool_stall_retry_seconds)
+        self.tool_stall_retry_limit = int(tool_stall_retry_limit)
+        self.tool_progress_counts = int(tool_progress_counts)
         self.tool_home_speed_limit = int(tool_home_speed_limit)
         self.tool_home_timeout_seconds = float(tool_home_timeout_seconds)
         self.tool_home_no_progress_seconds = float(tool_home_no_progress_seconds)
         if self.tool_position_limit <= 0:
             raise ValueError("tool_position_limit must be positive")
+        if self.tool_step_limit <= 0 or self.tool_step_limit > self.tool_position_limit:
+            raise ValueError("tool_step_limit must be positive and within position limit")
         if self.tool_move_timeout_seconds <= 0:
             raise ValueError("tool_move_timeout_seconds must be positive")
+        if self.tool_stall_retry_seconds <= 0:
+            raise ValueError("tool_stall_retry_seconds must be positive")
+        if self.tool_stall_retry_limit < 0:
+            raise ValueError("tool_stall_retry_limit cannot be negative")
+        if self.tool_progress_counts <= 0:
+            raise ValueError("tool_progress_counts must be positive")
         if self.tool_home_speed_limit <= 0:
             raise ValueError("tool_home_speed_limit must be positive")
         if self.tool_home_timeout_seconds <= 0:
@@ -185,13 +224,54 @@ class MotorController(object):
         self.tool_target_position = None
         self.tool_homing = False
         self.tool_homed = False
+        self.tool_reference_id = uuid.uuid4().hex
+        self.tool_device_generation = getattr(self.motors["tool"], "generation", None)
         self.tool_last_position = None
         self.tool_last_progress_at = None
+        self._reset_tool_settlement()
+        self.tool_stall_retry_count = 0
         self.track_motion_active = False
         self.tool_motion_active = False
         self.motion_active = False
         self.last_stop_reason = None
+        self.reference_path = reference_path
         self.stop_all("startup")
+        self._restore_reference()
+
+    def _restore_reference(self):
+        if not self.reference_path:
+            return
+        try:
+            with open(self.reference_path) as handle:
+                saved = json.load(handle)
+            identity = self.motors["tool"].reference_identity()
+            reference = saved.get("reference_id")
+            if (saved.get("identity") == identity and saved.get("homed") is True
+                    and isinstance(reference, str) and len(reference) == 32
+                    and all(c in "0123456789abcdef" for c in reference)):
+                self.tool_reference_id = reference
+                self.tool_homed = True
+                self.tool_target_position = int(self.motors["tool"].snapshot()["position"])
+                self.last_stop_reason = "retained-reference-restored"
+        except (OSError, ValueError, TypeError, AttributeError):
+            # Missing, corrupt, or incompatible state never enables movement.
+            return
+
+    def _save_reference(self):
+        if not self.reference_path:
+            return
+        saved = {"identity": self.motors["tool"].reference_identity(),
+                 "reference_id": self.tool_reference_id, "homed": self.tool_homed}
+        temporary = self.reference_path + ".tmp"
+        try:
+            with open(temporary, "w") as handle:
+                os.chmod(temporary, 0o600)
+                json.dump(saved, handle)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, self.reference_path)
+        except OSError as exc:
+            raise HardwareError("cannot persist camera reference: {0}".format(exc))
 
     @staticmethod
     def _normalize_speed(name, value, limit):
@@ -215,7 +295,43 @@ class MotorController(object):
             )
         return integer_value
 
+    def _reset_tool_settlement(self):
+        self.tool_settle_started_at = None
+        self.tool_settle_position = None
+
+    def _tool_position_settled(self, snapshot, now):
+        position = int(snapshot["position"])
+        states = snapshot.get("state", [])
+        near_stopped_target = (
+            self.tool_target_position is not None
+            and abs(position - self.tool_target_position) <= TOOL_SETTLE_TARGET_COUNTS
+            and "running" not in states
+            and "stalled" not in states
+            and abs(float(snapshot.get("speed", float("inf"))))
+            <= TOOL_SETTLE_SPEED_COUNTS_PER_SECOND
+        )
+        if not near_stopped_target:
+            self._reset_tool_settlement()
+            return False
+        if (
+            self.tool_settle_started_at is None
+            or abs(position - self.tool_settle_position) > TOOL_SETTLE_POSITION_COUNTS
+        ):
+            self.tool_settle_started_at = now
+            self.tool_settle_position = position
+            return False
+        return now - self.tool_settle_started_at >= TOOL_SETTLE_SECONDS
+
     def _refresh_motion_flags(self, tool_snapshot=None):
+        if tool_snapshot is None:
+            tool_snapshot = self.motors["tool"].snapshot()
+        generation = tool_snapshot.get("generation")
+        if generation != self.tool_device_generation:
+            self.tool_device_generation = generation
+            self.tool_homed = False
+            self.tool_reference_id = uuid.uuid4().hex
+            self._save_reference()
+            self.stop_all("tool-reference-lost", suppress_errors=True)
         if self.tool_motion_active:
             if tool_snapshot is None:
                 tool_snapshot = self.motors["tool"].snapshot()
@@ -234,8 +350,13 @@ class MotorController(object):
                     >= self.tool_home_no_progress_seconds
                 )
                 if "stalled" in tool_snapshot.get("state", []) or no_progress:
-                    self.motors["tool"].stop()
+                    # Never release this loaded mechanism between finding the
+                    # stop and establishing zero.  A normal brake allowed the
+                    # real head to back-drive several counts in that tiny gap.
+                    self.motors["tool"].hold()
                     self.motors["tool"].set_position(0)
+                    # Re-issue hold in the new encoder coordinate system.
+                    self.motors["tool"].hold()
                     self.tool_motion_active = False
                     self.tool_homing = False
                     self.tool_homed = True
@@ -243,21 +364,73 @@ class MotorController(object):
                     self.tool_move_started_at = None
                     self.tool_target_position = 0
                     self.last_stop_reason = "tool-home-complete"
-            elif "running" not in tool_snapshot.get("state", []):
-                self.tool_motion_active = False
-                self.commanded["tool"] = 0
-                self.tool_move_started_at = None
+                    self._save_reference()
+            else:
+                now = self.clock()
+                position = int(tool_snapshot["position"])
+                # A first "holding" snapshot can precede actual travel, and
+                # the loaded linkage can continue settling afterward. Keep
+                # the move active until its position is stable near target.
+                if self._tool_position_settled(tool_snapshot, now):
+                    self.tool_motion_active = False
+                    self.commanded["tool"] = 0
+                    self.tool_move_started_at = None
+                    self.tool_last_position = None
+                    self.tool_last_progress_at = None
+                    self._reset_tool_settlement()
+                else:
+                    if (
+                        self.tool_last_position is None
+                        or abs(position - self.tool_last_position)
+                        >= self.tool_progress_counts
+                    ):
+                        self.tool_last_position = position
+                        self.tool_last_progress_at = now
+                    no_progress = (
+                        self.tool_last_progress_at is not None
+                        and now - self.tool_last_progress_at
+                        >= self.tool_stall_retry_seconds
+                    )
+                    if no_progress and self.tool_settle_started_at is None:
+                        if (
+                            self.tool_stall_retry_count
+                            < self.tool_stall_retry_limit
+                            and self.tool_target_position is not None
+                        ):
+                            target = int(self.tool_target_position)
+                            # Negative encoder travel lifts this linkage. Give
+                            # that loaded direction the proven near-rated
+                            # recovery pulse. A downward retry keeps its
+                            # original speed to avoid a gravity-assisted jolt.
+                            retry_speed = abs(int(self.commanded["tool"]))
+                            if target < position:
+                                retry_speed = self.tool_speed_limit
+                            retry_speed = max(1, retry_speed)
+                            try:
+                                self.motors["tool"].move_to(target, retry_speed)
+                            except Exception:
+                                self.stop_all(
+                                    "tool-stall-retry-failure",
+                                    suppress_errors=True,
+                                )
+                                raise
+                            self.commanded["tool"] = (
+                                retry_speed if target > position else -retry_speed
+                            )
+                            self.tool_stall_retry_count += 1
+                            self._reset_tool_settlement()
+                            self.tool_last_position = position
+                            self.tool_last_progress_at = now
+                            self.last_stop_reason = "tool-stall-retry"
+                        else:
+                            self.stop_all("tool-stalled-after-retry")
         self.motion_active = self.track_motion_active or self.tool_motion_active
 
-    def drive(self, left, right, tool=None):
+    def drive(self, left, right):
         applied = {
             "left": self._normalize_speed("left", left, self.drive_speed_limit),
             "right": self._normalize_speed("right", right, self.drive_speed_limit),
         }
-        if tool is not None:
-            applied["tool"] = self._normalize_speed(
-                "tool", tool, self.tool_speed_limit
-            )
 
         if (applied["left"] or applied["right"]) and self.tool_motion_active:
             raise ProtocolError("camera head is moving; chassis command rejected")
@@ -265,8 +438,6 @@ class MotorController(object):
         try:
             for role in ("left", "right"):
                 self.motors[role].set_speed(applied[role])
-            if tool is not None:
-                self.motors["tool"].set_speed(applied["tool"])
         except Exception:
             self.stop_all("motor-write-failure", suppress_errors=True)
             raise
@@ -274,13 +445,8 @@ class MotorController(object):
         self.commanded["left"] = applied["left"]
         self.commanded["right"] = applied["right"]
         self.track_motion_active = bool(applied["left"] or applied["right"])
-        if tool is not None:
-            self.commanded["tool"] = applied["tool"]
-            self.tool_motion_active = bool(applied["tool"])
-            self.tool_move_started_at = None
-            self.tool_target_position = None
 
-        if self.track_motion_active or (tool is not None and applied["tool"]):
+        if self.track_motion_active:
             self.last_motion_at = self.clock()
             self.last_stop_reason = None
         elif not self.tool_motion_active:
@@ -290,6 +456,7 @@ class MotorController(object):
         return dict(applied)
 
     def move_tool(self, position, speed):
+        self._refresh_motion_flags()
         if self.track_motion_active:
             raise ProtocolError("chassis is moving; camera-head command rejected")
         if not self.tool_homed:
@@ -303,37 +470,60 @@ class MotorController(object):
         if applied_speed == 0:
             raise ProtocolError("tool speed must be greater than zero")
 
-        current = self.motors["tool"].snapshot()["position"]
-        if current == target:
-            self.motors["tool"].stop()
-            self.commanded["tool"] = 0
-            self.tool_motion_active = False
-            self.tool_target_position = target
-            self.tool_move_started_at = None
-            self._refresh_motion_flags()
-            return {"position": target, "speed": applied_speed}
-
+        current = int(self.motors["tool"].snapshot()["position"])
+        same_target_retry = bool(
+            self.tool_motion_active
+            and not self.tool_homing
+            and self.tool_target_position is not None
+            and target == int(self.tool_target_position)
+        )
+        if abs(target - current) > self.tool_step_limit:
+            raise ProtocolError(
+                "tool position change must be no more than {0} counts".format(
+                    self.tool_step_limit
+                )
+            )
+        if self.tool_motion_active and not same_target_retry:
+            raise ProtocolError(
+                "camera head is moving; only its current target can be retried"
+            )
         try:
             self.motors["left"].stop()
             self.motors["right"].stop()
-            self.motors["tool"].move_to(target, applied_speed)
+            if current == target:
+                self.motors["tool"].hold()
+            else:
+                self.motors["tool"].move_to(target, applied_speed)
         except Exception:
             self.stop_all("tool-move-failure", suppress_errors=True)
             raise
 
         self.commanded["left"] = 0
         self.commanded["right"] = 0
-        self.commanded["tool"] = applied_speed if target > current else -applied_speed
+        self.commanded["tool"] = (
+            0 if target == current else applied_speed if target > current else -applied_speed
+        )
         self.track_motion_active = False
         self.tool_motion_active = True
+        now = self.clock()
         self.tool_target_position = target
-        self.tool_move_started_at = self.clock()
+        if same_target_retry:
+            # A repeated UI press re-applies the exact target but cannot reset
+            # the absolute eight-second motion deadline indefinitely.
+            self.tool_stall_retry_count += 1
+            self.last_stop_reason = "tool-manual-retry"
+        else:
+            self.tool_move_started_at = now
+            self.tool_stall_retry_count = 0
+            self.last_stop_reason = None
+        self.tool_last_position = current
+        self.tool_last_progress_at = now
+        self._reset_tool_settlement()
         self.tool_homing = False
-        self.last_stop_reason = None
         self.motion_active = True
         return {"position": target, "speed": applied_speed}
 
-    def home_tool(self, speed=25):
+    def home_tool(self, speed=300):
         if self.track_motion_active:
             raise ProtocolError("chassis is moving; camera-head command rejected")
         applied_speed = abs(
@@ -341,6 +531,9 @@ class MotorController(object):
         )
         if applied_speed == 0:
             raise ProtocolError("tool home speed must be greater than zero")
+        self.tool_homed = False
+        self.tool_reference_id = uuid.uuid4().hex
+        self._save_reference()
         try:
             self.motors["left"].stop()
             self.motors["right"].stop()
@@ -359,6 +552,8 @@ class MotorController(object):
         self.tool_move_started_at = now
         self.tool_last_position = int(snapshot["position"])
         self.tool_last_progress_at = now
+        self._reset_tool_settlement()
+        self.tool_stall_retry_count = 0
         self.last_stop_reason = None
         self.motion_active = True
         return {"direction": 1, "speed": applied_speed}
@@ -367,9 +562,19 @@ class MotorController(object):
         self._refresh_motion_flags()
         if self.motion_active:
             raise ProtocolError("all motors must be stopped before zeroing camera head")
+        self.tool_homed = False
+        self.tool_reference_id = uuid.uuid4().hex
+        self._save_reference()
+        # The loaded motor may already be actively holding an old encoder
+        # target. Freeze it before changing coordinates, then establish a new
+        # hold target at zero. Without the second hold, the real mechanism
+        # immediately drove back toward the pre-zero numeric target.
+        self.motors["tool"].hold()
         self.motors["tool"].set_position(0)
+        self.motors["tool"].hold()
         self.tool_target_position = 0
         self.tool_homed = True
+        self._save_reference()
         return 0
 
     def acknowledge_tool_position(self):
@@ -383,11 +588,13 @@ class MotorController(object):
         position = int(self.motors["tool"].snapshot()["position"])
         self._normalize_position("tool position", position, self.tool_position_limit)
         self.tool_target_position = position
+        self.tool_reference_id = uuid.uuid4().hex
         self.tool_homed = True
         self.last_stop_reason = "tool-position-acknowledged"
+        self._save_reference()
         return position
 
-    def stop_all(self, reason, suppress_errors=False, hold_tool=False):
+    def stop_all(self, reason, suppress_errors=False, hold_tool=True):
         errors = []
         for role in ("left", "right", "tool"):
             try:
@@ -405,6 +612,7 @@ class MotorController(object):
         self.tool_homing = False
         self.tool_last_position = None
         self.tool_last_progress_at = None
+        self._reset_tool_settlement()
         self.motion_active = False
         self.last_motion_at = None
         self.last_stop_reason = reason
@@ -432,10 +640,7 @@ class MotorController(object):
             )
         ):
             homing = self.tool_homing
-            self.stop_all(
-                "tool-home-timeout" if homing else "tool-move-timeout",
-                hold_tool=not homing,
-            )
+            self.stop_all("tool-home-timeout" if homing else "tool-move-timeout")
             return True
         self._refresh_motion_flags()
         return stopped
@@ -455,9 +660,14 @@ class MotorController(object):
             "tool_motion_active": self.tool_motion_active,
             "tool_homing": self.tool_homing,
             "tool_homed": self.tool_homed,
+            "tool_reference_id": self.tool_reference_id,
             "tool_target_position": self.tool_target_position,
             "tool_position_limit": self.tool_position_limit,
+            "tool_step_limit": self.tool_step_limit,
             "tool_move_timeout_ms": int(self.tool_move_timeout_seconds * 1000),
+            "tool_stall_retry_ms": int(self.tool_stall_retry_seconds * 1000),
+            "tool_stall_retry_count": self.tool_stall_retry_count,
+            "tool_stall_retry_limit": self.tool_stall_retry_limit,
         }
 
 
@@ -480,9 +690,11 @@ def handle_request(controller, request):
     if command == "drive":
         if "left" not in request or "right" not in request:
             raise ProtocolError("drive requires left and right speeds")
-        applied = controller.drive(
-            request["left"], request["right"], request.get("tool")
-        )
+        if "tool" in request:
+            raise ProtocolError(
+                "raw tool speed is disabled; use bounded tool_move commands"
+            )
+        applied = controller.drive(request["left"], request["right"])
         return {"status": "ok", "applied": applied}
     if command == "tool_move":
         if "position" not in request or "speed" not in request:
@@ -490,7 +702,7 @@ def handle_request(controller, request):
         applied = controller.move_tool(request["position"], request["speed"])
         return {"status": "ok", "applied": applied}
     if command == "tool_home":
-        applied = controller.home_tool(request.get("speed", 25))
+        applied = controller.home_tool(request.get("speed", 300))
         return {"status": "ok", "applied": applied}
     if command == "tool_zero":
         return {"status": "ok", "position": controller.zero_tool()}
@@ -549,6 +761,8 @@ class Ev3JsonServer(object):
         allowed_client=DEFAULT_ALLOWED_CLIENT,
         poll_seconds=DEFAULT_POLL_SECONDS,
         max_line_bytes=DEFAULT_MAX_LINE_BYTES,
+        client_idle_timeout_seconds=DEFAULT_CLIENT_IDLE_TIMEOUT_SECONDS,
+        clock=None,
     ):
         self.controller = controller
         self.host = host
@@ -556,6 +770,10 @@ class Ev3JsonServer(object):
         self.allowed_client = allowed_client
         self.poll_seconds = float(poll_seconds)
         self.max_line_bytes = int(max_line_bytes)
+        self.client_idle_timeout_seconds = float(client_idle_timeout_seconds)
+        if not math.isfinite(self.client_idle_timeout_seconds) or self.client_idle_timeout_seconds <= 0:
+            raise ValueError("client idle timeout must be finite and positive")
+        self.clock = clock or time.monotonic
         self._stopping = False
         self._listener = None
 
@@ -609,9 +827,13 @@ class Ev3JsonServer(object):
     def _handle_client(self, connection):
         connection.settimeout(self.poll_seconds)
         buffer = b""
+        last_request_at = self.clock()
 
         try:
             while not self._stopping:
+                if self.clock() - last_request_at >= self.client_idle_timeout_seconds:
+                    print("Client idle timeout; accepting a fresh bridge connection")
+                    break
                 self.controller.enforce_watchdog()
                 try:
                     data = connection.recv(1024)
@@ -628,12 +850,16 @@ class Ev3JsonServer(object):
                         return
                     if not line.strip():
                         continue
+                    last_request_at = self.clock()
                     response = process_request_line(self.controller, line)
                     connection.sendall(encode_response(response))
 
                 if len(buffer) > self.max_line_bytes:
                     self._send_error(connection, "request line is too long")
                     return
+        except OSError as exc:
+            # A reset peer is a client disconnect, not a server/encoder reset.
+            print("Client socket closed: {0}".format(exc))
         finally:
             try:
                 connection.close()
@@ -652,12 +878,16 @@ def build_controller(args):
         drive_speed_limit=args.drive_speed_limit,
         tool_speed_limit=args.tool_speed_limit,
         tool_position_limit=args.tool_position_limit,
+        tool_step_limit=args.tool_step_limit,
         tool_move_timeout_seconds=args.tool_move_timeout,
+        tool_stall_retry_seconds=args.tool_stall_retry,
+        reference_path=args.camera_reference_file,
     )
 
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--camera-reference-file", default="/home/robot/echora/camera-reference.json")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--allowed-client", default=DEFAULT_ALLOWED_CLIENT)
@@ -670,7 +900,15 @@ def parse_args(argv):
         "--tool-position-limit", type=int, default=DEFAULT_TOOL_POSITION_LIMIT
     )
     parser.add_argument(
+        "--tool-step-limit", type=int, default=DEFAULT_TOOL_STEP_LIMIT
+    )
+    parser.add_argument(
         "--tool-move-timeout", type=float, default=DEFAULT_TOOL_MOVE_TIMEOUT_SECONDS
+    )
+    parser.add_argument(
+        "--tool-stall-retry",
+        type=float,
+        default=DEFAULT_TOOL_STALL_RETRY_SECONDS,
     )
     parser.add_argument(
         "--sysfs-root", default="/sys/class/tacho-motor", help=argparse.SUPPRESS

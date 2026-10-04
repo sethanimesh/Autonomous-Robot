@@ -8,6 +8,7 @@ command and holds no connection to the EV3.
 
 import array
 import json
+import os
 import time
 
 import cv2
@@ -26,6 +27,7 @@ from std_msgs.msg import String
 from camera_calibration import resolve_calibration
 from camera_config import CameraConfig
 from camera_config import PARAMETER_DEFAULTS
+from camera_recovery import CameraRestartWatchdog
 from frame_health import CaptureHealth
 from frame_health import STATE_OPENING
 from frame_health import STATE_RECONNECTING
@@ -96,6 +98,11 @@ class CameraNode(Node):
             ),
         )
         self.camera_info_message = self.build_camera_info()
+        self.recovery = CameraRestartWatchdog(
+            lambda: self.health._last_frame_time,
+            timeout=max(self.config.restart_after_stall_sec, self.config.warmup_sec + 5.),
+        )
+        self.recovery.start()
 
         self.create_timer(self.config.capture_timer_period_sec(), self.on_capture_timer)
         self.create_timer(self.config.status_interval_sec, self.on_status_timer)
@@ -310,6 +317,7 @@ class CameraNode(Node):
                 "frame_id": self.config.frame_id,
                 "requested_fps": self.config.requested_fps,
                 "requested_fourcc": self.config.fourcc,
+                "restart_after_stall_sec": self.config.restart_after_stall_sec,
                 "negotiated": self.negotiated,
                 "calibrated": self.calibration.is_calibrated,
                 "calibration": self.calibration.describe(),
@@ -320,6 +328,7 @@ class CameraNode(Node):
         self.status_publisher.publish(message)
 
     def shutdown(self):
+        self.recovery.close()
         self.health.set_state(STATE_STOPPED)
         self.publish_status()
         self.close_camera()
@@ -341,7 +350,19 @@ class CameraNode(Node):
             print("[INFO] [echora_camera]: {0}".format(summary), flush=True)
 
 
+def configure_camera_transport():
+    """Avoid the stalled local transport unless an operator profile is set."""
+    if any(name in os.environ for name in (
+        'FASTRTPS_DEFAULT_PROFILES_FILE', 'FASTDDS_DEFAULT_PROFILES_FILE'
+    )):
+        return
+    profile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'camera_transport.xml')
+    if os.path.isfile(profile):
+        os.environ['FASTRTPS_DEFAULT_PROFILES_FILE'] = profile
+
+
 def main(args=None):
+    configure_camera_transport()
     rclpy.init(args=args)
     node = CameraNode()
     try:

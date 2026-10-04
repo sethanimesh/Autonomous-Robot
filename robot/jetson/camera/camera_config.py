@@ -17,6 +17,7 @@ PARAMETER_DEFAULTS = {
     "max_read_failures": 15,
     "read_failure_pause_sec": 0.02,
     "status_interval_sec": 5.0,
+    "restart_after_stall_sec": 12.0,
     "calibration_file": "",
 }
 
@@ -79,6 +80,7 @@ class CameraConfig(object):
         max_read_failures=PARAMETER_DEFAULTS["max_read_failures"],
         read_failure_pause_sec=PARAMETER_DEFAULTS["read_failure_pause_sec"],
         status_interval_sec=PARAMETER_DEFAULTS["status_interval_sec"],
+        restart_after_stall_sec=PARAMETER_DEFAULTS["restart_after_stall_sec"],
         calibration_file=PARAMETER_DEFAULTS["calibration_file"],
     ):
         if not isinstance(video_device, str) or not video_device.strip():
@@ -118,6 +120,9 @@ class CameraConfig(object):
         )
         self.status_interval_sec = _bounded_float(
             "status_interval_sec", status_interval_sec, 0.0, 3600.0
+        )
+        self.restart_after_stall_sec = _bounded_float(
+            'restart_after_stall_sec', restart_after_stall_sec, 5.0, 300.0, allow_minimum=True
         )
 
         if calibration_file is None:
@@ -165,5 +170,6 @@ class CameraConfig(object):
             "max_read_failures": self.max_read_failures,
             "read_failure_pause_sec": self.read_failure_pause_sec,
             "status_interval_sec": self.status_interval_sec,
+            "restart_after_stall_sec": self.restart_after_stall_sec,
             "calibration_file": self.calibration_file,
         }

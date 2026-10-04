@@ -5,6 +5,14 @@ from the Jetson's USB camera and publishes them as ROS 2 messages. It does
 nothing else: no detection, no recognition, no recording, and no motor
 command. It holds no connection to the EV3.
 
+Deploy `camera_transport.xml` beside `camera_node.py` (both live under
+`/home/animesh/echora` on the Jetson). Before ROS initialization, the node
+selects this UDPv4 profile unless `FASTRTPS_DEFAULT_PROFILES_FILE` or
+`FASTDDS_DEFAULT_PROFILES_FILE` is already set. This addresses the observed
+camera process blocking inside ROS image publication after USB reconnection;
+it leaves capture settings and other services unchanged. The profile uses the
+[Fast DDS 2.6 UDP transport configuration](https://fast-dds.docs.eprosima.com/en/2.6.x/fastdds/transport/udp/udp.html).
+
 ## Topics
 
 | Topic | Type | QoS |
