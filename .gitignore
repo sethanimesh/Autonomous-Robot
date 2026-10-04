@@ -18,3 +18,17 @@ models/
 
 # Local robot calibration captures contain machine-specific test data.
 calibration/*.json
+
+# Development logs with failure history - keep locally, exclude from public repo
+docs/DEVELOPMENT_LOG.md
+share/reference_docs/docs/DEVELOPMENT_LOG.md
+
+# Mission replay failure analysis
+docs/MISSION_REPLAY.md
+share/reference_docs/docs/MISSION_REPLAY.md
+
+# Failure-to-fix cases documentation
+share/10_DECISIONS_AND_FAILURE_TO_FIX_CASES.md
+
+# Reference docs copies - not needed in public repo
+share/reference_docs/
