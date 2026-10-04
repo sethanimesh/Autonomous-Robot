@@ -1,5 +1,4 @@
-# On-Call Hospital Assistance with Recipient Directed Care Coordination
-
+# Autonomous Assistive Healthcare Robot
 An identity-aware assistance robot that searches for a selected enrolled caregiver, checks a camera-observed route, and approaches through short supervised movement segments.
 
 ## Problem and scope
