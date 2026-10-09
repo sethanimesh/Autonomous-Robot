@@ -1,6 +1,10 @@
 # Autonomous Assistive Healthcare Robot
 An identity-aware assistance robot that searches for a selected enrolled caregiver, checks a camera-observed route, and approaches through short supervised movement segments.
 
+<p align="center">
+  <img src="assets/robot.jpg" alt="Echora Robo LEGO EV3 assistive robot" width="720">
+</p>
+
 ## Problem and scope
 
 A patient needs assistance while the assigned nurse or doctor is attending to another task elsewhere in the room and does not have a phone in hand. A general callout can attract attention without reaching the person responsible; a device notification depends on someone checking it. This project explores bringing an assistance request directly to its intended recipient.
